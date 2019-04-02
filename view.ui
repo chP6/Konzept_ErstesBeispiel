@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>795</width>
+    <height>482</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -49,10 +49,10 @@
   <widget class="QPushButton" name="pbInc">
    <property name="geometry">
     <rect>
-     <x>230</x>
-     <y>60</y>
+     <x>150</x>
+     <y>50</y>
      <width>89</width>
-     <height>25</height>
+     <height>61</height>
     </rect>
    </property>
    <property name="text">
@@ -62,27 +62,14 @@
   <widget class="QPushButton" name="pbClear">
    <property name="geometry">
     <rect>
-     <x>230</x>
-     <y>100</y>
+     <x>250</x>
+     <y>50</y>
      <width>89</width>
-     <height>25</height>
+     <height>61</height>
     </rect>
    </property>
    <property name="text">
     <string>Clear</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="lbMessage">
-   <property name="geometry">
-    <rect>
-     <x>230</x>
-     <y>140</y>
-     <width>121</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string/>
    </property>
   </widget>
  </widget>

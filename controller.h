@@ -19,7 +19,6 @@ private:
     EventQueue eventQueue;
     void processQeue();
     void increment(int inc);
-    void lock(bool on);
     void clear();
 };
 

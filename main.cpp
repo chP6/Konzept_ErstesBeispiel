@@ -8,7 +8,7 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     View view;
-    Model model(view);
+    Model model;
 
     QObject::connect(&model, &Model::updateView,            // model signal mit view slot verbinden
                      &view, &View::on_modelUpdate);

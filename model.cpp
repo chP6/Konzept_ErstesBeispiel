@@ -1,10 +1,9 @@
 #include "model.h"
 #include "view.h"
 
-Model::Model(View& view)
+Model::Model()
 {
     count = 0;
-    this->view = &view;
 }
 
 void Model::setData(int data){
