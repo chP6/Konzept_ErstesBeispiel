@@ -43,20 +43,16 @@ void Controller::processQeue(){
     eventStruct loadedEvent;
 
     while(1){
-        // wenn qeue nicht leer, kommandi abholen
-        if(!eventQueue.isEmpty()){
-            eventQueue.pullEvent(loadedEvent);
-            // und ausführen
-            switch (loadedEvent.evt) {
-            case E_CLEAR:
-                clear();
-                break;
-            case E_INCREASE:
-                increment(loadedEvent.val);
-                break;
-            default:
-                break;
-            }
+        eventQueue.pullEvent(loadedEvent);      //blockiert, falls queue leer
+        switch (loadedEvent.evt) {
+        case E_CLEAR:
+            clear();
+            break;
+        case E_INCREASE:
+            increment(loadedEvent.val);
+            break;
+        default:
+            break;
         }
     }
 }

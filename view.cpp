@@ -32,7 +32,6 @@ void View::on_pbClear_clicked()
     controller->queueEvent(E_CLEAR, 1);
 }
 
-// Es ist nur erlaubt direkt Werte vom Model zu LESEN! Alles andere muss über den Controller laufen.
-void View::updateAll(){
+void View::on_modelUpdate(){
     ui->label->setText(QString::number(model->getData()));
 }

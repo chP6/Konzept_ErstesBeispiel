@@ -13,15 +13,16 @@ class View : public QWidget
 {
     Q_OBJECT
 
+public slots:
+    void on_modelUpdate();
+private slots:
+    void on_pbInc_clicked();
+    void on_pbClear_clicked();
+
 public:
     explicit View(QWidget *parent = nullptr);
     ~View();
     void setModelController(Model& model, Controller& controller);
-    void updateAll();
-
-private slots:
-    void on_pbInc_clicked();
-    void on_pbClear_clicked();
 
 private:
     Ui::View *ui;

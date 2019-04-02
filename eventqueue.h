@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <mutex>
+#include <condition_variable>
 
 struct eventStruct{
   int evt;
@@ -20,6 +21,8 @@ public:
 private:
     std::vector<eventStruct> queue;
     std:: mutex mtx;
+    std::condition_variable cv;
+    bool init = true;
 };
 
 #endif // EVENTQUEUE_H

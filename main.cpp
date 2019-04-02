@@ -10,6 +10,9 @@ int main(int argc, char *argv[])
     View view;
     Model model(view);
 
+    QObject::connect(&model, &Model::updateView,            // model signal mit view slot verbinden
+                     &view, &View::on_modelUpdate);
+
     Controller controller(model);
     controller.startQueueProcessThread();
 

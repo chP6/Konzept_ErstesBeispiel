@@ -9,13 +9,9 @@ Model::Model(View& view)
 
 void Model::setData(int data){
     count = data;
-    updateView();
+    emit updateView();
 }
 
 int Model::getData(void){
     return count;
-}
-
-void Model::updateView(){
-    view->updateAll();
 }
