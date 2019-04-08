@@ -32,7 +32,9 @@ SOURCES += \
     poller.cpp \
     eventqueue.cpp \
     serverwatchdog.cpp \
-    bbmjoystick.cpp
+    bbmjoystick.cpp \
+    networkinterface.cpp \
+    telegrambuilder.cpp
 
 HEADERS += \
         view.h \
@@ -42,7 +44,10 @@ HEADERS += \
     events.h \
     eventqueue.h \
     serverwatchdog.h \
-    bbmjoystick.h
+    bbmjoystick.h \
+    bbmcommandtypes.h \
+    networkinterface.h \
+    telegrambuilder.h
 
 FORMS += \
         view.ui
