@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
     view.show();
 
     Poller poller(controller);
-    poller.startMetronom();
+    poller.startListener();
 
     return a.exec();
 }

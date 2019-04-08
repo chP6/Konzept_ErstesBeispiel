@@ -5,9 +5,9 @@
 #include <mutex>
 #include <condition_variable>
 
-struct eventStruct{
+struct Event_s{
   int evt;
-  int val;
+  std::vector<int> data;
   bool sta;
 };
 
@@ -15,11 +15,11 @@ class EventQueue
 {
 public:
     bool isEmpty();
-    void qeueEvent(int evt, int val);
+    void qeueEvent(int evt, std::vector<int> data);
     void qeueEvent(int evt, bool sta);
-    void pullEvent(eventStruct& entry);
+    void pullEvent(Event_s& entry);
 private:
-    std::vector<eventStruct> queue;
+    std::vector<Event_s> queue;
     std:: mutex mtx;
     std::condition_variable cv;
     bool init = true;

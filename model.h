@@ -16,9 +16,13 @@ public:
     Model();
     void setData(int data);
     int getData();
+    void setAxis(int x, int y);
+    void getAxis(int &x, int &y);
 
 private:
     int count;
+    int x;
+    int y;
 };
 
 #endif // MODEL_H

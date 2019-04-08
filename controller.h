@@ -11,7 +11,8 @@ public:
     Controller(Model& model);
     void setModel(Model& model);
     void startQueueProcessThread();
-    void queueEvent(int evt, int val);
+    void queueEvent(int evt, std::vector<int> data);
+    void queueEvent(int evt, int singleData);
     void queueEvent(int evt, bool sta);
 
 private:
@@ -20,6 +21,7 @@ private:
     void processQeue();
     void increment(int inc);
     void clear();
+    void setAxis(int x, int y);
 };
 
 #endif // CONTROLLER_H

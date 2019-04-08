@@ -4,10 +4,10 @@ bool EventQueue::isEmpty(){
     return queue.empty();
 }
 
-void EventQueue::qeueEvent(int evt, int val){
-    eventStruct eventEntry;
+void EventQueue::qeueEvent(int evt, std::vector<int> data){
+    Event_s eventEntry;
     eventEntry.evt = evt;
-    eventEntry.val = val;
+    eventEntry.data = data;
     std::unique_lock<std::mutex> lock(mtx);     //kreiert unique_lock, lockt mtx beim erstellen, gibt frei bei zerstörung
     queue.push_back(eventEntry);
     cv.notify_one();                            //ankicken
@@ -15,7 +15,7 @@ void EventQueue::qeueEvent(int evt, int val){
 
 //overload with bool
 void EventQueue::qeueEvent(int evt, bool sta){
-    eventStruct eventEntry;
+    Event_s eventEntry;
     eventEntry.evt = evt;
     eventEntry.sta = sta;
     std::unique_lock<std::mutex> lock(mtx);
@@ -23,7 +23,7 @@ void EventQueue::qeueEvent(int evt, bool sta){
     cv.notify_one();
 }
 
-void EventQueue::pullEvent(eventStruct& entry){
+void EventQueue::pullEvent(Event_s& entry){
     std::unique_lock<std::mutex> lock(mtx);
     if(queue.empty()){                  //wenn queue leer, warten bis wieder angekickt, sonst alles abarbeiten
         cv.wait(lock);

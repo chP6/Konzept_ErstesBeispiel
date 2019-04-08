@@ -34,4 +34,9 @@ void View::on_pbClear_clicked()
 
 void View::on_modelUpdate(){
     ui->label->setText(QString::number(model->getData()));
+
+    int x,y;
+    model->getAxis(x,y);
+    ui->hSlider->setValue(x);
+    ui->vSlider->setValue(y);
 }

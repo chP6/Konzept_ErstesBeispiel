@@ -5,7 +5,7 @@
 #include "events.h"
 
 
-Controller::Controller(Model& model)
+Controller::Controller(Model& model)// : poller(*this)    //poller Konstruktor aufrufen -> erwartet Objekt (as reference) darum this dereferenzieren
 {
     setModel(model);
 }
@@ -25,8 +25,29 @@ void Controller::clear(){
     usleep(2000*1000);
 }
 
-void Controller::queueEvent(int evt, int val){
-    eventQueue.qeueEvent(evt, val);
+void Controller::setAxis(int x, int y){
+    model->setAxis(x,y);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+void Controller::queueEvent(int evt, std::vector<int> data){
+    eventQueue.qeueEvent(evt, data);
+}
+
+void Controller::queueEvent(int evt, int singleData){
+    std::vector<int> data;
+    data.push_back(singleData);
+    eventQueue.qeueEvent(evt, data);
 }
 
 void Controller::queueEvent(int evt, bool sta){
@@ -40,7 +61,7 @@ void Controller::startQueueProcessThread(){
 }
 
 void Controller::processQeue(){
-    eventStruct loadedEvent;
+    Event_s loadedEvent;
 
     while(1){
         eventQueue.pullEvent(loadedEvent);      //blockiert, falls queue leer
@@ -49,7 +70,22 @@ void Controller::processQeue(){
             clear();
             break;
         case E_INCREASE:
-            increment(loadedEvent.val);
+            increment(loadedEvent.data.back());     //Last Element
+            break;
+        case E_SET_TILT:
+            int x,y;
+            y = loadedEvent.data.back();
+            loadedEvent.data.pop_back();
+            x = loadedEvent.data.back();
+            setAxis(x,10000-y);
+//            int x,y,tilt[4];
+//            for (int i=3;i>=0;i--) {
+//                tilt[i] = loadedEvent.data.back();
+//                loadedEvent.data.pop_back();
+//            }
+//            x = ((uint8_t)tilt[0] && (uint8_t)tilt[1] << 8);
+//            y = ((uint8_t)tilt[2] && (uint8_t)tilt[3] << 8);
+//            setAxis(x,y);
             break;
         default:
             break;

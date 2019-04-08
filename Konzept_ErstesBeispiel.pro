@@ -30,7 +30,9 @@ SOURCES += \
     model.cpp \
     controller.cpp \
     poller.cpp \
-    eventqueue.cpp
+    eventqueue.cpp \
+    serverwatchdog.cpp \
+    bbmjoystick.cpp
 
 HEADERS += \
         view.h \
@@ -38,7 +40,9 @@ HEADERS += \
     controller.h \
     poller.h \
     events.h \
-    eventqueue.h
+    eventqueue.h \
+    serverwatchdog.h \
+    bbmjoystick.h
 
 FORMS += \
         view.ui
