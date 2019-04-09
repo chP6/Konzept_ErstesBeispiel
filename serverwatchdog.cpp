@@ -7,7 +7,9 @@
 
 ServerWatchdog::ServerWatchdog()
 {
-    int time_err=0;
+}
+
+int ServerWatchdog::init(){
     timer_fd = timerfd_create(CLOCK_MONOTONIC, 0);
 
     timeout.it_value.tv_sec = 1;
@@ -15,12 +17,16 @@ ServerWatchdog::ServerWatchdog()
     timeout.it_interval.tv_sec = 1;
     timeout.it_interval.tv_nsec = 0;
 
-    time_err = timerfd_settime(timer_fd, 0, &timeout, nullptr);
-    if (time_err<0)
-        error(time_err,errno,"failed at creating timer");
+    wdg_err = timerfd_settime(timer_fd, 0, &timeout, nullptr);
+    if (wdg_err<0){
+        //error(time_err,errno,"failed at creating timer");
+        return -1;
+    }
+    return 0;
 }
 
-void ServerWatchdog::processEvent(){
+int ServerWatchdog::processEvent(){
     // neue Speicherplatzallokation nicht zulässig (weil von anderem thread aufgerufen wird) -> alle Variablen in Klasse deklarieren.
-    read(timer_fd, &timersElapsed, 8);
+    wdg_err = read(timer_fd, &timersElapsed, 8);
+    return wdg_err;
 }

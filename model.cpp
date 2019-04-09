@@ -1,5 +1,6 @@
 #include "model.h"
 #include "view.h"
+#include <QString>
 
 Model::Model()
 {
@@ -26,4 +27,18 @@ void Model::setAxis(int x, int y){
 void Model::getAxis(int &x, int &y){
     x = this->x;
     y = this->y;
+}
+
+void Model::addError(std::string str){
+    errorList.prepend(QString::fromStdString(str));
+    emit updateView();
+}
+
+void Model::clearErrors(){
+    errorList.clear();
+    emit updateView();
+}
+
+QStringList* Model::getErrorList(){
+    return &errorList;
 }

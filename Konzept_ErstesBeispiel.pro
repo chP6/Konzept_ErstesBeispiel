@@ -34,7 +34,8 @@ SOURCES += \
     serverwatchdog.cpp \
     bbmjoystick.cpp \
     networkinterface.cpp \
-    telegrambuilder.cpp
+    telegrambuilder.cpp \
+    errorwindow.cpp
 
 HEADERS += \
         view.h \
@@ -47,10 +48,12 @@ HEADERS += \
     bbmjoystick.h \
     bbmcommandtypes.h \
     networkinterface.h \
-    telegrambuilder.h
+    telegrambuilder.h \
+    errorwindow.h
 
 FORMS += \
-        view.ui
+        view.ui \
+    errorwindow.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

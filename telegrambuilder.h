@@ -9,7 +9,6 @@ class Telegrambuilder
 {
 public:
     Telegrambuilder();
-    // todo: vararglist
     void encode(int bbm_dev_no, int bbm_command, std::vector<int> data, uint8_t* telegram);
     void decode(uint8_t* telegram, int bbm_command, int dataOut[4]);       //todo: in welcher Form Daten...?
 private:

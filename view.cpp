@@ -20,6 +20,7 @@ View::~View()
 void View::setModelController(Model& model, Controller& controller){
     this->controller = &controller;
     this->model = &model;
+    errorFenster.setModelController(this->model, this->controller);
 }
 
 void View::on_pbInc_clicked()
@@ -34,9 +35,15 @@ void View::on_pbClear_clicked()
 
 void View::on_modelUpdate(){
     ui->label->setText(QString::number(model->getData()));
+    errorFenster.update();  //noch entkoppeln vom update ->fokus geht verloren, oder kein fokus erlauben
 
     int x,y;
     model->getAxis(x,y);
     ui->hSlider->setValue(x);
     ui->vSlider->setValue(y);
+}
+
+void View::on_pbErrors_clicked()
+{
+    errorFenster.show();
 }

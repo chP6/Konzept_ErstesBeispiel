@@ -3,11 +3,17 @@
 #include <unistd.h>
 #include <thread>
 #include "events.h"
+#include <errno.h>
 
 
 Controller::Controller(Model& model)// : poller(*this)    //poller Konstruktor aufrufen -> erwartet Objekt (as reference) darum this dereferenzieren
 {
     setModel(model);
+    contr_err = udpInterface.init();
+    if(contr_err<0){
+        contr_err = errno;  //zwischenspeichern (muss)
+        logSystemError(contr_err, "Could not initialize udp-interface");
+    }
 }
 
 void Controller::setModel(Model &model){
@@ -18,6 +24,7 @@ void Controller::increment(int inc){
     int value = model->getData();
     value+=inc;
     model->setData(value);
+    //logError("Test Error");
 }
 
 void Controller::clear(){
@@ -29,9 +36,17 @@ void Controller::setAxis(int x, int y){
     model->setAxis(x,y);
 }
 
+void Controller::logSystemError(int err_no, std::string msg){
+    model->addError("(S) " + msg + " ERRNO: " + strerror(err_no));        //msg + string aus errno nummer
+}
 
+void Controller::logError(std::string msg){
+    model->addError(msg);
+}
 
-
+void Controller::clearErrors(){
+    model->clearErrors();
+}
 
 
 
@@ -68,24 +83,17 @@ void Controller::processQeue(){
         switch (loadedEvent.evt) {
         case E_CLEAR:
             clear();
+            logError("Counter cleared!");
             break;
         case E_INCREASE:
             increment(loadedEvent.data.back());     //Last Element
             break;
         case E_SET_TILT:
             int x,y;
-            y = loadedEvent.data.back();
-            loadedEvent.data.pop_back();
-            x = loadedEvent.data.back();
+            x = loadedEvent.data[0];
+            y = loadedEvent.data[1];
             setAxis(x,10000-y);
-//            int x,y,tilt[4];
-//            for (int i=3;i>=0;i--) {
-//                tilt[i] = loadedEvent.data.back();
-//                loadedEvent.data.pop_back();
-//            }
-//            x = ((uint8_t)tilt[0] && (uint8_t)tilt[1] << 8);
-//            y = ((uint8_t)tilt[2] && (uint8_t)tilt[3] << 8);
-//            setAxis(x,y);
+            udpInterface.send(1, TILT_PAN, x, y);
             break;
         default:
             break;

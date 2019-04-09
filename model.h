@@ -2,6 +2,7 @@
 #define MODEL_H
 
 #include <QWidget>
+#include <QStringList>
 //#include "view.h" //nix gut, circular dependency -> forward declaration.
 //class View;         //Make sure each header can be included on its own.
 
@@ -18,8 +19,13 @@ public:
     int getData();
     void setAxis(int x, int y);
     void getAxis(int &x, int &y);
+    void addError(std::string str);
+    void clearErrors();
+    QStringList* getErrorList();
 
 private:
+    QStringList errorList;
+    int answerStack;
     int count;
     int x;
     int y;

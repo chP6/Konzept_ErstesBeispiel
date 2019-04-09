@@ -91,7 +91,7 @@
 /*Synchro Character*/
 #define SYNCHRO 42				//0x2A
 
-/*Device Types*/
+/*Watchdog Device Types*/
 #define HEAD 	0
 #define TALLY 	1
 #define MMI 	2

@@ -14,7 +14,7 @@ int Networkinterface::init(void){
 
     struct sockaddr_in si_client;
     struct timeval timeout_udp;
-    int aton_err, bind_err, init_err = 0;
+    int aton_err, bind_err;
     memset((char*) &si_other, 0, sizeof(si_other));
 
     timeout_udp.tv_sec = 0;
@@ -27,33 +27,31 @@ int Networkinterface::init(void){
     si_client.sin_port=htons(PORT); //source port for outgoing packets
 
 
-
     socket_fd = socket(AF_INET, SOCK_DGRAM, 0);     // ohne O_NONBLOCK -> receive blockiert wenn keine Daten anliegen.
     if(socket_fd<0){
-        error(socket_fd,errno,"failed create socket");
+        //error(socket_fd,errno,"failed create socket");
+        return -1;
     }
     setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout_udp, sizeof(timeout_udp));
 
     aton_err=inet_aton(SERVER , &si_other.sin_addr);
     if(aton_err<0){
-        error(aton_err,errno,"failed at writing ip address");
+        //error(aton_err,errno,"failed at writing ip address");
+        return -1;
     }
     bind_err=bind(socket_fd,(struct sockaddr *)&si_client,sizeof(si_client));
     if(bind_err<0){
-        error(bind_err,errno,"error at binding socket");
+        //error(bind_err,errno,"error at binding socket");
+        return -1;
     }
-
     len = sizeof(si_other);
 
-    if (bind_err < 0 || aton_err < 0){
-        init_err = -1;
-    }
-    return init_err;
+    return 0;
 }
 
 
 
-int Networkinterface::send(uint8_t bbm_dev_no, uint8_t bbm_command, uint8_t d1){
+int Networkinterface::send(int bbm_dev_no, int bbm_command, int d1){
     data.clear();
     data.push_back(d1);
     builder.encode(bbm_dev_no, bbm_command, data, buffer);
@@ -61,7 +59,7 @@ int Networkinterface::send(uint8_t bbm_dev_no, uint8_t bbm_command, uint8_t d1){
     return send_err;
 }
 
-int Networkinterface::send(uint8_t bbm_dev_no, uint8_t bbm_command, uint8_t d1, uint8_t d2){
+int Networkinterface::send(int bbm_dev_no, int bbm_command, int d1, int d2){
     data.clear();
     data.push_back(d1);
     data.push_back(d2);
@@ -70,7 +68,7 @@ int Networkinterface::send(uint8_t bbm_dev_no, uint8_t bbm_command, uint8_t d1, 
     return send_err;
 }
 
-int Networkinterface::send(uint8_t bbm_dev_no, uint8_t bbm_command, uint8_t d1, uint8_t d2, uint8_t d3){
+int Networkinterface::send(int bbm_dev_no, int bbm_command, int d1, int d2, int d3){
     data.clear();
     data.push_back(d1);
     data.push_back(d2);
@@ -80,7 +78,7 @@ int Networkinterface::send(uint8_t bbm_dev_no, uint8_t bbm_command, uint8_t d1, 
     return send_err;
 }
 
-int Networkinterface::send(uint8_t bbm_dev_no, uint8_t bbm_command, uint8_t d[4]){  //würg oder uint8_t* ?
+int Networkinterface::send(int bbm_dev_no, int bbm_command, int d[4]){  //würg oder uint8_t* ?
     data.clear();
     data.push_back(d[0]);
     data.push_back(d[1]);

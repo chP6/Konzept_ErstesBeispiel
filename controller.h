@@ -2,6 +2,7 @@
 #define CONTROLLER_H
 
 #include <eventqueue.h>
+#include "networkinterface.h"
 
 class Model;        //forward declaration
 
@@ -14,14 +15,19 @@ public:
     void queueEvent(int evt, std::vector<int> data);
     void queueEvent(int evt, int singleData);
     void queueEvent(int evt, bool sta);
+    void logSystemError(int err_no, std::string msg);
+    void logError(std::string msg);
+    void clearErrors();
 
 private:
     Model* model;
     EventQueue eventQueue;
+    Networkinterface udpInterface;
     void processQeue();
     void increment(int inc);
     void clear();
     void setAxis(int x, int y);
+    int contr_err;
 };
 
 #endif // CONTROLLER_H

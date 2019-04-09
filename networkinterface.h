@@ -15,23 +15,16 @@
 #define PORT 	8000   			//The port on which to send data
 #define BUFLEN 	512  			//Max length of buffer
 
-//struct bbm_datagram {
-//	char time;	/* event timestamp in milliseconds */
-//	__s16 value;	/* value */
-//	__u8 type;	/* event type */
-//	__u8 number;	/* axis/button number */
-//};
-
 class Networkinterface
 {
 public:
     Networkinterface();
     ~Networkinterface();
     int init(void);
-    int send(uint8_t bbm_dev_no, uint8_t bbm_command, uint8_t d1);
-    int send(uint8_t bbm_dev_no, uint8_t bbm_command, uint8_t d1, uint8_t d2);
-    int send(uint8_t bbm_dev_no, uint8_t bbm_command, uint8_t d1, uint8_t d2, uint8_t d3);
-    int send(uint8_t bbm_dev_no, uint8_t bbm_command, uint8_t data[4]);
+    int send(int bbm_dev_no, int bbm_command, int d1);
+    int send(int bbm_dev_no, int bbm_command, int d1, int d2);
+    int send(int bbm_dev_no, int bbm_command, int d1, int d2, int d3);
+    int send(int bbm_dev_no, int bbm_command, int data[4]);
     int receive(uint8_t* rec_buffer);
 
 private:

@@ -2,6 +2,7 @@
 #define VIEW_H
 
 #include <QWidget>
+#include "errorwindow.h"
 class Controller;       //forward declaration
 class Model;
 
@@ -18,6 +19,7 @@ public slots:
 private slots:
     void on_pbInc_clicked();
     void on_pbClear_clicked();
+    void on_pbErrors_clicked();
 
 public:
     explicit View(QWidget *parent = nullptr);
@@ -28,6 +30,7 @@ private:
     Ui::View *ui;
     Controller* controller;
     Model* model;
+    ErrorWindow errorFenster;
 };
 
 #endif // VIEW_H

@@ -6,9 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>795</width>
-    <height>482</height>
+    <width>800</width>
+    <height>480</height>
    </rect>
+  </property>
+  <property name="cursor">
+   <cursorShape>BlankCursor</cursorShape>
   </property>
   <property name="windowTitle">
    <string>View</string>
@@ -116,6 +119,19 @@
      <enum>Qt::Horizontal</enum>
     </property>
    </widget>
+  </widget>
+  <widget class="QPushButton" name="pbErrors">
+   <property name="geometry">
+    <rect>
+     <x>660</x>
+     <y>370</y>
+     <width>89</width>
+     <height>61</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Errors</string>
+   </property>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>

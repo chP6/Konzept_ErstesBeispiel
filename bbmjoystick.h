@@ -7,9 +7,9 @@
 #define NUM_OF_AXIS 3
 
 struct joystickData {
-    int debug[2];
-    uint8_t tilt_val[4];
-    uint8_t button_val;
+    int xCoord;
+    int yCoord;
+    int buttonVal;
 };
 
 
@@ -17,7 +17,8 @@ class BBMJoystick
 {
 public:
     BBMJoystick();
-    joystickData processEvent();
+    int init();
+    int processEvent(joystickData& jsData);
     int joystick_fd;
 private:
     struct js_event js;

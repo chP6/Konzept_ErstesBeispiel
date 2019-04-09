@@ -11,6 +11,18 @@ Poller::Poller(Controller& controller)
     this->controller = &controller;
     poll_err = 0;
 
+    poll_err = srvWatchdog.init();
+    if(poll_err < 0){
+        poll_err = errno;
+        controller.logSystemError(poll_err, "Could not initialize Watchdog Timer");
+    }
+
+    poll_err = joystick.init();
+    if(poll_err < 0){
+        poll_err = errno;
+        controller.logSystemError(poll_err, "Could not initialize Joystick");
+    }
+
     poll_fd[0].fd = srvWatchdog.timer_fd;               // poll struct setup
     poll_fd[0].events = POLLIN;
     poll_fd[1].fd = joystick.joystick_fd;
@@ -30,7 +42,11 @@ void Poller::listener(){
         }
 
         if(poll_fd[0].revents & POLLIN) {                    // Server watchdog event
-            srvWatchdog.processEvent();
+            poll_err = srvWatchdog.processEvent();
+            if(poll_err<0){
+                poll_err = errno;
+                controller->logSystemError(poll_err, "Could not read Watchdog Timer");
+            }
 
             // send ping to server
             data.push_back(1);
@@ -39,21 +55,21 @@ void Poller::listener(){
         }
 
         if(poll_fd[1].revents & POLLIN) {                   // Joystick event
-            joystickData jsData = joystick.processEvent();
+            joystickData jsData;
+            poll_err = joystick.processEvent(jsData);
+            if(poll_err<0){
+                poll_err = errno;
+                controller->logSystemError(poll_err, "Could not read Joystick");
+            }
 
-            if (jsData.button_val > 0) {
-                controller->queueEvent(E_CLEAR,1);
+            if (jsData.buttonVal > 0) {
                 // send joystick button pushed event
+                controller->queueEvent(E_CLEAR,1);
             }
             else{
-                data.push_back(jsData.debug[0]);
-                data.push_back(jsData.debug[1]);
+                data.push_back(jsData.xCoord);
+                data.push_back(jsData.yCoord);
                 controller->queueEvent(E_SET_TILT,data);
-
-                /*for (int i=0;i<4;i++) {
-                    data.push_back(jsData.tilt_val[i]);
-                }
-                controller->queueEvent(E_SET_TILT,data);*/    // send tilt
             }
         }
     }

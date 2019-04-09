@@ -3,6 +3,8 @@
 #include "model.h"
 #include "controller.h"
 #include "poller.h"
+#include <iostream>
+#include <sstream>
 
 int main(int argc, char *argv[])
 {
