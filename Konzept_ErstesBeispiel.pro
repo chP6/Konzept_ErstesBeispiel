@@ -36,7 +36,8 @@ SOURCES += \
     networkinterface.cpp \
     telegrambuilder.cpp \
     errorwindow.cpp \
-    udplistener.cpp
+    udplistener.cpp \
+    rotary.cpp
 
 HEADERS += \
         view.h \
@@ -51,7 +52,8 @@ HEADERS += \
     networkinterface.h \
     telegrambuilder.h \
     errorwindow.h \
-    udplistener.h
+    udplistener.h \
+    rotary.h
 
 FORMS += \
         view.ui \
