@@ -17,6 +17,7 @@ public:
     bool isEmpty();
     void qeueEvent(int evt, std::vector<int> data);
     void qeueEvent(int evt, bool sta);
+    void qeueEvent(int evt);
     void pullEvent(Event_s& entry);
 private:
     std::vector<Event_s> queue;

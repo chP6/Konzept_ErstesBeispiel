@@ -9,7 +9,7 @@
 Controller::Controller(Model& model)// : poller(*this)    //poller Konstruktor aufrufen -> erwartet Objekt (as reference) darum this dereferenzieren
 {
     setModel(model);
-    contr_err = udpInterface.init();
+    contr_err = txSocket.init(9000);
     if(contr_err<0){
         contr_err = errno;  //zwischenspeichern (muss)
         logSystemError(contr_err, "Could not initialize udp-interface");
@@ -53,7 +53,9 @@ void Controller::clearErrors(){
 
 
 
-
+void Controller::queueEvent(int evt){
+    eventQueue.qeueEvent(evt);
+}
 
 void Controller::queueEvent(int evt, std::vector<int> data){
     eventQueue.qeueEvent(evt, data);
@@ -93,7 +95,10 @@ void Controller::processQeue(){
             x = loadedEvent.data[0];
             y = loadedEvent.data[1];
             setAxis(x,10000-y);
-            udpInterface.send(1, TILT_PAN, x, y);
+            txSocket.send(1, TILT_PAN, x, y);
+            break;
+        case E_TX_WATCHDOG:
+            txSocket.send(0, WATCHDOG);
             break;
         default:
             break;

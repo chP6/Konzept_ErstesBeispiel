@@ -23,10 +23,10 @@ void Telegrambuilder::encode(int bbm_dev_no, int bbm_command, std::vector<int> d
 
     switch (bbm_command) {
     case TILT_PAN:
-        telegram[5] = (uint8_t)data[0];
-        telegram[6] = (uint8_t)(data[0]>>8);
-        telegram[7] = (uint8_t)data[1];
-        telegram[8] = (uint8_t)(data[1]>>8);
+        datagram[5] = (uint8_t)data[0];
+        datagram[6] = (uint8_t)(data[0]>>8);
+        datagram[7] = (uint8_t)data[1];
+        datagram[8] = (uint8_t)(data[1]>>8);
         break;
     case IRIS_OPEN:
     case RAMP:
@@ -36,10 +36,11 @@ void Telegrambuilder::encode(int bbm_dev_no, int bbm_command, std::vector<int> d
     case FOCUS_SET_ABSOLUTE:
     case ZOOM_FOCUS_SET:
     case WATCHDOG:
-        telegram[5] = 1;
-        telegram[6] = HEAD;
-        telegram[7] = 0;
-        telegram[8] = 0;
+        datagram[5] = 1;
+        datagram[6] = HEAD;
+        datagram[7] = 0;
+        datagram[8] = 0;
+        break;
     case CAMERA_GAIN_UP:
     case AUTOIRIS_ON:
     case AUTOIRIS_OFF:
@@ -53,10 +54,10 @@ void Telegrambuilder::encode(int bbm_dev_no, int bbm_command, std::vector<int> d
     case DETAIL_CRISP_ADJ:
     case CALIBRATE_HEAD:
     case STORE_PRESET:
-        telegram[8] = (uint8_t)data[0];
+        datagram[8] = (uint8_t)data[0];
         break;
     case GOTO_PRESET:
-        telegram[8] = (uint8_t)data[0];
+        datagram[8] = (uint8_t)data[0];
         break;
     case RED_GAIN_ADJ_UP:
     case BLUE_GAIN_ADJ_UP:
@@ -117,7 +118,17 @@ void Telegrambuilder::encode(int bbm_dev_no, int bbm_command, std::vector<int> d
         break;
     }
     datagram[9] = calc_chksum();
+
+    for(int i = 0; i < 10; ++i) {
+        telegram[i] = datagram[i];
+    }
 }
+
+
+void decode(uint8_t* telegram, int bbm_command, int dataOut[4]){
+
+}
+
 
 
 uint8_t Telegrambuilder::calc_chksum(){     // quersumme bytes 4-8

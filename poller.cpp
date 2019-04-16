@@ -51,6 +51,7 @@ void Poller::listener(){
             // send ping to server
             data.push_back(1);
             controller->queueEvent(E_INCREASE, data);
+            controller->queueEvent(E_TX_WATCHDOG);
             // receive answer
         }
 

@@ -35,7 +35,8 @@ SOURCES += \
     bbmjoystick.cpp \
     networkinterface.cpp \
     telegrambuilder.cpp \
-    errorwindow.cpp
+    errorwindow.cpp \
+    udplistener.cpp
 
 HEADERS += \
         view.h \
@@ -49,7 +50,8 @@ HEADERS += \
     bbmcommandtypes.h \
     networkinterface.h \
     telegrambuilder.h \
-    errorwindow.h
+    errorwindow.h \
+    udplistener.h
 
 FORMS += \
         view.ui \

@@ -79,10 +79,10 @@
     <widget class="QPushButton" name="pbEwClose">
      <property name="geometry">
       <rect>
-       <x>690</x>
-       <y>10</y>
-       <width>81</width>
-       <height>31</height>
+       <x>650</x>
+       <y>0</y>
+       <width>131</width>
+       <height>51</height>
       </rect>
      </property>
      <property name="text">

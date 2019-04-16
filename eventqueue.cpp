@@ -23,6 +23,15 @@ void EventQueue::qeueEvent(int evt, bool sta){
     cv.notify_one();
 }
 
+//no data eg. Watchdog
+void EventQueue::qeueEvent(int evt){
+    Event_s eventEntry;
+    eventEntry.evt = evt;
+    std::unique_lock<std::mutex> lock(mtx);
+    queue.push_back(eventEntry);
+    cv.notify_one();
+}
+
 void EventQueue::pullEvent(Event_s& entry){
     std::unique_lock<std::mutex> lock(mtx);
     if(queue.empty()){                  //wenn queue leer, warten bis wieder angekickt, sonst alles abarbeiten
