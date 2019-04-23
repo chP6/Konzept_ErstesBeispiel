@@ -30,7 +30,7 @@ int Networkinterface::init(int port){
         return -1;
     }
 
-    aton_err = inet_aton(SERVER , &addr_dst.sin_addr);
+    aton_err = inet_aton(SERVER , &addr_dst.sin_addr);      // "Server" addr auf binär übersetzen
     if(aton_err<0){
         //error(aton_err,errno,"failed at writing ip address");
         return -2;

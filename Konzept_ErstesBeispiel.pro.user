@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 4.7.2, 2019-04-16T10:27:50. -->
+<!-- Written by QtCreator 4.7.2, 2019-04-22T16:27:11. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -285,8 +285,8 @@
        <value type="QString">/home/chaeni/QtProjekte/build-Konzept_ErstesBeispiel-Raspi-Debug/Konzept_ErstesBeispiel</value>
       </valuelist>
       <valuelist type="QVariantList" key="ProjectExplorer.RunConfiguration.LastDeployedHosts">
-       <value type="QString">192.168.0.100</value>
        <value type="QString">192.168.1.2</value>
+       <value type="QString">192.168.0.100</value>
       </valuelist>
       <valuelist type="QVariantList" key="ProjectExplorer.RunConfiguration.LastDeployedRemotePaths">
        <value type="QString">/opt/Konzept_ErstesBeispiel/bin</value>
@@ -297,8 +297,8 @@
        <value type="QString"></value>
       </valuelist>
       <valuelist type="QVariantList" key="ProjectExplorer.RunConfiguration.LastDeployedTimes">
-       <value type="QDateTime">2019-04-16T10:02:15.285</value>
        <value type="QDateTime">2019-04-09T14:53:13.087</value>
+       <value type="QDateTime">2019-04-22T16:26:26.981</value>
       </valuelist>
       <value type="bool" key="RemoteLinux.GenericDirectUploadStep.IgnoreMissingFiles">false</value>
       <value type="bool" key="RemoteLinux.GenericDirectUploadStep.Incremental">true</value>
@@ -629,7 +629,7 @@
     <value type="QString" key="Qt4ProjectManager.Qt4RunConfiguration.CommandLineArguments"></value>
     <value type="QString" key="Qt4ProjectManager.Qt4RunConfiguration.ProFile">Konzept_ErstesBeispiel.pro</value>
     <value type="QString" key="Qt4ProjectManager.Qt4RunConfiguration.UserWorkingDirectory"></value>
-    <value type="QString" key="Qt4ProjectManager.Qt4RunConfiguration.UserWorkingDirectory.default">/home/chaeni/QtProjekte/build-Konzept_ErstesBeispiel-Desktop-Debug</value>
+    <value type="QString" key="Qt4ProjectManager.Qt4RunConfiguration.UserWorkingDirectory.default"></value>
     <value type="uint" key="RunConfiguration.QmlDebugServerPort">3768</value>
     <value type="bool" key="RunConfiguration.UseCppDebugger">false</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>

@@ -37,7 +37,9 @@ SOURCES += \
     telegrambuilder.cpp \
     errorwindow.cpp \
     udplistener.cpp \
-    rotary.cpp
+    rotary.cpp \
+    smbus.cpp \
+    ocp.cpp
 
 HEADERS += \
         view.h \
@@ -53,7 +55,9 @@ HEADERS += \
     telegrambuilder.h \
     errorwindow.h \
     udplistener.h \
-    rotary.h
+    rotary.h \
+    smbus.h \
+    ocp.h
 
 FORMS += \
         view.ui \
