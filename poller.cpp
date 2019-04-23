@@ -135,7 +135,7 @@ void Poller::listener(){
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Presetbus Button 1");
             }
-            controller->queueEvent(E_PRESET_1);
+            controller->queueEvent(E_PRESET_CHANGE,0);
 
         }
 
@@ -147,7 +147,7 @@ void Poller::listener(){
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Presetbus Button 2");
             }
-            controller->queueEvent(E_PRESET_2);
+            controller->queueEvent(E_PRESET_CHANGE,1);
 
         }
 
@@ -158,7 +158,8 @@ void Poller::listener(){
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Presetbus Button 3");
             }
-            controller->queueEvent(E_PRESET_3);
+            controller->queueEvent(E_PRESET_CHANGE,2);
+
         }
 
         if(poll_fd[6].revents & POLLPRI){
@@ -168,7 +169,8 @@ void Poller::listener(){
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Presetbus Button 4");
             }
-            controller->queueEvent(E_PRESET_4);
+            controller->queueEvent(E_PRESET_CHANGE,3);
+
         }
 
         if(poll_fd[7].revents & POLLPRI){
@@ -178,7 +180,8 @@ void Poller::listener(){
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Presetbus Button 5");
             }
-            controller->queueEvent(E_PRESET_5);
+            controller->queueEvent(E_PRESET_CHANGE,4);
+
         }
 
         if(poll_fd[8].revents & POLLPRI){
@@ -188,7 +191,8 @@ void Poller::listener(){
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Presetbus Button 6");
             }
-            controller->queueEvent(E_PRESET_6);
+            controller->queueEvent(E_PRESET_CHANGE,5);
+
         }
 
         if(poll_fd[9].revents & POLLPRI){
@@ -199,7 +203,7 @@ void Poller::listener(){
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Camerabus Button 1");
             }
-            controller->queueEvent(E_CAMERA_1);
+            controller->queueEvent(E_CAMERA_CHANGE,0);
         }
 
         if(poll_fd[10].revents & POLLPRI){
@@ -209,7 +213,7 @@ void Poller::listener(){
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Camerabus Button 2");
             }
-            controller->queueEvent(E_CAMERA_2);
+            controller->queueEvent(E_CAMERA_CHANGE,1);
         }
 
         if(poll_fd[11].revents & POLLPRI){
@@ -219,7 +223,7 @@ void Poller::listener(){
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Camerabus Button 3");
             }
-            controller->queueEvent(E_CAMERA_3);
+            controller->queueEvent(E_CAMERA_CHANGE,2);
         }
 
         if(poll_fd[12].revents & POLLPRI){
@@ -229,7 +233,7 @@ void Poller::listener(){
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Camerabus Button 4");
             }
-            controller->queueEvent(E_CAMERA_4);
+            controller->queueEvent(E_CAMERA_CHANGE,3);
         }
 
         if(poll_fd[13].revents & POLLPRI){
@@ -239,7 +243,7 @@ void Poller::listener(){
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Camerabus Button 5");
             }
-            controller->queueEvent(E_CAMERA_5);
+            controller->queueEvent(E_CAMERA_CHANGE,4);
         }
 
         if(poll_fd[14].revents & POLLPRI){
@@ -249,7 +253,7 @@ void Poller::listener(){
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Camerabus Button 6");
             }
-            controller->queueEvent(E_CAMERA_6);
+            controller->queueEvent(E_CAMERA_CHANGE,5);
         }
 
 

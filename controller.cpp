@@ -88,6 +88,11 @@ void Controller::queueEvent(int evt, bool sta){
     eventQueue.qeueEvent(evt, sta);
 }
 
+void Controller::queueEvent(int evt, unsigned char number)
+{
+    eventQueue.qeueEvent(evt, number);
+}
+
 
 void Controller::startQueueProcessThread(){
     std::thread t1(&Controller::processQeue, this);       //1.Arg: function type that will be called, 2.Arg: pointer to object (this)
@@ -117,110 +122,29 @@ void Controller::processQeue(){
         case E_TX_WATCHDOG:
             txSocket.send(0, WATCHDOG);
             break;
-        case E_PRESET_1:
-            presetbus.setLed(PRESET_COLOR,0);
-            model->setActivePreset(0);
-            if(model->getPresetInStore()){
-                model->setUsedPreset(0);
-                model->setPresetInStore(0);
-                txSocket.send(1,STORE_PRESET,1);
-            }else{
-                txSocket.send(1,GOTO_PRESET,1);
-            }
-            break;
-        case E_PRESET_2:
-            presetbus.setLed(PRESET_COLOR,1);
-            model->setActivePreset(1);
-            if(model->getPresetInStore()){
-                model->setUsedPreset(1);
-                model->setPresetInStore(0);
-                txSocket.send(1,STORE_PRESET,2);
-            }else{
-                txSocket.send(1,GOTO_PRESET,2);
-            }
-            break;
-        case E_PRESET_3:
-            presetbus.setLed(PRESET_COLOR,2);
-            model->setActivePreset(2);
-            if(model->getPresetInStore()){
-                model->setUsedPreset(2);
-                model->setPresetInStore(0);
-                txSocket.send(1,STORE_PRESET,3);
-            }else{
-                txSocket.send(1,GOTO_PRESET,3);
-            }
-            break;
-        case E_PRESET_4:
-            presetbus.setLed(PRESET_COLOR,3);
-            model->setActivePreset(3);
-            if(model->getPresetInStore()){
-                model->setUsedPreset(3);
-                model->setPresetInStore(0);
-                txSocket.send(1,STORE_PRESET,4);
-            }else{
-                txSocket.send(1,GOTO_PRESET,4);
-
-            }
-            break;
-        case E_PRESET_5:
-            presetbus.setLed(PRESET_COLOR,4);
-            model->setActivePreset(4);
-            if(model->getPresetInStore()){
-                model->setUsedPreset(4);
-                model->setPresetInStore(0);
-                txSocket.send(1,STORE_PRESET,5);
-            }else{
-                txSocket.send(1,GOTO_PRESET,5);
-
-            }
-            break;
-        case E_PRESET_6:
-            presetbus.setLed(PRESET_COLOR,5);
-            model->setActivePreset(5);
-            if(model->getPresetInStore()){
-                model->setUsedPreset(5);
-                model->setPresetInStore(0);
-                txSocket.send(1,STORE_PRESET,6);
-            }else{
-                txSocket.send(1,GOTO_PRESET,6);
-            }
-            break;
-        case E_CAMERA_1:
-            camerabus.setLed(CAMERA_COLOR,0);
-            model->setActiveCamera(0);
-            presetbus.setLed(PRESET_COLOR,model->getActivePreset());
-            break;
-        case E_CAMERA_2:
-            camerabus.setLed(CAMERA_COLOR,1);
-            model->setActiveCamera(1);
-            presetbus.setLed(PRESET_COLOR,model->getActivePreset());
-            break;
-        case E_CAMERA_3:
-            camerabus.setLed(CAMERA_COLOR,2);
-            model->setActiveCamera(2);
-            presetbus.setLed(PRESET_COLOR,model->getActivePreset());
-            break;
-        case E_CAMERA_4:
-            camerabus.setLed(CAMERA_COLOR,3);
-            model->setActiveCamera(3);
-            presetbus.setLed(PRESET_COLOR,model->getActivePreset());
-            break;
-        case E_CAMERA_5:
-            camerabus.setLed(CAMERA_COLOR,4);
-            model->setActiveCamera(4);
-            presetbus.setLed(PRESET_COLOR,model->getActivePreset());
-            break;
-        case E_CAMERA_6:
-            camerabus.setLed(CAMERA_COLOR,5);
-            model->setActiveCamera(5);
-            presetbus.setLed(PRESET_COLOR,model->getActivePreset());
-            break;
         case E_STORE_PRESET:
             presetbus.setLed(ACT_PRESET_COLOR,model->getActivePreset());
             model->setPresetInStore(1);
             presetbus.showStored(model->getUsedPreset());
 
             break;
+        case E_PRESET_CHANGE:
+            presetbus.setLed(PRESET_COLOR,loadedEvent.number);
+            model->setActivePreset(loadedEvent.number);
+            if(model->getPresetInStore()){
+                model->setUsedPreset(loadedEvent.number);
+                model->setPresetInStore(0);
+                txSocket.send(1,STORE_PRESET,loadedEvent.number+1);
+            }else{
+                txSocket.send(1,GOTO_PRESET,loadedEvent.number+1);
+            }
+            break;
+        case E_CAMERA_CHANGE:
+            camerabus.setLed(CAMERA_COLOR,loadedEvent.number);
+            model->setActiveCamera(loadedEvent.number);
+            presetbus.setLed(PRESET_COLOR,model->getActivePreset());
+            break;
+
         default:
             break;
         }

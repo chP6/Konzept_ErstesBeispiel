@@ -9,6 +9,7 @@ struct Event_s{
   int evt;
   std::vector<int> data;
   bool sta;
+  unsigned char number;
 };
 
 class EventQueue
@@ -17,6 +18,7 @@ public:
     bool isEmpty();
     void qeueEvent(int evt, std::vector<int> data);
     void qeueEvent(int evt, bool sta);
+    void qeueEvent(int evt, unsigned char number);
     void qeueEvent(int evt);
     void pullEvent(Event_s& entry);
 private:
