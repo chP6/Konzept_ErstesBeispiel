@@ -11,9 +11,9 @@
 #include "bbmcommandtypes.h"
 #include "telegrambuilder.h"
 
-#define SERVER 	"192.168.0.10"	//Server IP-Address
-#define PORT 	8000   			//The port on which to send data
-#define BUFLEN 	512  			//Max length of buffer
+#define SERVER_IP 	"192.168.0.10"	//Server IP-Address
+#define PORT        8000   			//The port on which to send data
+#define BUFLEN      512  			//Max length of buffer
 
 class Networkinterface
 {
@@ -21,6 +21,7 @@ public:
     Networkinterface();
     ~Networkinterface();
     int init(int port);
+    int request(int bbm_dev_no, int bbm_command);
     int send(int bbm_dev_no, int bbm_command);
     int send(int bbm_dev_no, int bbm_command, int d1);
     int send(int bbm_dev_no, int bbm_command, int d1, int d2);

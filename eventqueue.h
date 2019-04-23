@@ -5,7 +5,7 @@
 #include <mutex>
 #include <condition_variable>
 
-struct Event_s{
+struct event_s{
   int evt;
   std::vector<int> data;
   bool sta;
@@ -18,9 +18,9 @@ public:
     void qeueEvent(int evt, std::vector<int> data);
     void qeueEvent(int evt, bool sta);
     void qeueEvent(int evt);
-    void pullEvent(Event_s& entry);
+    void pullEvent(event_s& entry);
 private:
-    std::vector<Event_s> queue;
+    std::vector<event_s> queue;
     std:: mutex mtx;
     std::condition_variable cv;
     bool init = true;

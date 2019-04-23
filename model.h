@@ -3,8 +3,8 @@
 
 #include <QWidget>
 #include <QStringList>
-//#include "view.h" //nix gut, circular dependency -> forward declaration.
-//class View;         //Make sure each header can be included on its own.
+//#include "view.h"     //nix gut, circular dependency -> forward declaration.
+//class View;           //Make sure each header can be included on its own.
 
 class Model : public QObject
 {

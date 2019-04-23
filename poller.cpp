@@ -84,12 +84,16 @@ void Poller::listener(){
 
             if (jsData.buttonVal > 0) {
                 // send joystick button pushed event
-                controller->queueEvent(E_CLEAR,1);
+                controller->queueEvent(E_REQ_TEST);
             }
             else{
                 data.push_back(jsData.xCoord);
                 data.push_back(jsData.yCoord);
-                controller->queueEvent(E_SET_TILT,data);
+                controller->queueEvent(E_SET_TILT, data);
+
+                data.clear();
+                data.push_back(jsData.zCoord);
+                controller->queueEvent(E_SET_ZOOM, data);
             }
         }
 
@@ -108,6 +112,14 @@ void Poller::listener(){
                 controller->logSystemError(poll_err, "Could not readout Rotary1 value");
             }
             controller->queueEvent(E_INCREASE, rotary_val);
+            switch(rotary_val){
+            case 1:
+                controller->queueEvent(E_STORE_PRESET);
+                break;
+            case -1:
+                controller->queueEvent(E_GOTO_PRESET);
+                break;
+            }
         }
 
 
@@ -138,8 +150,17 @@ void Poller::listener(){
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not read OCP");
             }
+
             if(ocpEvent != -1){     //-1 if other nonimportant hid events
-                controller->logError("OCP Event: " + std::to_string(ocpEvent));
+                //controller->logError("OCP Event: " + std::to_string(ocpEvent));
+
+                //debug: focus test
+                if(ocpEvent == 1 || ocpEvent == 2){
+                    int inc = 10;
+                    if(ocpEvent == 2) inc=-10;
+                    controller->queueEvent(E_FOCUS_TEST, inc);
+                }
+
             }
         }
     }

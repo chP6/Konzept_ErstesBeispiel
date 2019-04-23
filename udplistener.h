@@ -3,6 +3,7 @@
 
 #include "networkinterface.h"
 #include "eventqueue.h"
+#include "telegrambuilder.h"
 
 class Controller;
 
@@ -15,9 +16,11 @@ private:
     Networkinterface rxSocket;
     EventQueue* eventQueue;
     Controller* controller;
+    Telegrambuilder telegramBuilder;
     uint8_t buffer[10];
     int rx_err;
     void listener();
+    void sort();
 };
 
 #endif // UDPLISTENER_H
