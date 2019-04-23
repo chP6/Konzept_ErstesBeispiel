@@ -21,6 +21,8 @@ private slots:
     void on_pbClear_clicked();
     void on_pbErrors_clicked();
 
+    void on_storePreset_clicked();
+
 public:
     explicit View(QWidget *parent = nullptr);
     ~View();

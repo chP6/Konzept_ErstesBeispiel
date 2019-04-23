@@ -47,3 +47,8 @@ void View::on_pbErrors_clicked()
 {
     errorFenster.show();
 }
+
+void View::on_storePreset_clicked()
+{
+    controller->queueEvent(E_STORE_PRESET);
+}

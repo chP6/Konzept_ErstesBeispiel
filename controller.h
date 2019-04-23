@@ -3,6 +3,7 @@
 
 #include <eventqueue.h>
 #include "networkinterface.h"
+#include "tastenfeld.h"
 
 class Model;        //forward declaration
 
@@ -24,6 +25,8 @@ private:
     Model* model;
     EventQueue eventQueue;
     Networkinterface txSocket;
+    Tastenfeld presetbus;
+    Tastenfeld camerabus;
     void processQeue();
     void increment(int inc);
     void clear();

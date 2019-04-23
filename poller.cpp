@@ -5,6 +5,9 @@
 #include "events.h"
 #include <error.h>
 #include "eventqueue.h"
+#include "tastenfeld.h"
+#include <QDebug>
+
 
 Poller::Poller(Controller& controller)
 {
@@ -29,12 +32,41 @@ Poller::Poller(Controller& controller)
         controller.logSystemError(poll_err, "Could not initialize Rotary1");
     }
 
+
+    presetbus.setRow(LOWER_ROW);
+    poll_err=presetbus.init();
+    if(poll_err<0){
+        poll_err=errno;
+        controller.logSystemError(poll_err, "Presetbus: Couldn't init Button");
+    }
+    camerabus.setRow(UPPER_ROW);
+    poll_err=camerabus.init();
+    if(poll_err<0){
+        poll_err=errno;
+        controller.logSystemError(poll_err, "Camerabus: Couldn't init Button");
+    }
+
+
     poll_fd[0].fd = srvWatchdog.timer_fd;               // poll struct setup
     poll_fd[0].events = POLLIN;
     poll_fd[1].fd = joystick.joystick_fd;
     poll_fd[1].events = POLLIN;
     poll_fd[2].fd = rotary1.fd;
     poll_fd[2].events = POLLPRI;
+
+    for (unsigned int i = 0; i < 6; ++i) {
+
+        poll_fd[i+3].fd = presetbus.button[i];
+        poll_fd[i+3].events = POLLPRI;
+    }
+
+    for (unsigned int i = 0; i < 6; ++i) {
+
+        poll_fd[i+9].fd = camerabus.button[i];
+        poll_fd[i+9].events = POLLPRI;
+    }
+
+
 }
 
 void Poller::listener(){
@@ -44,7 +76,7 @@ void Poller::listener(){
     while(1){
 
         data.clear();
-        poll_err = poll(poll_fd,3,-1);                      //poll. Blocks until event occurs -> SIZE setzen! current = 3; -1 = infinite timeout
+        poll_err = poll(poll_fd,15,-1);                      //poll. Blocks until event occurs -> SIZE setzen! current = 3; -1 = infinite timeout
         if(poll_err<0){
             error(poll_err,errno, "fail at poll");
         }
@@ -94,6 +126,133 @@ void Poller::listener(){
             sprintf(buf, "SenseVal: %d",sense_val);
             controller->logError("Rotary1 Sense!");
         }
+
+        if(poll_fd[3].revents & POLLPRI){
+            usleep(DEBOUNCE_T);
+            qDebug() << "Button1";
+            poll_err=presetbus.readButton(0);
+            if (poll_err<0) {
+                poll_err = errno;
+                controller->logSystemError(poll_err, "Could not readout Presetbus Button 1");
+            }
+            controller->queueEvent(E_PRESET_1);
+
+        }
+
+        if(poll_fd[4].revents & POLLPRI){
+            usleep(DEBOUNCE_T);
+            qDebug() << "Button2";
+            presetbus.readButton(1);
+            if (poll_err<0) {
+                poll_err = errno;
+                controller->logSystemError(poll_err, "Could not readout Presetbus Button 2");
+            }
+            controller->queueEvent(E_PRESET_2);
+
+        }
+
+        if(poll_fd[5].revents & POLLPRI){
+            usleep(DEBOUNCE_T);
+            presetbus.readButton(2);
+            if (poll_err<0) {
+                poll_err = errno;
+                controller->logSystemError(poll_err, "Could not readout Presetbus Button 3");
+            }
+            controller->queueEvent(E_PRESET_3);
+        }
+
+        if(poll_fd[6].revents & POLLPRI){
+            usleep(DEBOUNCE_T);
+            presetbus.readButton(3);
+            if (poll_err<0) {
+                poll_err = errno;
+                controller->logSystemError(poll_err, "Could not readout Presetbus Button 4");
+            }
+            controller->queueEvent(E_PRESET_4);
+        }
+
+        if(poll_fd[7].revents & POLLPRI){
+            usleep(DEBOUNCE_T);
+            presetbus.readButton(4);
+            if (poll_err<0) {
+                poll_err = errno;
+                controller->logSystemError(poll_err, "Could not readout Presetbus Button 5");
+            }
+            controller->queueEvent(E_PRESET_5);
+        }
+
+        if(poll_fd[8].revents & POLLPRI){
+            usleep(DEBOUNCE_T);
+            presetbus.readButton(5);
+            if (poll_err<0) {
+                poll_err = errno;
+                controller->logSystemError(poll_err, "Could not readout Presetbus Button 6");
+            }
+            controller->queueEvent(E_PRESET_6);
+        }
+
+        if(poll_fd[9].revents & POLLPRI){
+            usleep(DEBOUNCE_T);
+            qDebug() << "Button1C";
+            camerabus.readButton(0);
+            if (poll_err<0) {
+                poll_err = errno;
+                controller->logSystemError(poll_err, "Could not readout Camerabus Button 1");
+            }
+            controller->queueEvent(E_CAMERA_1);
+        }
+
+        if(poll_fd[10].revents & POLLPRI){
+            usleep(DEBOUNCE_T);
+            camerabus.readButton(1);
+            if (poll_err<0) {
+                poll_err = errno;
+                controller->logSystemError(poll_err, "Could not readout Camerabus Button 2");
+            }
+            controller->queueEvent(E_CAMERA_2);
+        }
+
+        if(poll_fd[11].revents & POLLPRI){
+            usleep(DEBOUNCE_T);
+            camerabus.readButton(2);
+            if (poll_err<0) {
+                poll_err = errno;
+                controller->logSystemError(poll_err, "Could not readout Camerabus Button 3");
+            }
+            controller->queueEvent(E_CAMERA_3);
+        }
+
+        if(poll_fd[12].revents & POLLPRI){
+            usleep(DEBOUNCE_T);
+            camerabus.readButton(3);
+            if (poll_err<0) {
+                poll_err = errno;
+                controller->logSystemError(poll_err, "Could not readout Camerabus Button 4");
+            }
+            controller->queueEvent(E_CAMERA_4);
+        }
+
+        if(poll_fd[13].revents & POLLPRI){
+            usleep(DEBOUNCE_T);
+            camerabus.readButton(4);
+            if (poll_err<0) {
+                poll_err = errno;
+                controller->logSystemError(poll_err, "Could not readout Camerabus Button 5");
+            }
+            controller->queueEvent(E_CAMERA_5);
+        }
+
+        if(poll_fd[14].revents & POLLPRI){
+            usleep(DEBOUNCE_T);
+            camerabus.readButton(5);
+            if (poll_err<0) {
+                poll_err = errno;
+                controller->logSystemError(poll_err, "Could not readout Camerabus Button 6");
+            }
+            controller->queueEvent(E_CAMERA_6);
+        }
+
+
     }
 }
 
