@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include "config.h"
 
 
 BBMJoystick::BBMJoystick()

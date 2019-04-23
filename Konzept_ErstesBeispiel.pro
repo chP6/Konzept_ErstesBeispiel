@@ -55,7 +55,8 @@ HEADERS += \
     errorwindow.h \
     udplistener.h \
     rotary.h \
-    tastenfeld.h
+    tastenfeld.h \
+    config.h
 
 FORMS += \
         view.ui \

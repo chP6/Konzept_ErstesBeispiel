@@ -9,6 +9,7 @@
 #include <linux/spi/spidev.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
+#include "config.h"
 #include "tastenfeld.h"
 
 

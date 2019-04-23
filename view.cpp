@@ -4,6 +4,7 @@
 #include "model.h"
 #include "QString"
 #include "events.h"
+#include "config.h"
 
 View::View(QWidget *parent) :
     QWidget(parent),

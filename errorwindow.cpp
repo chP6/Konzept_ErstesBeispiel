@@ -3,6 +3,7 @@
 #include <QStringListModel>
 #include "model.h"
 #include "controller.h"
+#include "config.h"
 
 ErrorWindow::ErrorWindow(QWidget *parent) :
     QWidget(parent),

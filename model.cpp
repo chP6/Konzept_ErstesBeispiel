@@ -1,5 +1,6 @@
 #include "model.h"
 #include "view.h"
+#include "config.h"
 #include <QString>
 
 Model::Model()

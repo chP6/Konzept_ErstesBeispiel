@@ -1,4 +1,5 @@
 #include "eventqueue.h"
+#include "config.h"
 
 bool EventQueue::isEmpty(){
     return queue.empty();

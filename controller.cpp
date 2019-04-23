@@ -4,10 +4,7 @@
 #include <thread>
 #include "events.h"
 #include <errno.h>
-
-#define PRESET_COLOR 0xFFFFFF
-#define CAMERA_COLOR 0xFF00F0
-#define ACT_PRESET_COLOR 0x00FF00
+#include "config.h"
 
 Controller::Controller(Model& model)// : poller(*this)    //poller Konstruktor aufrufen -> erwartet Objekt (as reference) darum this dereferenzieren
 {
@@ -124,7 +121,7 @@ void Controller::processQeue(){
             break;
         case E_STORE_PRESET:
             presetbus.setLed(ACT_PRESET_COLOR,model->getActivePreset());
-            model->setPresetInStore(1);
+            model->setPresetInStore(TRUE);
             presetbus.showStored(model->getUsedPreset());
 
             break;
@@ -133,7 +130,7 @@ void Controller::processQeue(){
             model->setActivePreset(loadedEvent.number);
             if(model->getPresetInStore()){
                 model->setUsedPreset(loadedEvent.number);
-                model->setPresetInStore(0);
+                model->setPresetInStore(FALSE);
                 txSocket.send(1,STORE_PRESET,loadedEvent.number+1);
             }else{
                 txSocket.send(1,GOTO_PRESET,loadedEvent.number+1);

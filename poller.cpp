@@ -6,6 +6,7 @@
 #include <error.h>
 #include "eventqueue.h"
 #include "tastenfeld.h"
+#include "config.h"
 #include <QDebug>
 
 

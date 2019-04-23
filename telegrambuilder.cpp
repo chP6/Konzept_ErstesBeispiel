@@ -1,5 +1,6 @@
 #include "telegrambuilder.h"
 #include "bbmcommandtypes.h"
+#include "config.h"
 
 Telegrambuilder::Telegrambuilder()
 {
