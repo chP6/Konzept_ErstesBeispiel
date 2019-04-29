@@ -142,6 +142,7 @@ int Model::getValue(int property)
 
 }
 
+
 int Model::getMin(int property)
 {
     return cameras[activeCamera].values[property][1];

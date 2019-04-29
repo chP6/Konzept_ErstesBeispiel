@@ -5,6 +5,7 @@
 #include "events.h"
 #include <errno.h>
 #include "config.h"
+#include <QDebug>
 
 Controller::Controller(Model& model)// : poller(*this)    //poller Konstruktor aufrufen -> erwartet Objekt (as reference) darum this dereferenzieren
 {
@@ -122,7 +123,7 @@ void Controller::processQeue(){
         case E_STORE_PRESET:
             presetbus.setLed(ACT_PRESET_COLOR,model->getActivePreset());
             model->setCamFlag(PRST_IN_STORE,TRUE);
-            presetbus.showStored(model->getUsedPreset());
+            presetbus.showStored(model->getUsedPreset(),model->getActivePreset());
             break;
         case E_PRESET_CHANGE:
             presetbus.setLed(PRESET_COLOR,loadedEvent.number);

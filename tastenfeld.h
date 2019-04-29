@@ -15,7 +15,7 @@ public:
     int readButton(int buttonNr);
     int initSpi();
     void setRow(int row);
-    int showStored(int usedPresets);
+    int showStored(int usedPresets, unsigned char activePreset);
 
 private:
 
