@@ -121,16 +121,15 @@ void Controller::processQeue(){
             break;
         case E_STORE_PRESET:
             presetbus.setLed(ACT_PRESET_COLOR,model->getActivePreset());
-            model->setPresetInStore(TRUE);
+            model->setCamFlag(PRST_IN_STORE,TRUE);
             presetbus.showStored(model->getUsedPreset());
-
             break;
         case E_PRESET_CHANGE:
             presetbus.setLed(PRESET_COLOR,loadedEvent.number);
             model->setActivePreset(loadedEvent.number);
-            if(model->getPresetInStore()){
+            if(model->getCamFlag(PRST_IN_STORE)){
                 model->setUsedPreset(loadedEvent.number);
-                model->setPresetInStore(FALSE);
+                model->setCamFlag(PRST_IN_STORE,FALSE);
                 txSocket.send(1,STORE_PRESET,loadedEvent.number+1);
             }else{
                 txSocket.send(1,GOTO_PRESET,loadedEvent.number+1);
