@@ -27,11 +27,16 @@ Poller::Poller(Controller& controller)
         controller.logSystemError(poll_err, "Could not initialize Joystick");
     }
 
-    poll_err = rotary1.init(4);
+    poll_err = rotary1.init(4, 0x10);
     if(poll_err < 0){
         poll_err = errno;
         controller.logSystemError(poll_err, "Could not initialize Rotary1");
     }
+  
+      poll_err = ocp.initLoopbackInterface();
+    if(poll_err < 0){
+        poll_err = errno;
+        controller.logSystemError(poll_err, "Could not initialize ocp loopback interface");
 
 
     presetbus.setRow(LOWER_ROW);
@@ -45,6 +50,7 @@ Poller::Poller(Controller& controller)
     if(poll_err<0){
         poll_err=errno;
         controller.logSystemError(poll_err, "Camerabus: Couldn't init Button");
+
     }
 
 
@@ -52,22 +58,28 @@ Poller::Poller(Controller& controller)
     poll_fd[0].events = POLLIN;
     poll_fd[1].fd = joystick.joystick_fd;
     poll_fd[1].events = POLLIN;
-    poll_fd[2].fd = rotary1.fd;
+    poll_fd[2].fd = rotary1.fd_sense;
     poll_fd[2].events = POLLPRI;
+    poll_fd[3].fd = ocp.loopback_socket_fd;
+    poll_fd[3].events = POLLIN;
 
-    for (unsigned int i = 0; i < 6; ++i) {
-
-        poll_fd[i+3].fd = presetbus.button[i];
-        poll_fd[i+3].events = POLLPRI;
+    if(ocp.connect() != -1){    //try to open ocp, if already connected at startup
+        poll_fd[4].fd = ocp.fd;
+        poll_fd[4].events = POLLIN;
     }
 
     for (unsigned int i = 0; i < 6; ++i) {
 
-        poll_fd[i+9].fd = camerabus.button[i];
-        poll_fd[i+9].events = POLLPRI;
+        poll_fd[i+5].fd = presetbus.button[i];
+        poll_fd[i+5].events = POLLPRI;
     }
 
+    for (unsigned int i = 0; i < 6; ++i) {
 
+        poll_fd[i+11].fd = camerabus.button[i];
+        poll_fd[i+11].events = POLLPRI;
+    }
+      
 }
 
 void Poller::listener(){
@@ -77,7 +89,8 @@ void Poller::listener(){
     while(1){
 
         data.clear();
-        poll_err = poll(poll_fd,15,-1);                      //poll. Blocks until event occurs -> SIZE setzen! current = 3; -1 = infinite timeout
+        poll_err = poll(poll_fd,17,-1);                      //poll. Blocks until event occurs -> SIZE setzen! current = 15; -1 = infinite timeout
+
         if(poll_err<0){
             error(poll_err,errno, "fail at poll");
         }
@@ -89,9 +102,6 @@ void Poller::listener(){
                 controller->logSystemError(poll_err, "Could not read Watchdog Timer");
             }
 
-            // debug
-            data.push_back(1);
-            controller->queueEvent(E_INCREASE, data);
             controller->queueEvent(E_TX_WATCHDOG);
             // receive answer?
         }
@@ -106,26 +116,84 @@ void Poller::listener(){
 
             if (jsData.buttonVal > 0) {
                 // send joystick button pushed event
-                controller->queueEvent(E_CLEAR,1);
+                controller->queueEvent(E_REQ_TEST);
             }
             else{
                 data.push_back(jsData.xCoord);
                 data.push_back(jsData.yCoord);
-                controller->queueEvent(E_SET_TILT,data);
+                controller->queueEvent(E_SET_TILT, data);
+
+                data.clear();
+                data.push_back(jsData.zCoord);
+                controller->queueEvent(E_SET_ZOOM, data);
             }
         }
 
+
         if(poll_fd[2].revents & POLLPRI){                    // Rotary1 event
-            poll_err = rotary1.readSense(sense_val);
+
+            poll_err = rotary1.readSense();
             if(poll_err<0){
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Rotary1 sense");
             }
 
-            //debug
-            char buf[100];
-            sprintf(buf, "SenseVal: %d",sense_val);
-            controller->logError("Rotary1 Sense!");
+            poll_err = rotary1.readRotary(rotary_val);
+            if(poll_err<0){
+                poll_err = errno;
+                controller->logSystemError(poll_err, "Could not readout Rotary1 value");
+            }
+            controller->queueEvent(E_INCREASE, rotary_val);
+            switch(rotary_val){
+            case 1:
+                controller->queueEvent(E_STORE_PRESET);
+                break;
+            case -1:
+                controller->queueEvent(E_GOTO_PRESET);
+                break;
+            }
+        }
+
+
+        if(poll_fd[3].revents & POLLIN){                    // OCP connected event
+            ocp.closeFd();      //close current fd (if any old open)
+
+            poll_err = ocp.receiveLoopback();
+            if (poll_err < 0) {
+                poll_err = errno;
+                controller->logSystemError(poll_err, "Could not read OCP loopback interface");
+            }
+
+            poll_err = ocp.connect();
+            if (poll_err < 0) {
+                poll_err = errno;
+                controller->logSystemError(poll_err, "Could not open OCP");
+            }
+            poll_fd[4].fd = ocp.fd;
+            poll_fd[4].events = POLLIN;
+            controller->logError("OCP Connected!");
+        }
+
+
+        if(poll_fd[4].revents & POLLIN){                    // OCP event
+            int ocpEvent;
+            poll_err = ocp.processEvent(ocpEvent);
+            if (poll_err < 0) {
+                poll_err = errno;
+                controller->logSystemError(poll_err, "Could not read OCP");
+            }
+
+            if(ocpEvent != -1){     //-1 if other nonimportant hid events
+                //controller->logError("OCP Event: " + std::to_string(ocpEvent));
+
+                //debug: focus test
+                if(ocpEvent == 1 || ocpEvent == 2){
+                    int inc = 10;
+                    if(ocpEvent == 2) inc=-10;
+                    controller->queueEvent(E_FOCUS_TEST, inc);
+                }
+
+            }
         }
 
         if(poll_fd[3].revents & POLLPRI){

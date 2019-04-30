@@ -31,7 +31,7 @@ int Networkinterface::init(int port){
         return -1;
     }
 
-    aton_err = inet_aton(SERVER , &addr_dst.sin_addr);
+    aton_err = inet_aton(SERVER_IP , &addr_dst.sin_addr);      // "Server" addr auf binär übersetzen
     if(aton_err<0){
         //error(aton_err,errno,"failed at writing ip address");
         return -2;
@@ -45,10 +45,16 @@ int Networkinterface::init(int port){
     return 0;
 }
 
+int Networkinterface::request(int bbm_dev_no, int bbm_command){
+    data.clear();
+    builder.encode(true, bbm_dev_no, bbm_command, data, buffer);
+    lowLevelSend();
+}
+
 //no data, is empty
 int Networkinterface::send(int bbm_dev_no, int bbm_command){
     data.clear();
-    builder.encode(bbm_dev_no, bbm_command, data, buffer);
+    builder.encode(false, bbm_dev_no, bbm_command, data, buffer);
     lowLevelSend();
     return send_err;
 }
@@ -56,7 +62,7 @@ int Networkinterface::send(int bbm_dev_no, int bbm_command){
 int Networkinterface::send(int bbm_dev_no, int bbm_command, int d1){
     data.clear();
     data.push_back(d1);
-    builder.encode(bbm_dev_no, bbm_command, data, buffer);
+    builder.encode(false, bbm_dev_no, bbm_command, data, buffer);
     lowLevelSend();
     return send_err;
 }
@@ -65,7 +71,7 @@ int Networkinterface::send(int bbm_dev_no, int bbm_command, int d1, int d2){
     data.clear();
     data.push_back(d1);
     data.push_back(d2);
-    builder.encode(bbm_dev_no, bbm_command, data, buffer);
+    builder.encode(false, bbm_dev_no, bbm_command, data, buffer);
     lowLevelSend();
     return send_err;
 }
@@ -75,7 +81,7 @@ int Networkinterface::send(int bbm_dev_no, int bbm_command, int d1, int d2, int 
     data.push_back(d1);
     data.push_back(d2);
     data.push_back(d3);
-    builder.encode(bbm_dev_no, bbm_command, data, buffer);
+    builder.encode(false, bbm_dev_no, bbm_command, data, buffer);
     lowLevelSend();
     return send_err;
 }
@@ -86,7 +92,7 @@ int Networkinterface::send(int bbm_dev_no, int bbm_command, int d[4]){  //würg 
     data.push_back(d[1]);
     data.push_back(d[2]);
     data.push_back(d[3]);
-    builder.encode(bbm_dev_no, bbm_command, data, buffer);
+    builder.encode(false, bbm_dev_no, bbm_command, data, buffer);
     lowLevelSend();
     return send_err;
 }
@@ -95,7 +101,7 @@ int Networkinterface::send(int bbm_dev_no, int bbm_command, int d[4]){  //würg 
 
 
 int Networkinterface::receive(uint8_t* rec_buffer){
-    recv_err=recvfrom(socket_fd, (char*)rec_buffer, sizeof(rec_buffer) , 0, (struct sockaddr *)&addr_sender, &len_sender);
+    recv_err=recvfrom(socket_fd, rec_buffer, 10 , 0, (struct sockaddr *)&addr_sender, &len_sender);
     addr_ptr = inet_ntoa(addr_sender.sin_addr);    //adresse des senders übersetzen
     sender_addr = addr_ptr;
     //if(recv_err<0)

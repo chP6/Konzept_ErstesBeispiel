@@ -98,7 +98,7 @@ void Controller::startQueueProcessThread(){
 }
 
 void Controller::processQeue(){
-    Event_s loadedEvent;
+    event_s loadedEvent;
 
     while(1){
         eventQueue.pullEvent(loadedEvent);      //blockiert, falls queue leer
@@ -117,8 +117,27 @@ void Controller::processQeue(){
             setAxis(x,10000-y);
             txSocket.send(1, TILT_PAN, x, y);
             break;
+         case E_SET_ZOOM:
+            txSocket.send(1,ZOOM_FOCUS_SET, loadedEvent.data[0]);
+            break;
         case E_TX_WATCHDOG:
-            txSocket.send(0, WATCHDOG);
+            txSocket.send(SERVER, WATCHDOG);
+            break;
+        case E_REQ_TEST:
+            txSocket.request(1, FOCUS_SET_ABSOLUTE);
+            logError("Sending Request!");
+            break;
+        case E_STORE_PRESET:
+            txSocket.send(1, STORE_PRESET);
+            logError("Store Preset!");
+            break;
+        case E_GOTO_PRESET:
+            txSocket.send(1, GOTO_PRESET);
+            logError("Goto Preset!");
+            break;
+        case E_FOCUS_TEST:
+            increment(loadedEvent.data[0]);
+            txSocket.send(1, FOCUS_SET_ABSOLUTE, model->getData());
             break;
         case E_STORE_PRESET:
             presetbus.setLed(ACT_PRESET_COLOR,model->getActivePreset());

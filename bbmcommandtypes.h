@@ -83,17 +83,30 @@
 
 
 /*Datagram Types*/
-#define TYPEA 	65				//0x41
-#define TYPEB 	66				//0x42
-#define TYPEC 	67				//0x43
-#define TYPED 	68				//0x44
+#define TYPEA_TALLY         65				//0x41
+#define TYPEB_NAD           66				//0x42
+#define TYPEC_FROM_HC       67				//0x43
+#define TYPED_TO_HC         68				//0x44
+#define TYPEI_REQUEST       73
 
 /*Synchro Character*/
 #define SYNCHRO 42				//0x2A
 
 /*Watchdog Device Types*/
-#define HEAD 	0
-#define TALLY 	1
-#define MMI 	2
+#define HEAD            0
+#define TALLY_SERVER 	1
+#define MMI             2
+
+/*Device Numbers*/
+#define SERVER  0
+
+/*Camera Types*/
+#define SONY_EVS_CODGER         1
+#define MH322                   2
+#define HPX600                  3
+#define URSA                    4
+#define HITACHI                 5
+#define HITHD33_RAVEN           6
+
 
 #endif // BBMCOMMANDTYPES_H

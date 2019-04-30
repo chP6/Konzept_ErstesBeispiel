@@ -44,6 +44,7 @@ int BBMJoystick::processEvent(joystickData& jsData){
 
         val_x=(int)((0.152587890625*axis[0])+5000);         // conversion joystick values -> camera values
         val_y=(int)((0.152587890625*axis[1])+5000);
+        val_z=(int)((0.003875732422*axis[2])+127);
 
         if (val_x_old == 9999 && val_x == 5000) {           // X-Achsen Bug Joystick Workaround
             val_x = 9999;                                   //
@@ -55,6 +56,7 @@ int BBMJoystick::processEvent(joystickData& jsData){
 
         jsData.xCoord = val_x;
         jsData.yCoord = val_y;
+        jsData.zCoord = val_z;
         break;
 
     case JS_EVENT_BUTTON:

@@ -85,6 +85,9 @@
        <height>51</height>
       </rect>
      </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(252, 175, 62);</string>
+     </property>
      <property name="text">
       <string>Close</string>
      </property>

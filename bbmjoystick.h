@@ -9,6 +9,7 @@
 struct joystickData {
     int xCoord;
     int yCoord;
+    int zCoord;
     int buttonVal;
 };
 
@@ -22,8 +23,8 @@ public:
     int joystick_fd;
 private:
     struct js_event js;
-    int val_x, val_x_old, val_y;
-    int axis[NUM_OF_AXIS-1];
+    int val_x, val_x_old, val_y, val_z;
+    int axis[NUM_OF_AXIS];
     int readErr;
     joystickData jsData;
 };
