@@ -116,28 +116,37 @@ void Controller::processQeue(){
             y = loadedEvent.data[1];
             setAxis(x,10000-y);
             txSocket.send(1, TILT_PAN, x, y);
+
+            //debug
+            char str[100];
+            sprintf(str,"%d/%d",x,y);
+            qDebug() << "Axis: " << str;
+
             break;
          case E_SET_ZOOM:
             txSocket.send(1,ZOOM_FOCUS_SET, loadedEvent.data[0]);
             break;
         case E_TX_WATCHDOG:
             txSocket.send(SERVER, WATCHDOG);
+            model->setWatchdogWaitingflag(true);
+            break;
+        case E_RX_WATCHDOG:
+            model->setWatchdogWaitingflag(false);   //clear flag
             break;
         case E_REQ_TEST:
             txSocket.request(1, FOCUS_SET_ABSOLUTE);
             logError("Sending Request!");
             break;
-        case E_STORE_PRESET:
-            txSocket.send(1, STORE_PRESET);
+        case E_STORE_PRESET_DEBUG:
+            txSocket.send(1, STORE_PRESET, loadedEvent.data[0]);
             logError("Store Preset!");
             break;
         case E_GOTO_PRESET:
-            txSocket.send(1, GOTO_PRESET);
-            logError("Goto Preset!");
+            txSocket.send(1, GOTO_PRESET, loadedEvent.data[0]);
             break;
         case E_FOCUS_TEST:
             increment(loadedEvent.data[0]);
-            txSocket.send(1, FOCUS_SET_ABSOLUTE, model->getData());
+            //txSocket.send(1, FOCUS_SET_ABSOLUTE, model->getData());
             break;
         case E_STORE_PRESET:
             presetbus.setLed(ACT_PRESET_COLOR,model->getActivePreset());
@@ -150,9 +159,9 @@ void Controller::processQeue(){
             if(model->getCamFlag(PRST_IN_STORE)){
                 model->setUsedPreset(loadedEvent.number);
                 model->setCamFlag(PRST_IN_STORE,FALSE);
-                txSocket.send(1,STORE_PRESET,loadedEvent.number+1);
+                txSocket.send(1, STORE_PRESET, loadedEvent.number+1);
             }else{
-                txSocket.send(1,GOTO_PRESET,loadedEvent.number+1);
+                txSocket.send(1, GOTO_PRESET, loadedEvent.number+1);
             }
             break;
         case E_CAMERA_CHANGE:

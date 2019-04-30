@@ -23,7 +23,7 @@ private:
     int sense_val;
     signed char rotary_val;
     Controller* controller;
-    ServerWatchdog srvWatchdog;
+    ServerWatchdog srvWatchdog;    uint8_t buf[10];            //für antwort vom server. hier behalten?
     BBMJoystick joystick;
     Rotary rotary1;
     Tastenfeld presetbus;

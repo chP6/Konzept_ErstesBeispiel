@@ -1,7 +1,8 @@
 #include "udplistener.h"
 #include "controller.h"
-#include <thread>
+#include "events.h"
 #include "config.h"
+#include <thread>
 
 UdpListener::UdpListener(Controller& controller)
 {
@@ -34,11 +35,21 @@ void UdpListener::listener(){
         rxSocket.getSenderAddr(addr);
         telegramBuilder.decode(buffer, answer);
 
+        // =========== DECIDE WHAT TO DO ==============================================
+
+        if(answer.command == WATCHDOG && answer.from == SERVER){
+            controller->queueEvent(E_RX_WATCHDOG);
+        }
+
+        //debug: show answer packages in log
         if(answer.command != WATCHDOG){
             sprintf(buf,"UDP RX: %d,%d,%d,%d,%d,%d,%d,%d,%d,%d", buffer[0],buffer[1],buffer[2],buffer[3],buffer[4],buffer[5],buffer[6],buffer[7],buffer[8],buffer[9]);
             std::string str(buf);
             controller->logError(str + " Addr: " + addr);
         }
+
+
+
         answer.data.clear();
     }
 }

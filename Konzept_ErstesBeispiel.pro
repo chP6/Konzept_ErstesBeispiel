@@ -38,7 +38,7 @@ SOURCES += \
     errorwindow.cpp \
     udplistener.cpp \
     rotary.cpp \
-    tastenfeld.cpp
+    tastenfeld.cpp \
     smbus.cpp \
     ocp.cpp
 
@@ -58,7 +58,7 @@ HEADERS += \
     udplistener.h \
     rotary.h \
     tastenfeld.h \
-    config.h
+    config.h \
     smbus.h \
     ocp.h
 

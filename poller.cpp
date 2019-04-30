@@ -12,6 +12,9 @@
 
 Poller::Poller(Controller& controller)
 {
+
+    // ================ INIT HW MODULES ======================================================================
+
     this->controller = &controller;
     poll_err = 0;
 
@@ -37,7 +40,7 @@ Poller::Poller(Controller& controller)
     if(poll_err < 0){
         poll_err = errno;
         controller.logSystemError(poll_err, "Could not initialize ocp loopback interface");
-
+    }
 
     presetbus.setRow(LOWER_ROW);
     poll_err=presetbus.init();
@@ -50,11 +53,12 @@ Poller::Poller(Controller& controller)
     if(poll_err<0){
         poll_err=errno;
         controller.logSystemError(poll_err, "Camerabus: Couldn't init Button");
-
     }
 
 
-    poll_fd[0].fd = srvWatchdog.timer_fd;               // poll struct setup
+    // ================ INIT POLL STRUCT ======================================================================
+
+    poll_fd[0].fd = srvWatchdog.timer_fd;
     poll_fd[0].events = POLLIN;
     poll_fd[1].fd = joystick.joystick_fd;
     poll_fd[1].events = POLLIN;
@@ -63,28 +67,42 @@ Poller::Poller(Controller& controller)
     poll_fd[3].fd = ocp.loopback_socket_fd;
     poll_fd[3].events = POLLIN;
 
-    if(ocp.connect() != -1){    //try to open ocp, if already connected at startup
+    if(ocp.connect() != -1){        //try to open ocp, if already connected at startup
         poll_fd[4].fd = ocp.fd;
         poll_fd[4].events = POLLIN;
     }
 
     for (unsigned int i = 0; i < 6; ++i) {
-
         poll_fd[i+5].fd = presetbus.button[i];
         poll_fd[i+5].events = POLLPRI;
     }
 
     for (unsigned int i = 0; i < 6; ++i) {
-
         poll_fd[i+11].fd = camerabus.button[i];
         poll_fd[i+11].events = POLLPRI;
     }
-      
 }
+
 
 void Poller::listener(){
     std::vector<int> data;
+    joystickData jsData;
     data.reserve(10);
+
+//flush all interrupts
+//    for (int i = 0;i<17;i++) {
+//        if(i!=4)
+//            poll_fd[i].revents = 0;
+//    }
+
+    rotary1.readSense();
+    joystick.processEvent(jsData);
+    joystick.processEvent(jsData);
+    joystick.processEvent(jsData);
+    for (int i=0;i<6;i++) {
+        presetbus.readButton(i);
+        camerabus.readButton(i);
+    }
 
     while(1){
 
@@ -101,22 +119,22 @@ void Poller::listener(){
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not read Watchdog Timer");
             }
-
             controller->queueEvent(E_TX_WATCHDOG);
-            // receive answer?
         }
 
         if(poll_fd[1].revents & POLLIN) {                   // Joystick event
-            joystickData jsData;
+            //joystickData jsData;
             poll_err = joystick.processEvent(jsData);
             if(poll_err<0){
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not read Joystick");
             }
 
-            if (jsData.buttonVal > 0) {
-                // send joystick button pushed event
-                controller->queueEvent(E_REQ_TEST);
+            if (jsData.buttonVal > 0) {                     // Joystick Pushbutton
+                //controller->queueEvent(E_REQ_TEST);
+                data.push_back(1000);
+                data.push_back(5000);
+                controller->queueEvent(E_SET_TILT, data);
             }
             else{
                 data.push_back(jsData.xCoord);
@@ -143,15 +161,17 @@ void Poller::listener(){
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Rotary1 value");
             }
-            controller->queueEvent(E_INCREASE, rotary_val);
-            switch(rotary_val){
-            case 1:
-                controller->queueEvent(E_STORE_PRESET);
-                break;
-            case -1:
-                controller->queueEvent(E_GOTO_PRESET);
-                break;
-            }
+
+            //debug: preset test
+//            controller->queueEvent(E_INCREASE, rotary_val);
+//            switch(rotary_val){
+//            case 1:
+//                controller->queueEvent(E_STORE_PRESET_DEBUG, 1);
+//                break;
+//            case -1:
+//                controller->queueEvent(E_GOTO_PRESET, 1);
+//                break;
+//            }
         }
 
 
@@ -183,7 +203,8 @@ void Poller::listener(){
                 controller->logSystemError(poll_err, "Could not read OCP");
             }
 
-            if(ocpEvent != -1){     //-1 if other nonimportant hid events
+            if(ocpEvent != -1){     //-1 are other nonimportant hid events
+                //debug:
                 //controller->logError("OCP Event: " + std::to_string(ocpEvent));
 
                 //debug: focus test
@@ -192,35 +213,30 @@ void Poller::listener(){
                     if(ocpEvent == 2) inc=-10;
                     controller->queueEvent(E_FOCUS_TEST, inc);
                 }
-
             }
         }
 
-        if(poll_fd[3].revents & POLLPRI){
+        if(poll_fd[5].revents & POLLPRI){
             usleep(DEBOUNCE_T);
-            qDebug() << "Button1";
             poll_err=presetbus.readButton(0);
             if (poll_err<0) {
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Presetbus Button 1");
             }
             controller->queueEvent(E_PRESET_CHANGE,(unsigned char)0);
-
         }
 
-        if(poll_fd[4].revents & POLLPRI){
+        if(poll_fd[6].revents & POLLPRI){
             usleep(DEBOUNCE_T);
-            qDebug() << "Button2";
             presetbus.readButton(1);
             if (poll_err<0) {
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Presetbus Button 2");
             }
             controller->queueEvent(E_PRESET_CHANGE,(unsigned char)1);
-
         }
 
-        if(poll_fd[5].revents & POLLPRI){
+        if(poll_fd[7].revents & POLLPRI){
             usleep(DEBOUNCE_T);
             presetbus.readButton(2);
             if (poll_err<0) {
@@ -228,10 +244,9 @@ void Poller::listener(){
                 controller->logSystemError(poll_err, "Could not readout Presetbus Button 3");
             }
             controller->queueEvent(E_PRESET_CHANGE,(unsigned char)2);
-
         }
 
-        if(poll_fd[6].revents & POLLPRI){
+        if(poll_fd[8].revents & POLLPRI){
             usleep(DEBOUNCE_T);
             presetbus.readButton(3);
             if (poll_err<0) {
@@ -239,10 +254,9 @@ void Poller::listener(){
                 controller->logSystemError(poll_err, "Could not readout Presetbus Button 4");
             }
             controller->queueEvent(E_PRESET_CHANGE,(unsigned char)3);
-
         }
 
-        if(poll_fd[7].revents & POLLPRI){
+        if(poll_fd[9].revents & POLLPRI){
             usleep(DEBOUNCE_T);
             presetbus.readButton(4);
             if (poll_err<0) {
@@ -250,10 +264,9 @@ void Poller::listener(){
                 controller->logSystemError(poll_err, "Could not readout Presetbus Button 5");
             }
             controller->queueEvent(E_PRESET_CHANGE,(unsigned char)4);
-
         }
 
-        if(poll_fd[8].revents & POLLPRI){
+        if(poll_fd[10].revents & POLLPRI){
             usleep(DEBOUNCE_T);
             presetbus.readButton(5);
             if (poll_err<0) {
@@ -261,12 +274,10 @@ void Poller::listener(){
                 controller->logSystemError(poll_err, "Could not readout Presetbus Button 6");
             }
             controller->queueEvent(E_PRESET_CHANGE,(unsigned char)5);
-
         }
 
-        if(poll_fd[9].revents & POLLPRI){
+        if(poll_fd[11].revents & POLLPRI){
             usleep(DEBOUNCE_T);
-            qDebug() << "Button1C";
             camerabus.readButton(0);
             if (poll_err<0) {
                 poll_err = errno;
@@ -275,7 +286,7 @@ void Poller::listener(){
             controller->queueEvent(E_CAMERA_CHANGE,(unsigned char)0);
         }
 
-        if(poll_fd[10].revents & POLLPRI){
+        if(poll_fd[12].revents & POLLPRI){
             usleep(DEBOUNCE_T);
             camerabus.readButton(1);
             if (poll_err<0) {
@@ -285,7 +296,7 @@ void Poller::listener(){
             controller->queueEvent(E_CAMERA_CHANGE,(unsigned char)1);
         }
 
-        if(poll_fd[11].revents & POLLPRI){
+        if(poll_fd[13].revents & POLLPRI){
             usleep(DEBOUNCE_T);
             camerabus.readButton(2);
             if (poll_err<0) {
@@ -295,7 +306,7 @@ void Poller::listener(){
             controller->queueEvent(E_CAMERA_CHANGE,(unsigned char)2);
         }
 
-        if(poll_fd[12].revents & POLLPRI){
+        if(poll_fd[14].revents & POLLPRI){
             usleep(DEBOUNCE_T);
             camerabus.readButton(3);
             if (poll_err<0) {
@@ -305,7 +316,7 @@ void Poller::listener(){
             controller->queueEvent(E_CAMERA_CHANGE,(unsigned char)3);
         }
 
-        if(poll_fd[13].revents & POLLPRI){
+        if(poll_fd[15].revents & POLLPRI){
             usleep(DEBOUNCE_T);
             camerabus.readButton(4);
             if (poll_err<0) {
@@ -315,7 +326,7 @@ void Poller::listener(){
             controller->queueEvent(E_CAMERA_CHANGE,(unsigned char)4);
         }
 
-        if(poll_fd[14].revents & POLLPRI){
+        if(poll_fd[16].revents & POLLPRI){
             usleep(DEBOUNCE_T);
             camerabus.readButton(5);
             if (poll_err<0) {
@@ -326,8 +337,10 @@ void Poller::listener(){
         }
 
 
+
     }
 }
+
 
 void Poller::startListener(){
     std::thread t2(&Poller::listener, this);                  //1.Arg: function type that will be called, 2.Arg: pointer to object (this)

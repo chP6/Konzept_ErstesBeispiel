@@ -46,7 +46,7 @@ void Model::clearErrors(){
 
 void Model::setUsedPreset(int presetNr)
 {
-    cameras[activeCamera].usedPresets|=1<<presetNr;
+    cameras[activeCamera].usedPresets |= 1<<presetNr;
      //cameras[activeCamera].usedPresets[presetNr]=1;
 }
 
@@ -161,4 +161,29 @@ void Model::setCamFlag(int flag,bool value)
 bool Model::getCamFlag(int flag)
 {
     return cameras[activeCamera].flags[flag];
+}
+
+int Model::setWatchdogWaitingflag(bool waiting){
+    if(waiting){
+        if(watchdogWaitingForAnswerFlag){
+            watchdogWaitingForAnswerFlag = true;
+            if(serverConnected){
+                emit updateServerConnectionStatus(false);       //signal connection lost
+            }
+            serverConnected = false;
+            return -1;      // error, already waiting for answer -> connection lost
+        }
+        else{
+            watchdogWaitingForAnswerFlag = true;
+            return 0;       // ok, set waiting
+        }
+    }
+    else{
+        watchdogWaitingForAnswerFlag = false;
+        if(!serverConnected){
+            emit updateServerConnectionStatus(true);        //signal connected
+        }
+        serverConnected = true;
+        return 0;           // ok, clear flag
+    }
 }

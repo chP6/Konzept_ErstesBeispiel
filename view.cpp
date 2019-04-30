@@ -44,6 +44,17 @@ void View::on_modelUpdate(){
     ui->vSlider->setValue(y);
 }
 
+void View::on_serverConnectionStatusChanged(bool connected){
+    if(connected){
+        ui->lbServerConnection->setText("Connected");
+        ui->lbServerConnection->setStyleSheet("color: rgb(78, 154, 6);");
+    }
+    else{
+        ui->lbServerConnection->setText("Connection lost");
+        ui->lbServerConnection->setStyleSheet("color: rgb(239, 41, 41);");
+    }
+}
+
 void View::on_pbErrors_clicked()
 {
     errorFenster.show();

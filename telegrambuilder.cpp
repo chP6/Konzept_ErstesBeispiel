@@ -79,10 +79,10 @@ void Telegrambuilder::encode(bool request, int bbm_dev_no, int bbm_command, std:
         case CALIBRATE_HEAD:
             break;
         case STORE_PRESET:
-            datagram[8] = 1;    //preset number
+            datagram[8] = (uint8_t)data[0];    //preset number
             break;
         case GOTO_PRESET:
-            datagram[8] = 1;    //preset number
+            datagram[8] = (uint8_t)data[0];    //preset number
             break;
         case RED_GAIN_ADJ_UP:
             break;

@@ -14,11 +14,13 @@
 #define E_SET_FOCUS         10
 #define E_SET_ZOOM          11
 
-#define E_STORE_PRESET      100
-#define E_GOTO_PRESET       101
+
+#define E_STORE_PRESET_DEBUG        102
+#define E_GOTO_PRESET               101
 
 //Debug
 #define E_REQ_TEST          111
 #define E_FOCUS_TEST        112
+
 
 #endif // EVENTS_H

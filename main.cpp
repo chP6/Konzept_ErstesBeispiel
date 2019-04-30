@@ -17,6 +17,9 @@ int main(int argc, char *argv[])
 
     QObject::connect(&model, &Model::updateView,            // model signal mit view slot verbinden
                      &view, &View::on_modelUpdate);
+    QObject::connect(&model, &Model::updateServerConnectionStatus,
+                     &view, &View::on_serverConnectionStatusChanged);
+
 
     Controller controller(model);
     controller.startQueueProcessThread();
@@ -25,8 +28,8 @@ int main(int argc, char *argv[])
     view.show();
 
     Poller poller(controller);
-    poller.startListener();
     UdpListener udpListener(controller);
+    poller.startListener();
     udpListener.startListener();
 
     return a.exec();

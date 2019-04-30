@@ -76,12 +76,12 @@
 #define V_ACTIVE_PRST         26
 #define V_USED_PRST           27
 
-#define ROW_ENTRIES               27
-#define COLUM_ENTRIES             4
-#define NORMAL      0
-#define CENTER      1
-#define TEXT        2
-#define NAN         3
+#define ROW_ENTRIES           27
+#define COLUM_ENTRIES         4
+#define NORMAL                0
+#define CENTER                1
+#define TEXT                  2
+#define NAN                   3
 
 /*flags*/
 #define PRST_IN_STORE       0

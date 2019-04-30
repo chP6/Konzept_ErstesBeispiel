@@ -16,6 +16,8 @@ class View : public QWidget
 
 public slots:
     void on_modelUpdate();
+    void on_serverConnectionStatusChanged(bool connected);
+
 private slots:
     void on_pbInc_clicked();
     void on_pbClear_clicked();

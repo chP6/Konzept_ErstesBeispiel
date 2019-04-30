@@ -22,6 +22,7 @@ class Model : public QObject
 
 signals:
     void updateView();
+    void updateServerConnectionStatus(bool connected);
 
 public:
     Model();
@@ -46,13 +47,16 @@ public:
     int getMax(int property);
     void setCamFlag(int flag, bool value);
     bool getCamFlag(int flag);
+    int setWatchdogWaitingflag(bool waiting);
 
 private:
     QStringList errorList;
     int answerStack;
     int count;
-    int x;
-    int y;
+    int x = 5000;
+    int y = 5000;
+    bool watchdogWaitingForAnswerFlag = false;
+    bool serverConnected = false;
     struct Camera_s cameras[6];
     unsigned char activeCamera;
     int c2Values[ROW_ENTRIES][COLUM_ENTRIES]={{1,0,49,NORMAL},     //headnr init_value, min_value, max_value

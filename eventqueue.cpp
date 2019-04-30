@@ -26,7 +26,7 @@ void EventQueue::qeueEvent(int evt, bool sta){
 
 void EventQueue::qeueEvent(int evt, unsigned char number)
 {
-    Event_s eventEntry;
+    event_s eventEntry;
     eventEntry.evt = evt;
     eventEntry.number = number;
     std::unique_lock<std::mutex> lock(mtx);

@@ -27,7 +27,7 @@ int ServerWatchdog::init(){
 }
 
 int ServerWatchdog::processEvent(){
-    // neue Speicherplatzallokation nicht zulässig (weil von anderem thread aufgerufen wird) -> alle Variablen in Klasse deklarieren.
+    // neue Speicherplatzallokation nicht zulässig (weil von anderem thread aufgerufen wird) -> alle Variablen in Klasse als Attribute deklarieren.
     wdg_err = read(timer_fd, &timersElapsed, 8);
     return wdg_err;
 }
