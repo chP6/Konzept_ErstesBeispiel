@@ -1,4 +1,5 @@
 #include "networkinterface.h"
+#include "config.h"
 
 // Konstruktor
 Networkinterface::Networkinterface(){

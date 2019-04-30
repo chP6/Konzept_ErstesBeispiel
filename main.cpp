@@ -6,6 +6,7 @@
 #include "poller.h"
 #include <iostream>
 #include <sstream>
+#include "config.h"
 
 int main(int argc, char *argv[])
 {

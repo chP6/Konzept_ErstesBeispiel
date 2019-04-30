@@ -4,6 +4,7 @@
 #include "model.h"
 #include "QString"
 #include "events.h"
+#include "config.h"
 
 View::View(QWidget *parent) :
     QWidget(parent),
@@ -46,4 +47,9 @@ void View::on_modelUpdate(){
 void View::on_pbErrors_clicked()
 {
     errorFenster.show();
+}
+
+void View::on_storePreset_clicked()
+{
+    controller->queueEvent(E_STORE_PRESET);
 }

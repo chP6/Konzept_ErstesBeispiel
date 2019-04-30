@@ -1,6 +1,7 @@
 #include "udplistener.h"
 #include "controller.h"
 #include <thread>
+#include "config.h"
 
 UdpListener::UdpListener(Controller& controller)
 {

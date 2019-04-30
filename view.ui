@@ -136,6 +136,19 @@
     <string>Errors</string>
    </property>
   </widget>
+  <widget class="QPushButton" name="storePreset">
+   <property name="geometry">
+    <rect>
+     <x>360</x>
+     <y>190</y>
+     <width>191</width>
+     <height>151</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Store Preset</string>
+   </property>
+  </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>

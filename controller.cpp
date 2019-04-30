@@ -4,7 +4,8 @@
 #include <thread>
 #include "events.h"
 #include <errno.h>
-
+#include "config.h"
+#include <QDebug>
 
 Controller::Controller(Model& model)// : poller(*this)    //poller Konstruktor aufrufen -> erwartet Objekt (as reference) darum this dereferenzieren
 {
@@ -13,6 +14,20 @@ Controller::Controller(Model& model)// : poller(*this)    //poller Konstruktor a
     if(contr_err<0){
         contr_err = errno;  //zwischenspeichern (muss)
         logSystemError(contr_err, "Could not initialize udp-interface");
+    }
+
+    presetbus.setRow(UPPER_ROW);
+    contr_err=presetbus.initSpi();
+    if(contr_err<0){
+        contr_err = errno;
+        logSystemError(contr_err, "Could not open SPI-BUS 1");
+    }
+
+    camerabus.setRow(LOWER_ROW);
+    camerabus.initSpi();
+    if(contr_err<0){
+        contr_err = errno;
+        logSystemError(contr_err, "Could not open SPI-BUS 2");
     }
 }
 
@@ -71,6 +86,11 @@ void Controller::queueEvent(int evt, bool sta){
     eventQueue.qeueEvent(evt, sta);
 }
 
+void Controller::queueEvent(int evt, unsigned char number)
+{
+    eventQueue.qeueEvent(evt, number);
+}
+
 
 void Controller::startQueueProcessThread(){
     std::thread t1(&Controller::processQeue, this);       //1.Arg: function type that will be called, 2.Arg: pointer to object (this)
@@ -119,6 +139,28 @@ void Controller::processQeue(){
             increment(loadedEvent.data[0]);
             txSocket.send(1, FOCUS_SET_ABSOLUTE, model->getData());
             break;
+        case E_STORE_PRESET:
+            presetbus.setLed(ACT_PRESET_COLOR,model->getActivePreset());
+            model->setCamFlag(PRST_IN_STORE,TRUE);
+            presetbus.showStored(model->getUsedPreset(),model->getActivePreset());
+            break;
+        case E_PRESET_CHANGE:
+            presetbus.setLed(PRESET_COLOR,loadedEvent.number);
+            model->setActivePreset(loadedEvent.number);
+            if(model->getCamFlag(PRST_IN_STORE)){
+                model->setUsedPreset(loadedEvent.number);
+                model->setCamFlag(PRST_IN_STORE,FALSE);
+                txSocket.send(1,STORE_PRESET,loadedEvent.number+1);
+            }else{
+                txSocket.send(1,GOTO_PRESET,loadedEvent.number+1);
+            }
+            break;
+        case E_CAMERA_CHANGE:
+            camerabus.setLed(CAMERA_COLOR,loadedEvent.number);
+            model->setActiveCamera(loadedEvent.number);
+            presetbus.setLed(PRESET_COLOR,model->getActivePreset());
+            break;
+
         default:
             break;
         }

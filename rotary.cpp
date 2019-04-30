@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include "config.h"
 #include <linux/i2c-dev.h>
 #include <sys/ioctl.h>
 #include "smbus.h"

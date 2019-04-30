@@ -4,6 +4,7 @@
 #include <error.h>
 #include <errno.h>
 #include <unistd.h>
+#include "config.h"
 
 ServerWatchdog::ServerWatchdog()
 {
