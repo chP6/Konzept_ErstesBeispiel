@@ -204,15 +204,61 @@ void Poller::listener(){
             }
 
             if(ocpEvent != -1){     //-1 are other nonimportant hid events
+                switch (ocpEvent) {
+                case OCP_E_IRIS_UP:
+                    controller->queueEvent(E_IRIS_CHANGE,1);
+                    break;
+                case OCP_E_IRIS_DOWN:
+                    controller->queueEvent(E_IRIS_CHANGE,-1);
+                    break;
+                case OCP_E_PED_UP:
+                    controller->queueEvent(E_PED_CHANGE,1);
+                    break;
+                case OCP_E_PED_DOWN:
+                    controller->queueEvent(E_PED_CHANGE,-1);
+                    break;
+                case OCP_E_WRED_UP:
+                    controller->queueEvent(E_WRED_CHANGE,1);
+                    break;
+                case OCP_E_WRED_DOWN:
+                    controller->queueEvent(E_WRED_CHANGE,-1);
+                    break;
+                case OCP_E_WBLUE_UP:
+                    controller->queueEvent(E_WBLUE_CHANGE,1);
+                    break;
+                case OCP_E_WBLUE_DOWN:
+                    controller->queueEvent(E_WBLUE_CHANGE,-1);
+                    break;
+                case OCP_E_BRED_UP:
+                    controller->queueEvent(E_BRED_CHANGE,1);
+                    break;
+                case OCP_E_BRED_DOWN:
+                    controller->queueEvent(E_BRED_CHANGE,-1);
+                    break;
+                case OCP_E_BBLUE_UP:
+                    controller->queueEvent(E_BBLUE_CHANGE,1);
+                    break;
+                case OCP_E_BBLUE_DOWN:
+                    controller->queueEvent(E_BBLUE_CHANGE,-1);
+                    break;
+                case OCP_E_GAIN_UP:
+                    controller->queueEvent(E_GAIN_CHANGE,1);
+                    break;
+                case OCP_E_GAIN_DOWN:
+                    controller->queueEvent(E_GAIN_CHANGE,-1);
+                    break;
+                case OCP_E_SHUTTER_UP:
+                    controller->queueEvent(E_SHUTTER_CHANGE,1);
+                    break;
+                case OCP_E_SHUTTER_DOWN:
+                    controller->queueEvent(E_SHUTTER_CHANGE,-1);
+                    break;
+                default:
+                    break;
+                }
+
                 //debug:
                 //controller->logError("OCP Event: " + std::to_string(ocpEvent));
-
-                //debug: focus test
-                if(ocpEvent == 1 || ocpEvent == 2){
-                    int inc = 10;
-                    if(ocpEvent == 2) inc=-10;
-                    controller->queueEvent(E_FOCUS_TEST, inc);
-                }
             }
         }
 

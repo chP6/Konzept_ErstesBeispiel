@@ -1,5 +1,6 @@
 #include "eventqueue.h"
 #include "config.h"
+#include "QDebug"
 
 bool EventQueue::isEmpty(){
     return queue.empty();
@@ -24,15 +25,6 @@ void EventQueue::qeueEvent(int evt, bool sta){
     cv.notify_one();
 }
 
-void EventQueue::qeueEvent(int evt, unsigned char number)
-{
-    event_s eventEntry;
-    eventEntry.evt = evt;
-    eventEntry.number = number;
-    std::unique_lock<std::mutex> lock(mtx);
-    queue.push_back(eventEntry);
-    cv.notify_one();
-}
 
 //no data eg. Watchdog
 void EventQueue::qeueEvent(int evt){

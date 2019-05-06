@@ -33,24 +33,32 @@ void Telegrambuilder::encode(bool request, int bbm_dev_no, int bbm_command, std:
             datagram[8] = (uint8_t)(data[1]>>8);
             break;
         case IRIS_OPEN:
+            datagram[5] = (uint8_t)(data[0]>>8);
+            datagram[6] = (uint8_t)data[0];
+            datagram[7] = (uint8_t)(data[0]>>8);
+            datagram[8] = (uint8_t)data[0];
             break;
         case RAMP:
+            datagram[5] = 1;
+            datagram[6] = (uint8_t)data[0];
             break;
         case PAN_TILT_SPEED:
+            datagram[5] = 1;
+            datagram[6] = (uint8_t)data[0];
             break;
         case ZOOM_SET_ABSOLUTE:
-            datagram[5] = 0;
-            datagram[6] = 0;
-            datagram[7] = 0;
-            datagram[8] = 0;
+            // only for answer?
+            // all zeros
             break;
         case FOCUS_SET_ABSOLUTE:
+            // only for focus
             datagram[5] = 0;                                //(ignored) zoom value
             datagram[6] = 0;
             datagram[7] = (uint8_t)(data[0]>>8);            //focus value
             datagram[8] = (uint8_t)data[0];                 //focus value
             break;
         case ZOOM_FOCUS_SET:
+            // only for zoom
             datagram[5] = 0;
             datagram[6] = (uint8_t)data[0];                 //zoom value
             datagram[7] = 0;                                //(ignored) focus value
@@ -63,68 +71,112 @@ void Telegrambuilder::encode(bool request, int bbm_dev_no, int bbm_command, std:
             datagram[8] = 0;
             break;
         case CAMERA_GAIN_UP:
+            datagram[5] = 1;
+            datagram[6] = (uint8_t)data[0];
             break;
         case AUTOIRIS_ON:
+            datagram[5] = 1;
+            datagram[6] = 1;
             break;
         case AUTOIRIS_OFF:
+            datagram[5] = 1;
+            datagram[6] = 0;
             break;
         case WHITE_BALANCE_PRST:
+            datagram[5] = (uint8_t)(data[0]>>8);
+            datagram[6] = (uint8_t)data[0];
             break;
         case MIRROR_H_V:
+            datagram[5] = 1;
+            datagram[6] = (uint8_t)data[0];
             break;
         case SHUTTER_UP:
+            datagram[6] = (uint8_t)(data[0]>>8);
+            datagram[5] = (uint8_t)data[0];
             break;
         case KNEE_POINT_AUTO:
+            datagram[5] = 1;
+            datagram[6] = (uint8_t)data[0];
             break;
         case CALIBRATE_HEAD:
+            // all zeros
             break;
         case STORE_PRESET:
-            datagram[8] = (uint8_t)data[0];    //preset number
+            datagram[8] = (uint8_t)data[0];
             break;
         case GOTO_PRESET:
-            datagram[8] = (uint8_t)data[0];    //preset number
+            datagram[8] = (uint8_t)data[0];
             break;
         case RED_GAIN_ADJ_UP:
+            datagram[5] = (uint8_t)(data[0]>>8);
+            datagram[6] = (uint8_t)data[0];
             break;
         case BLUE_GAIN_ADJ_UP:
+            datagram[5] = (uint8_t)(data[0]>>8);
+            datagram[6] = (uint8_t)data[0];
             break;
         case COLOR_UP:
+            datagram[5] = 1;
+            datagram[6] = (uint8_t)data[0];
             break;
         case MASTER_PED_UP:
+            datagram[5] = (uint8_t)(data[0]>>8);
+            datagram[6] = (uint8_t)data[0];
             break;
         case RED_PED_UP:
+            datagram[5] = (uint8_t)(data[0]>>8);
+            datagram[6] = (uint8_t)data[0];
             break;
         case GREEN_PED_UP:
+            datagram[5] = (uint8_t)(data[0]>>8);
+            datagram[6] = (uint8_t)data[0];
             break;
         case BLUE_PED_UP:
+            datagram[5] = (uint8_t)(data[0]>>8);
+            datagram[6] = (uint8_t)data[0];
             break;
         case GAMMA:
+            datagram[5] = (uint8_t)(data[0]>>8);
+            datagram[6] = (uint8_t)data[0];
             break;
         case GAMMA_TABLE:
+            datagram[5] = 1;
+            datagram[6] = (uint8_t)data[0];
             break;
         case HEAD_POWER:
+            datagram[5] = 1;
+            datagram[6] = (uint8_t)data[0];
             break;
         case TILT_UPPER_LIMIT:
+            // all zeros
             break;
         case TILT_LOWER_LIMIT:
+            // all zeros
             break;
         case TILT_CLEAR_LIMIT:
+            // all zeros
             break;
         case SET_FOCUS_PUSH:
+            // all zeros
             break;
         case BNCE_ZOOM_TELE_SET:
+            datagram[5] = 1;
             break;
-        case BNCE_ZOOM_START_SET:
+        case BNCE_ZOOM_WIDE_SET:
+            datagram[5] = 1;
             break;
-        case BNCE_ZOOM_START_STP:
-            break;
-        case BNT_TALLY_ON_OFF:
+        case BNCE_ZOOM_START:
+            datagram[5] = 1;
             break;
         case BNT_TEMPERATURE:
+            datagram[7] = (uint8_t)(data[0]>>8);
+            datagram[8] = (uint8_t)data[0];
             break;
         case CAMERA_RESET:
+            datagram[5] = 1;
             break;
         case HEAD_STARTUP:
+            // all zeros
             break;
         default:
             break;
@@ -145,11 +197,11 @@ void Telegrambuilder::decode(uint8_t* telegram, struct answer_s& answer){
     answer.command = telegram[4];
     answer.from = telegram[3];
 
-    //Server Watchdog only answer not from camera/head:
+    //watchdog answer from server
     if(answer.from == SERVER){
         //NOP
     }
-    else{
+    else{ //watchdog answer from camera/head
         switch (answer.command) {
         case TILT_PAN:
             break;
@@ -164,9 +216,9 @@ void Telegrambuilder::decode(uint8_t* telegram, struct answer_s& answer){
         case ZOOM_FOCUS_SET:
             break;
         case WATCHDOG:
-            answer.data.push_back(telegram[5]);             // headStatus
-            answer.data.push_back(telegram[6]);             // cameraType
-            temp = ( (telegram[7]<<8) | (telegram[8]) );    // voltage
+            answer.data.push_back(telegram[5]);             // [0]headStatus
+            answer.data.push_back(telegram[6]);             // [1]cameraType
+            temp = ( (telegram[7]<<8) | (telegram[8]) );    // [2]voltage
             answer.data.push_back(temp);
             break;
         case CAMERA_GAIN_UP:

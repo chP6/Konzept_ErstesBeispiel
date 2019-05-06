@@ -45,8 +45,15 @@
 /*others*/
 #define TRUE 1
 #define FALSE 0
+#define NUMBER_OF_CAMERAS 6
 
-/*values*/
+/*property array*/
+#define VAL 0
+#define MIN 1
+#define MAX 2
+#define TYP 3
+
+/*properties*/
 #define V_HEADNR              0
 #define V_IRIS                1
 #define V_PED                 2
@@ -88,5 +95,9 @@
 #define BOUNCING            1
 #define SPP_ON              2
 
+/*set,get types*/
+#define ABS                 1
+#define INC                 2
+#define DISP                3
 
 #endif // CONFIG_H

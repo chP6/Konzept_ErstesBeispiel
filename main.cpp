@@ -33,9 +33,9 @@ int main(int argc, char *argv[])
     view.show();
 
     Poller poller(controller);
-    UdpListener udpListener(controller);
+    //UdpListener udpListener(controller);
     poller.startListener();
-    udpListener.startListener();
+    //udpListener.startListener();
 
     return a.exec();
 }
