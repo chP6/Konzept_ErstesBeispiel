@@ -170,14 +170,15 @@
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
-      <widget class="Home" name="page_4"/>
-      <widget class="ErrorWindow" name="page_5"/>
+      <widget class="Home" name="home"/>
+      <widget class="ErrorWindow" name="errorWindow"/>
       <widget class="QWidget" name="page_6"/>
      </widget>
     </item>
    </layout>
   </widget>
  </widget>
+ <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
    <class>Home</class>

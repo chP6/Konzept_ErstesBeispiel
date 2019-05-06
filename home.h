@@ -2,6 +2,9 @@
 #define HOME_H
 
 #include <QWidget>
+class Model;
+class Controller;
+
 
 namespace Ui {
 class Home;
@@ -14,9 +17,13 @@ class Home : public QWidget
 public:
     explicit Home(QWidget *parent = nullptr);
     ~Home();
-
+    void update();
+     void setModelController(Model* model, Controller* controller);
+     void serverConnectionChanged(bool connection);
 private:
     Ui::Home *ui;
+    Model* model;
+    Controller* controller;
 
 private slots:
 

@@ -21,20 +21,24 @@ View::~View()
 void View::setModelController(Model& model, Controller& controller){
     this->controller = &controller;
     this->model = &model;
-    errorFenster.setModelController(this->model, this->controller);
+    ui->errorWindow->setModelController(this->model, this->controller);
+    ui->home->setModelController(this->model, this->controller);
 }
+
+
 
 void View::on_modelUpdate()
 {
-
+    ui->errorWindow->update();
+    ui->home->update();
 }
+
+
 
 void View::on_serverConnectionStatusChanged(bool connected)
 {
-
+    ui->home->serverConnectionChanged(connected);
 }
-
-
 
 
 

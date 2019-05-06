@@ -62,6 +62,7 @@ int Model::getUsedPreset()
 void Model::setActivePreset(unsigned char actPreset)
 {
     cameras[activeCamera].activePreset=actPreset;
+    emit updateView();
 }
 
 unsigned char Model::getActivePreset()
@@ -137,14 +138,18 @@ void Model::setValue(int type, int property, int value)
     switch (type) {
     case ABS:
         cameras[activeCamera-1].values[property][VAL]=value;
+        emit updateView();
         break;
     case INC:
         cameras[activeCamera-1].values[property][VAL]+=value;
+        emit updateView();
         if (cameras[activeCamera-1].values[property][VAL] > cameras[activeCamera-1].values[property][MAX]) {
             cameras[activeCamera-1].values[property][VAL] = cameras[activeCamera-1].values[property][MAX];
+       emit updateView();
         }
         if (cameras[activeCamera-1].values[property][VAL] < cameras[activeCamera-1].values[property][MIN]) {
             cameras[activeCamera-1].values[property][VAL] = cameras[activeCamera-1].values[property][MIN];
+        emit updateView();
         }
         break;
     default:
@@ -219,4 +224,14 @@ int Model::setWatchdogWaitingflag(bool waiting){
         serverConnected = true;
         return 0;           // ok, clear flag
     }
+}
+
+int Model::getRotaryField()
+{
+    return rotaryField;
+}
+
+void Model::setRotaryField(int field)
+{
+    rotaryField=field;
 }

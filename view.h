@@ -38,7 +38,7 @@ private:
     Ui::View *ui;
     Controller* controller;
     Model* model;
-    ErrorWindow errorFenster;
+
 };
 
 #endif // VIE_H
