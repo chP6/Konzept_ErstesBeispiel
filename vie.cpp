@@ -1,5 +1,5 @@
-#include "view.h"
-#include "ui_view.h"
+#include "vie.h"
+#include "ui_vie.h"
 #include "controller.h"
 #include "model.h"
 #include "QString"
@@ -36,25 +36,7 @@ void View::on_serverConnectionStatusChanged(bool connected)
 
 
 
-
-
-
-void View::on_btHome_clicked()
+void View::on_btHome_2_clicked()
 {
-    ui->stackedWidget->setCurrentIndex(0);
-}
 
-void View::on_btCamCtrl_clicked()
-{
-    ui->stackedWidget->setCurrentIndex(1);
-}
-
-void View::on_btXptControl_clicked()
-{
-    ui->stackedWidget->setCurrentIndex(2);
-}
-
-void View::on_btOthers_clicked()
-{
-    ui->stackedWidget->setCurrentIndex(3);
 }

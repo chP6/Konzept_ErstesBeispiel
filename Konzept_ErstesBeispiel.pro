@@ -26,7 +26,6 @@ CONFIG += c++11
 
 SOURCES += \
         main.cpp \
-        view.cpp \
     model.cpp \
     controller.cpp \
     poller.cpp \
@@ -40,10 +39,11 @@ SOURCES += \
     rotary.cpp \
     tastenfeld.cpp \
     smbus.cpp \
-    ocp.cpp
+    ocp.cpp \
+    home.cpp \
+    view.cpp
 
 HEADERS += \
-        view.h \
     model.h \
     controller.h \
     poller.h \
@@ -60,13 +60,22 @@ HEADERS += \
     tastenfeld.h \
     config.h \
     smbus.h \
-    ocp.h
+    ocp.h \
+    home.h \
+    view.h
 
 FORMS += \
-        view.ui \
-    errorwindow.ui
+    errorwindow.ui \
+    home.ui \
+    view.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+RESOURCES += \
+    styles.qrc
+
+DISTFILES += \
+    stylesheet.qss
