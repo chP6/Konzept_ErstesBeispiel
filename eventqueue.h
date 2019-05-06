@@ -25,6 +25,7 @@ private:
     std:: mutex mtx;
     std::condition_variable cv;
     bool init = true;
+    struct timeval  tv1, tv2;
 };
 
 #endif // EVENTQUEUE_H

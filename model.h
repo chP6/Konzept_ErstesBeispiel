@@ -61,7 +61,7 @@ private:
     bool serverConnected = false;
     struct camera_s cameras[NUMBER_OF_CAMERAS];
     unsigned char activeCamera;     // 1-6
-    // camera type 1 init values
+    // camera type 2 init values
     int c2Values[ROW_ENTRIES][COLUM_ENTRIES]=
                       {{1,0,49,NORMAL},     //headnr init_value, min_value, max_value
                        {127,0,255,NORMAL}, //Iris
@@ -91,11 +91,11 @@ private:
                        {0,0,2,TEXT}        //Head Power
                       };
 
-    // camera type 2 init values
+    // camera type 1 init values
     int c1Values[ROW_ENTRIES][COLUM_ENTRIES]=
                       {{1,0,49,NORMAL},     //headnr init_value, min_value, max_value
                        {127,0,255,NORMAL}, //Iris
-                       {64,0,128,NORMAL},  //Pedestal
+                       {64,0,127,NORMAL},  //Pedestal
                        {0,0,8000,NORMAL},  //Focus
                        {127,0,255,CENTER}, //w_Red
                        {127,0,255,CENTER}, //w_Blue
@@ -110,7 +110,7 @@ private:
                        {-1,-1,-1,NAN},    //Knee
                        {-1,-1,-1,NAN},    //Knee Point
                        {-1,-1,-1,NAN},       //ND Filter
-                       {0,0,7,TEXT},    //Shutter
+                       {10,0,22,TEXT},    //Shutter
                        {1,1,10,NORMAL},      //PT Speed
                        {1,1,10,NORMAL},      //Trans Speed
                        {1,1,10,NORMAL},      //Ramp

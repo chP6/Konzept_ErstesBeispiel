@@ -59,28 +59,28 @@ int OCP::processEvent(int& event){      // only valid event if not -1
             event = OCP_E_PED_DOWN;
             break;
         case KEY_E:
-            event = OCP_E_WRED_UP;
-            break;
-        case KEY_F:
-            event = OCP_E_WRED_DOWN;
-            break;
-        case KEY_G:
-            event = OCP_E_WBLUE_UP;
-            break;
-        case KEY_H:
-            event = OCP_E_WBLUE_DOWN;
-            break;
-        case KEY_I:
             event = OCP_E_BRED_UP;
             break;
-        case KEY_J:
+        case KEY_F:
             event = OCP_E_BRED_DOWN;
             break;
-        case KEY_K:
+        case KEY_G:
             event = OCP_E_BBLUE_UP;
             break;
-        case KEY_L:
+        case KEY_H:
             event = OCP_E_BBLUE_DOWN;
+            break;
+        case KEY_I:
+            event = OCP_E_WRED_UP;
+            break;
+        case KEY_J:
+            event = OCP_E_WRED_DOWN;
+            break;
+        case KEY_K:
+            event = OCP_E_WBLUE_UP;
+            break;
+        case KEY_L:
+            event = OCP_E_WBLUE_DOWN;
             break;
         case KEY_M:
             event = OCP_E_GAIN_UP;
