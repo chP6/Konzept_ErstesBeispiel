@@ -69,8 +69,8 @@
 #define	THREED_DNR			217
 #define	FLICKERLESS			218
 #define	BNCE_ZOOM_TELE_SET	219
-#define	BNCE_ZOOM_START_SET	220
-#define BNCE_ZOOM_START_STP	221
+#define	BNCE_ZOOM_WIDE_SET	220
+#define BNCE_ZOOM_START 	221
 #define	BMD_SET_ROUTE		230
 #define	BMD_SET_SOLO		231
 #define	BNT_TALLY_ON_OFF	232
@@ -93,9 +93,9 @@
 #define SYNCHRO 42				//0x2A
 
 /*Watchdog Device Types*/
-#define HEAD            0
-#define TALLY_SERVER 	1
-#define MMI             2
+#define HEAD                    0
+#define TALLY_SERVER            1
+#define MMI                     2
 
 /*Device Numbers*/
 #define SERVER  0

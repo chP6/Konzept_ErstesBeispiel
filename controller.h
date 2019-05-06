@@ -14,10 +14,10 @@ public:
     void setModel(Model& model);
     void startQueueProcessThread();
     void queueEvent(int evt);
+    void queueEvent(int evt, int dataA);
+    void queueEvent(int evt, int dataA, int dataB);
     void queueEvent(int evt, std::vector<int> data);
-    void queueEvent(int evt, int singleData);
     void queueEvent(int evt, bool sta);
-    void queueEvent(int evt, unsigned char number);
     void logSystemError(int err_no, std::string msg);
     void logError(std::string msg);
     void clearErrors();

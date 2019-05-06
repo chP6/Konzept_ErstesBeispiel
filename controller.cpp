@@ -7,6 +7,12 @@
 #include "config.h"
 #include <QDebug>
 
+#include <chrono>
+#include <ctime>
+#include <sys/time.h>
+
+
+
 Controller::Controller(Model& model)// : poller(*this)    //poller Konstruktor aufrufen -> erwartet Objekt (as reference) darum this dereferenzieren
 {
     setModel(model);
@@ -72,13 +78,20 @@ void Controller::queueEvent(int evt){
     eventQueue.qeueEvent(evt);
 }
 
-void Controller::queueEvent(int evt, std::vector<int> data){
+void Controller::queueEvent(int evt, int dataA){
+    std::vector<int> data;
+    data.push_back(dataA);
     eventQueue.qeueEvent(evt, data);
 }
 
-void Controller::queueEvent(int evt, int singleData){
+void Controller::queueEvent(int evt, int dataA, int dataB){
     std::vector<int> data;
-    data.push_back(singleData);
+    data.push_back(dataA);
+    data.push_back(dataB);
+    eventQueue.qeueEvent(evt, data);
+}
+
+void Controller::queueEvent(int evt, std::vector<int> data){
     eventQueue.qeueEvent(evt, data);
 }
 
@@ -86,10 +99,6 @@ void Controller::queueEvent(int evt, bool sta){
     eventQueue.qeueEvent(evt, sta);
 }
 
-void Controller::queueEvent(int evt, unsigned char number)
-{
-    eventQueue.qeueEvent(evt, number);
-}
 
 
 void Controller::startQueueProcessThread(){
@@ -99,8 +108,14 @@ void Controller::startQueueProcessThread(){
 
 void Controller::processQeue(){
     event_s loadedEvent;
+    //struct timeval  tv1, tv2;
+
 
     while(1){
+        //gettimeofday(&tv1, NULL);
+        /* Program code to execute here */
+
+
         eventQueue.pullEvent(loadedEvent);      //blockiert, falls queue leer
         switch (loadedEvent.evt) {
         case E_CLEAR:
@@ -154,24 +169,79 @@ void Controller::processQeue(){
             presetbus.showStored(model->getUsedPreset(),model->getActivePreset());
             break;
         case E_PRESET_CHANGE:
-            presetbus.setLed(PRESET_COLOR,loadedEvent.number);
-            model->setActivePreset(loadedEvent.number);
+            presetbus.setLed(PRESET_COLOR,loadedEvent.data[0]);
+            model->setActivePreset(loadedEvent.data[0]);
             if(model->getCamFlag(PRST_IN_STORE)){
-                model->setUsedPreset(loadedEvent.number);
+                model->setUsedPreset(loadedEvent.data[0]);
                 model->setCamFlag(PRST_IN_STORE,FALSE);
-                txSocket.send(1, STORE_PRESET, loadedEvent.number+1);
-            }else{
-                txSocket.send(1, GOTO_PRESET, loadedEvent.number+1);
+                txSocket.send(1, STORE_PRESET, loadedEvent.data[0]+1);
+            }
+            else{
+                txSocket.send(1, GOTO_PRESET, loadedEvent.data[0]+1);
             }
             break;
         case E_CAMERA_CHANGE:
-            camerabus.setLed(CAMERA_COLOR,loadedEvent.number);
-            model->setActiveCamera(loadedEvent.number);
+            camerabus.setLed(CAMERA_COLOR,loadedEvent.data[0]);
+            model->setActiveCamera(loadedEvent.data[0]);
             presetbus.setLed(PRESET_COLOR,model->getActivePreset());
             break;
-
+        case E_CHECK_CAMERA_TYPE:
+            int from, type;
+            from = loadedEvent.data[0];
+            type = loadedEvent.data[1];
+            if(model->getCamtype(from) != type){
+                model->setCamType(from, type);
+                logError("Camera Head Type changed");
+            }
+            break;
+        case E_IRIS_CHANGE:
+            model->setValue(INC, V_IRIS, loadedEvent.data[0]);
+            txSocket.send(model->getActiveCamera(), IRIS_OPEN, model->getValue(ABS,V_IRIS));
+            qDebug("IRIS: %d", model->getValue(ABS,V_IRIS));
+            break;
+        case E_PED_CHANGE:
+            model->setValue(INC, V_PED, loadedEvent.data[0]);
+            txSocket.send(model->getActiveCamera(), MASTER_PED_UP, model->getValue(ABS,V_PED));
+            qDebug("PED: %d", model->getValue(ABS,V_PED));
+            break;
+        case E_WBLUE_CHANGE:
+            model->setValue(INC, V_W_BLUE, loadedEvent.data[0]);
+            txSocket.send(model->getActiveCamera(), BLUE_GAIN_ADJ_UP, model->getValue(ABS,V_W_BLUE));
+            qDebug("WBLUE: %d", model->getValue(ABS,V_W_BLUE));
+            break;
+        case E_WRED_CHANGE:
+            model->setValue(INC, V_W_RED, loadedEvent.data[0]);
+            txSocket.send(model->getActiveCamera(), RED_GAIN_ADJ_UP, model->getValue(ABS,V_W_RED));
+            qDebug("WRED: %d", model->getValue(ABS,V_W_RED));
+            break;
+        case E_BBLUE_CHANGE:
+            model->setValue(INC, V_B_BLUE, loadedEvent.data[0]);
+            txSocket.send(model->getActiveCamera(), BLUE_PED_UP, model->getValue(ABS,V_B_BLUE));
+            qDebug("BBLUE: %d", model->getValue(ABS,V_B_BLUE));
+            break;
+        case E_BRED_CHANGE:
+            model->setValue(INC, V_B_RED, loadedEvent.data[0]);
+            txSocket.send(model->getActiveCamera(), RED_PED_UP, model->getValue(ABS,V_B_RED));
+            qDebug("BRED: %d", model->getValue(ABS,V_B_RED));
+            break;
+        case E_GAIN_CHANGE:
+            model->setValue(INC, V_GAIN, loadedEvent.data[0]);
+            txSocket.send(model->getActiveCamera(), CAMERA_GAIN_UP, model->getValue(ABS,V_GAIN));
+            qDebug("GAIN: %d", model->getValue(ABS,V_GAIN));
+            break;
+        case E_SHUTTER_CHANGE:
+            model->setValue(INC, V_SHUTTER, loadedEvent.data[0]);
+            txSocket.send(model->getActiveCamera(), SHUTTER_UP, model->getValue(ABS,V_SHUTTER));
+            qDebug("SHUTTER: %d, MIN: %d, MAX: %d", model->getValue(ABS,V_SHUTTER), model->getMin(V_SHUTTER),model->getMax(V_SHUTTER));
+            break;
         default:
             break;
         }
+
+//        gettimeofday(&tv2, NULL);
+//        qDebug("Time taken in execution = %f seconds\n",
+//             (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+//             (double) (tv2.tv_sec - tv1.tv_sec));
+
     }
 }

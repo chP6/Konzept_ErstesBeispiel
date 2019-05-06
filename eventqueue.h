@@ -9,7 +9,6 @@ struct event_s{
   int evt;
   std::vector<int> data;
   bool sta;
-  unsigned char number;
 };
 
 class EventQueue

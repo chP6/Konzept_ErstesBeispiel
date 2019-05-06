@@ -37,9 +37,18 @@ void UdpListener::listener(){
 
         // =========== DECIDE WHAT TO DO ==============================================
 
+        // Watchdog answer from server
         if(answer.command == WATCHDOG && answer.from == SERVER){
             controller->queueEvent(E_RX_WATCHDOG);
         }
+
+        // Watchdog answer from camera/head
+        if(answer.command == WATCHDOG && answer.from != SERVER){
+            controller->queueEvent(E_CHECK_CAMERA_TYPE, answer.from, answer.data[1]);
+        }
+
+
+
 
         //debug: show answer packages in log
         if(answer.command != WATCHDOG){
@@ -47,9 +56,6 @@ void UdpListener::listener(){
             std::string str(buf);
             controller->logError(str + " Addr: " + addr);
         }
-
-
-
         answer.data.clear();
     }
 }

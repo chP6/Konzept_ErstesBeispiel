@@ -7,14 +7,15 @@
 //#include "view.h" //nix gut, circular dependency -> forward declaration.
 //class View;         //Make sure each header can be included on its own.
 
-struct Camera_s{
-  unsigned char camType;
-  unsigned char activePreset;
-  unsigned char usedPresets;
+struct camera_s{
+  int camType;
+  int activePreset;
+  int usedPresets;
   bool flags[3];
   int values [ROW_ENTRIES][COLUM_ENTRIES];
-
 };
+
+
 
 class Model : public QObject
 {
@@ -39,10 +40,11 @@ public:
     void setActiveCamera(unsigned char camNr);
     unsigned char getActiveCamera();
     QStringList* getErrorList();
-    void setCamType(unsigned char type);
+    void setCamType(int camNr, int type);
     unsigned char getCamtype();
-    void setValue(int property, int value);
-    int getValue(int property);
+    unsigned char getCamtype(int camNr);
+    void setValue(int type, int property, int value);
+    int getValue(int type, int property);
     int getMin(int property);
     int getMax(int property);
     void setCamFlag(int flag, bool value);
@@ -57,17 +59,18 @@ private:
     int y = 5000;
     bool watchdogWaitingForAnswerFlag = false;
     bool serverConnected = false;
-    struct Camera_s cameras[6];
-    unsigned char activeCamera;
-    int c2Values[ROW_ENTRIES][COLUM_ENTRIES]={{1,0,49,NORMAL},     //headnr init_value, min_value, max_value
+    struct camera_s cameras[NUMBER_OF_CAMERAS];
+    unsigned char activeCamera;     // 1-6
+    // camera type 1 init values
+    int c2Values[ROW_ENTRIES][COLUM_ENTRIES]=
+                      {{1,0,49,NORMAL},     //headnr init_value, min_value, max_value
                        {127,0,255,NORMAL}, //Iris
                        {64,0,128,NORMAL},  //Pedestal
                        {0,0,8000,NORMAL},  //Focus
                        {127,0,255,CENTER}, //w_Red
                        {127,0,255,CENTER}, //w_Blue
-                       {127,0,255,CENTER}, //w_Red
-                       {100,0,200,CENTER}, //b_Blue
                        {100,0,200,CENTER}, //b_Red
+                       {100,0,200,CENTER}, //b_Blue
                        {0,0,14,TEXT},    //Gain
                        {255,0,512,CENTER},   //Gamma
                        {0,0,2,TEXT},      //Gamma-Table
@@ -87,15 +90,17 @@ private:
                        {12,1,127,NORMAL},    //Bounce Zoom Speed
                        {0,0,2,TEXT}        //Head Power
                       };
-    int c1Values[ROW_ENTRIES][COLUM_ENTRIES]={{1,0,49,NORMAL},     //headnr init_value, min_value, max_value
+
+    // camera type 2 init values
+    int c1Values[ROW_ENTRIES][COLUM_ENTRIES]=
+                      {{1,0,49,NORMAL},     //headnr init_value, min_value, max_value
                        {127,0,255,NORMAL}, //Iris
                        {64,0,128,NORMAL},  //Pedestal
                        {0,0,8000,NORMAL},  //Focus
                        {127,0,255,CENTER}, //w_Red
                        {127,0,255,CENTER}, //w_Blue
-                       {127,0,255,CENTER}, //w_Red
-                       {100,0,200,CENTER}, //b_Blue
                        {100,0,200,CENTER}, //b_Red
+                       {100,0,200,CENTER}, //b_Blue
                        {0,0,14,TEXT},    //Gain
                        {-1,-1,-1,NAN},   //Gamma
                        {0,0,1,TEXT},      //Gamma-Table
@@ -115,15 +120,17 @@ private:
                        {12,1,127,NORMAL},    //Bounce Zoom Speed
                        {0,0,2,TEXT}        //Head Power
                       };
-    int rValues[ROW_ENTRIES][COLUM_ENTRIES]={{1,0,49,NORMAL},     //headnr init_value, min_value, max_value
+
+    // camera type 3&4 init values
+    int rValues[ROW_ENTRIES][COLUM_ENTRIES]=
+                      {{1,0,49,NORMAL},     //headnr init_value, min_value, max_value
                        {2000,0,4000,NORMAL}, //Iris
                        {127,0,255,NORMAL},  //Pedestal
                        {1000,1000,3250,NORMAL},  //Focus
                        {127,0,255,CENTER}, //w_Red
                        {127,0,255,CENTER}, //w_Blue
-                       {127,0,255,CENTER}, //w_Red
-                       {127,0,255,CENTER}, //b_Blue
                        {127,0,255,CENTER}, //b_Red
+                       {127,0,255,CENTER}, //b_Blue
                        {0,0,9,TEXT},    //Gain
                        {127,0,255,CENTER},   //Gamma
                        {0,0,2,TEXT},      //Gamma-Table
@@ -143,7 +150,6 @@ private:
                        {12,1,127,NORMAL},    //Bounce Zoom Speed
                        {0,0,2,TEXT}        //Head Power
                       };
-
 };
 
 #endif // MODEL_H
