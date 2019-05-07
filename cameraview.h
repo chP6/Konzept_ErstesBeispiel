@@ -2,7 +2,8 @@
 #define CAMERAVIEW_H
 
 #include <QWidget>
-
+#include <QPushButton>
+struct s_UiValue{QPushButton *button; int value;};
 class Model;
 class Controller;
 namespace Ui {
@@ -14,10 +15,11 @@ class CameraView : public QWidget
     Q_OBJECT
 
 public:
-    void update();
+    void updateUi();
     void setUpUi();
     explicit CameraView(QWidget *parent = nullptr);
     void setModelController(Model* model, Controller* controller);
+    void stackChanged();
     ~CameraView();
 
 private slots:
@@ -55,6 +57,11 @@ private:
     Ui::CameraView *ui;
     Model* model;
     Controller* controller;
+    struct s_UiValue standard[14];
+    struct s_UiValue text[14];
+    int standardLength=0;
+    int textLength=0;
+
 };
 
 #endif // CAMERAVIEW_H

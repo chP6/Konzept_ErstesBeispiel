@@ -17,9 +17,10 @@ class Home : public QWidget
 public:
     explicit Home(QWidget *parent = nullptr);
     ~Home();
-    void update();
+    void updateUi();
      void setModelController(Model* model, Controller* controller);
      void serverConnectionChanged(bool connection);
+     void stackChanged();
 private:
     Ui::Home *ui;
     Model* model;
@@ -53,6 +54,8 @@ private slots:
     void on_btHeadNr_clicked();
 
     void on_btStorePreset_clicked();
+
+
 };
 
 #endif // HOME_H

@@ -17,8 +17,16 @@ CameraView::~CameraView()
     delete ui;
 }
 
-void CameraView::update()
+void CameraView::updateUi()
 {
+    for(int i =0;i<standardLength;i++){
+        standard[i].button->setText(QString::number(model->getValue(DISP,standard[i].value)));
+    }
+    for(int i =0;i<textLength;i++){
+        text[i].button->setText(model->getTextValue(text[i].value));
+    }
+
+    /*
  ui->btbred->setText(QString::number(model->getValue(DISP,V_B_RED)));
  ui->btbBlue->setText(QString::number(model->getValue(DISP,V_B_BLUE)));
  ui->btwRed->setText(QString::number(model->getValue(DISP,V_W_RED)));
@@ -33,93 +41,222 @@ void CameraView::update()
  ui->btKneePoint->setText(QString::number(model->getValue(DISP,V_KNEE_POINT)));
  ui->btGamma->setText(QString::number(model->getValue(DISP,V_GAMMA)));
  ui->btGammaTab->setText(model->getTextValue(V_GAMMA_TAB));
+ */
 }
 
 void CameraView::setUpUi()
 {
+    for (int i=0;i<14;i++) {
+        text[i].button=ui->btGamma;
+    }
     int value;
     value=model->getValue(DISP,V_B_RED);
-    if (value==-2048) {
-        ui->btbred->setDisabled(true);
-        ui->btbred->setText("-");
+    standardLength=0;
+    textLength=0;
+    switch (value) {
+    default:standard[standardLength].button=ui->btbred;
+            standard[standardLength].value=V_B_RED;
+            standardLength++;
+        break;
+    case -2048:ui->btbred->setDisabled(true);
+               ui->btbred->setText("-");
+        break;
+    case -2049:text[textLength].button=ui->btbred;
+               text[textLength].value=V_B_RED;
+               textLength++;
+
     }
 
     value=model->getValue(DISP,V_B_BLUE);
-    if (value==-2048) {
-        ui->btbBlue->setDisabled(true);
-        ui->btbBlue->setText("-");
-    }
+    switch (value) {
+    default:
+            standard[standardLength].button=ui->btbBlue;
+            standard[standardLength].value=V_B_BLUE;
+            standardLength++;
+        break;
+    case -2048:ui->btbBlue->setDisabled(true);
+               ui->btbBlue->setText("-");
+        break;
+    case -2049:
+                text[textLength].button=ui->btbBlue;
+                text[textLength].value=V_B_BLUE;
+                textLength++;
 
-    value=model->getValue(DISP,V_W_RED);
-    if (value==-2048) {
-        ui->btwRed->setDisabled(true);
-        ui->btwRed->setText("-");
     }
 
     value=model->getValue(DISP,V_W_BLUE);
-    if (value==-2048) {
-        ui->btwBlue->setDisabled(true);
-        ui->btwBlue->setText("-");
+    switch (value) {
+    default:standard[standardLength].button=ui->btwBlue;
+            standard[standardLength].value=V_W_BLUE;
+            standardLength++;
+        break;
+    case -2048:ui->btwBlue->setDisabled(true);
+               ui->btwBlue->setText("-");
+        break;
+    case -2049:
+               text[textLength].button=ui->btwBlue;
+               text[textLength].value=V_W_BLUE;
+               textLength++;
     }
 
     value=model->getValue(DISP,V_SHUTTER);
-    if (value==-2048) {
-        ui->btShutter->setDisabled(true);
-        ui->btShutter->setText("-");
+    switch (value) {
+
+    default:standard[standardLength].button=ui->btShutter;
+            standard[standardLength].value=V_SHUTTER;
+            standardLength++;
+        break;
+    case -2048:ui->btShutter->setDisabled(true);
+               ui->btShutter->setText("-");
+        break;
+    case -2049:
+               text[textLength].button=ui->btShutter;
+               text[textLength].value=V_SHUTTER;
+               textLength++;
     }
 
     value=model->getValue(DISP,V_ND_FILTER);
-    if (value==-2048) {
-        ui->btndFilter->setDisabled(true);
-        ui->btndFilter->setText("-");
+    switch (value) {
+
+    default:standard[standardLength].button=ui->btndFilter;
+            standard[standardLength].value=V_ND_FILTER;
+            standardLength++;
+        break;
+    case -2048:ui->btndFilter->setDisabled(true);
+               ui->btndFilter->setText("-");
+        break;
+    case -2049:
+               text[textLength].button=ui->btndFilter;
+               text[textLength].value=V_ND_FILTER;
+               textLength++;
     }
 
     value=model->getValue(DISP,V_GAIN);
-    if (value==-2048) {
-        ui->btGain->setDisabled(true);
-        ui->btGain->setText("-");
+    switch (value) {
+
+    default:standard[standardLength].button=ui->btGain;
+            standard[standardLength].value=V_GAIN;
+            standardLength++;
+        break;
+    case -2048:ui->btGain->setDisabled(true);
+               ui->btGain->setText("-");
+        break;
+    case -2049:
+               text[textLength].button=ui->btGain;
+               text[textLength].value=V_GAIN;
+               textLength++;
     }
 
     value=model->getValue(DISP,V_DETAIL);
-    if (value==-2048) {
-        ui->btDetail->setDisabled(true);
-        ui->btDetail->setText("-");
+    switch (value) {
+
+    default:standard[standardLength].button=ui->btDetail;
+            standard[standardLength].value=V_DETAIL;
+            standardLength++;
+        break;
+    case -2048:ui->btDetail->setDisabled(true);
+               ui->btDetail->setText("-");
+        break;
+    case -2049:
+               text[textLength].button=ui->btDetail;
+               text[textLength].value=V_DETAIL;
+               textLength++;
     }
 
     value=model->getValue(DISP,V_COLOR);
-    if (value==-2048) {
-        ui->btSaturation->setDisabled(true);
-        ui->btSaturation->setText("-");
+    switch (value) {
+
+    default:standard[standardLength].button=ui->btSaturation;
+            standard[standardLength].value=V_COLOR;
+            standardLength++;
+        break;
+    case -2048:ui->btSaturation->setDisabled(true);
+               ui->btSaturation->setText("-");
+        break;
+    case -2049:
+               text[textLength].button=ui->btSaturation;
+               text[textLength].value=V_COLOR;
+               textLength++;
     }
 
     value=model->getValue(DISP,V_COL_TEMP);
-    if (value==-2048) {
-        ui->btColorTemp->setDisabled(true);
-        ui->btColorTemp->setText("-");
-    }
+    switch (value) {
 
+    default:standard[standardLength].button=ui->btColorTemp;
+            standard[standardLength].value=V_COL_TEMP;
+            standardLength++;
+        break;
+    case -2048:ui->btColorTemp->setDisabled(true);
+               ui->btColorTemp->setText("-");
+        break;
+    case -2049:
+               text[textLength].button=ui->btColorTemp;
+               text[textLength].value=V_COL_TEMP;
+               textLength++;
+    }
     value=model->getValue(DISP,V_KNEE);
-    if (value==-2048) {
-        ui->btKnee->setDisabled(true);
-        ui->btKnee->setText("-");
+    switch (value) {
+
+    default:standard[standardLength].button=ui->btKnee;
+            standard[standardLength].value=V_KNEE;
+            standardLength++;
+        break;
+    case -2048:ui->btKnee->setDisabled(true);
+               ui->btKnee->setText("-");
+        break;
+    case -2049:
+               text[textLength].button=ui->btKnee;
+               text[textLength].value=V_KNEE;
+               textLength++;
     }
 
     value=model->getValue(DISP,V_KNEE_POINT);
-    if (value==-2048) {
-        ui->btKneePoint->setDisabled(true);
-        ui->btKneePoint->setText("-");
+    switch (value) {
+
+    default:standard[standardLength].button=ui->btKneePoint;
+            standard[standardLength].value=V_KNEE_POINT;
+            standardLength++;
+        break;
+    case -2048:ui->btKneePoint->setDisabled(true);
+               ui->btKneePoint->setText("-");
+        break;
+    case -2049:
+               text[textLength].button=ui->btKneePoint;
+               text[textLength].value=V_KNEE_POINT;
+               textLength++;
     }
 
+
     value=model->getValue(DISP,V_GAMMA);
-    if (value==-2048) {
-        ui->btGamma->setDisabled(true);
-        ui->btGamma->setText("-");
+    switch (value) {
+
+    default:standard[standardLength].button=ui->btGamma;
+            standard[standardLength].value=V_GAMMA;
+            standardLength++;
+        break;
+    case -2048:ui->btGamma->setDisabled(true);
+               ui->btGamma->setText("-");
+        break;
+    case -2049:
+               text[textLength].button=ui->btGamma;
+               text[textLength].value=V_GAMMA;
+               textLength++;
     }
 
     value=model->getValue(DISP,V_GAMMA_TAB);
-    if (value==-2048) {
-        ui->btGammaTab->setDisabled(true);
-        ui->btGammaTab->setText("-");
+    switch (value) {
+
+    default:standard[standardLength].button=ui->btGammaTab;
+            standard[standardLength].value=V_GAMMA_TAB;
+            standardLength++;
+        break;
+    case -2048:ui->btGammaTab->setDisabled(true);
+               ui->btGammaTab->setText("-");
+        break;
+    case -2049:
+               text[textLength].button=ui->btGammaTab;
+               text[textLength].value=V_GAMMA_TAB;
+               textLength++;
     }
 
 }
@@ -201,3 +338,16 @@ void CameraView::on_btGammaTab_clicked()
 {
     model->setRotaryField(V_GAMMA_TAB);
 }
+
+void CameraView::stackChanged()
+{
+    QPushButton *button=ui->btGain;
+    QList<QPushButton*> allButtons=this->findChildren<QPushButton*>();
+    for(int i=0;i<allButtons.size();i++){
+        if(allButtons[i]->isChecked())
+        {button=allButtons[i];}
+
+    }
+    button->click();
+}
+
