@@ -6,6 +6,7 @@
 #include <errno.h>
 #include "config.h"
 #include <QDebug>
+#include <QSettings>
 
 #include <chrono>
 #include <ctime>
@@ -35,6 +36,7 @@ Controller::Controller(Model& model)// : poller(*this)    //poller Konstruktor a
         contr_err = errno;
         logSystemError(contr_err, "Could not open SPI-BUS 2");
     }
+
 }
 
 void Controller::setModel(Model &model){
@@ -69,8 +71,45 @@ void Controller::clearErrors(){
     model->clearErrors();
 }
 
+int Controller::writeSavefile(){
+    QSettings savefile(SAVEFILE_PATH, QSettings::NativeFormat);
+    savefile.clear();
+    int currCamera = model->getActiveCamera();
+
+    for (int i=1;i<=NUMBER_OF_CAMERAS;i++) {
+        model->setActiveCamera(i);
+        savefile.beginGroup("camera_"+QString::number(i));
+
+        for (int j=0;j<ROW_ENTRIES;j++) {
+            savefile.setValue("value_"+QString::number(j),model->getValue(ABS,j));
+        }
+        savefile.endGroup();
+    }
+    savefile.sync();
+
+    model->setActiveCamera(currCamera);
+    return savefile.status();
+}
 
 
+int Controller::loadSavefile(){
+    QSettings savefile(SAVEFILE_PATH, QSettings::NativeFormat);
+    int currCamera = model->getActiveCamera();
+
+    for (int i=1;i<=NUMBER_OF_CAMERAS;i++) {
+        model->setActiveCamera(i);
+        savefile.beginGroup("camera_"+QString::number(i));
+
+        for (int j=0;j<ROW_ENTRIES;j++) {
+            model->setValue(ABS, j, savefile.value("value_"+QString::number(j)).toInt());
+            // todo: send values to camera
+        }
+        savefile.endGroup();
+    }
+
+    model->setActiveCamera(currCamera);
+    return savefile.status();
+}
 
 
 
@@ -101,6 +140,8 @@ void Controller::queueEvent(int evt, bool sta){
 
 
 
+
+
 void Controller::startQueueProcessThread(){
     std::thread t1(&Controller::processQeue, this);       //1.Arg: function type that will be called, 2.Arg: pointer to object (this)
     t1.detach();
@@ -108,15 +149,13 @@ void Controller::startQueueProcessThread(){
 
 void Controller::processQeue(){
     event_s loadedEvent;
-    //struct timeval  tv1, tv2;
+    struct timeval  tv1, tv2;
 
 
     while(1){
-        //gettimeofday(&tv1, NULL);
-        /* Program code to execute here */
-
-
         eventQueue.pullEvent(loadedEvent);      //blockiert, falls queue leer
+        gettimeofday(&tv1, NULL);
+
         switch (loadedEvent.evt) {
         case E_CLEAR:
             clear();
@@ -140,9 +179,9 @@ void Controller::processQeue(){
             txSocket.send(1, TILT_PAN, x, y);
 
             //debug
-            char str[100];
-            sprintf(str,"%d/%d",x,y);
-            qDebug() << "Axis: " << str;
+            //char str[100];
+            //sprintf(str,"%d/%d",x,y);
+            //qDebug() << "Axis: " << str;
 
             break;
          case E_SET_ZOOM:
@@ -244,11 +283,9 @@ void Controller::processQeue(){
         default:
             break;
         }
-
-//        gettimeofday(&tv2, NULL);
-//        qDebug("Time taken in execution = %f seconds\n",
-//             (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
-//             (double) (tv2.tv_sec - tv1.tv_sec));
-
+        gettimeofday(&tv2, NULL);
+        qDebug("Work: %f seconds",
+             (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+             (double) (tv2.tv_sec - tv1.tv_sec));
     }
 }

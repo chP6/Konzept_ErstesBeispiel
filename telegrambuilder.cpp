@@ -72,7 +72,7 @@ void Telegrambuilder::encode(bool request, int bbm_dev_no, int bbm_command, std:
             break;
         case CAMERA_GAIN_UP:
             datagram[5] = 1;
-            datagram[6] = (uint8_t)data[0];
+            datagram[8] = (uint8_t)data[0];
             break;
         case AUTOIRIS_ON:
             datagram[5] = 1;
@@ -91,8 +91,8 @@ void Telegrambuilder::encode(bool request, int bbm_dev_no, int bbm_command, std:
             datagram[6] = (uint8_t)data[0];
             break;
         case SHUTTER_UP:
-            datagram[6] = (uint8_t)(data[0]>>8);
-            datagram[5] = (uint8_t)data[0];
+            datagram[5] = (uint8_t)(data[0]>>8);
+            datagram[6] = (uint8_t)data[0];
             break;
         case KNEE_POINT_AUTO:
             datagram[5] = 1;
@@ -108,32 +108,32 @@ void Telegrambuilder::encode(bool request, int bbm_dev_no, int bbm_command, std:
             datagram[8] = (uint8_t)data[0];
             break;
         case RED_GAIN_ADJ_UP:
-            datagram[5] = (uint8_t)(data[0]>>8);
-            datagram[6] = (uint8_t)data[0];
+            datagram[7] = (uint8_t)(data[0]>>8);
+            datagram[8] = (uint8_t)data[0];
             break;
         case BLUE_GAIN_ADJ_UP:
-            datagram[5] = (uint8_t)(data[0]>>8);
-            datagram[6] = (uint8_t)data[0];
+            datagram[7] = (uint8_t)(data[0]>>8);
+            datagram[8] = (uint8_t)data[0];
             break;
         case COLOR_UP:
             datagram[5] = 1;
             datagram[6] = (uint8_t)data[0];
             break;
         case MASTER_PED_UP:
-            datagram[5] = (uint8_t)(data[0]>>8);
-            datagram[6] = (uint8_t)data[0];
+            datagram[7] = (uint8_t)data[0]>>8;
+            datagram[8] = (uint8_t)data[0];
             break;
         case RED_PED_UP:
-            datagram[5] = (uint8_t)(data[0]>>8);
-            datagram[6] = (uint8_t)data[0];
+            datagram[7] = (uint8_t)data[0]>>8;
+            datagram[8] = (uint8_t)data[0];
             break;
         case GREEN_PED_UP:
             datagram[5] = (uint8_t)(data[0]>>8);
             datagram[6] = (uint8_t)data[0];
             break;
         case BLUE_PED_UP:
-            datagram[5] = (uint8_t)(data[0]>>8);
-            datagram[6] = (uint8_t)data[0];
+            datagram[7] = (uint8_t)data[0]>>8;
+            datagram[8] = (uint8_t)data[0];
             break;
         case GAMMA:
             datagram[5] = (uint8_t)(data[0]>>8);
