@@ -170,7 +170,8 @@ void Poller::listener(){
 
 
             //debug: preset test
-//            controller->queueEvent(E_INCREASE, rotary_val);
+           controller->queueEvent(E_INCREASE, rotary_val);
+           //qDebug()<<rotary_val;
 //            switch(rotary_val){
 //            case 1:
 //                controller->queueEvent(E_STORE_PRESET_DEBUG, 1);

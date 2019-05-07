@@ -7,7 +7,7 @@
 #include "config.h"
 
 View::View(QWidget *parent) :
-    QWidget(parent),
+    QMainWindow(parent),
     ui(new Ui::View)
 {
     ui->setupUi(this);
@@ -21,46 +21,44 @@ View::~View()
 void View::setModelController(Model& model, Controller& controller){
     this->controller = &controller;
     this->model = &model;
-    errorFenster.setModelController(this->model, this->controller);
+    ui->errorWindow->setModelController(this->model, this->controller);
+    ui->home->setModelController(this->model, this->controller);
 }
 
-void View::on_pbInc_clicked()
+
+
+void View::on_modelUpdate()
 {
-    controller->queueEvent(E_INCREASE, 1);
+    ui->errorWindow->update();
+    ui->home->update();
 }
 
-void View::on_pbClear_clicked()
+
+
+void View::on_serverConnectionStatusChanged(bool connected)
 {
-    controller->queueEvent(E_CLEAR, 1);
+    ui->home->serverConnectionChanged(connected);
 }
 
-void View::on_modelUpdate(){
-    ui->label->setText(QString::number(model->getData()));
-    errorFenster.update();  //noch entkoppeln vom update ->fokus geht verloren, oder kein fokus erlauben
 
-    int x,y;
-    model->getAxis(x,y);
-    ui->hSlider->setValue(x);
-    ui->vSlider->setValue(y);
-}
 
-void View::on_serverConnectionStatusChanged(bool connected){
-    if(connected){
-        ui->lbServerConnection->setText("Connected");
-        ui->lbServerConnection->setStyleSheet("color: rgb(78, 154, 6);");
-    }
-    else{
-        ui->lbServerConnection->setText("Connection lost");
-        ui->lbServerConnection->setStyleSheet("color: rgb(239, 41, 41);");
-    }
-}
 
-void View::on_pbErrors_clicked()
+void View::on_btHome_clicked()
 {
-    errorFenster.show();
+    ui->stackedWidget->setCurrentIndex(0);
 }
 
-void View::on_storePreset_clicked()
+void View::on_btCamCtrl_clicked()
 {
-    controller->queueEvent(E_STORE_PRESET);
+    ui->stackedWidget->setCurrentIndex(1);
+}
+
+void View::on_btXptControl_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(2);
+}
+
+void View::on_btOthers_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(3);
 }

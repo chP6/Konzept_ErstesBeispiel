@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QStringList>
 #include "config.h"
+#include "bbmcommandtypes.h"
 //#include "view.h" //nix gut, circular dependency -> forward declaration.
 //class View;         //Make sure each header can be included on its own.
 
@@ -50,11 +51,15 @@ public:
     void setCamFlag(int flag, bool value);
     bool getCamFlag(int flag);
     int setWatchdogWaitingflag(bool waiting);
+    int getRotaryField();
+    void setRotaryField(int field);
+    int getTxCommand(int value);
 
 private:
     QStringList errorList;
     int answerStack;
     int count;
+    int rotaryField;
     int x = 5000;
     int y = 5000;
     bool watchdogWaitingForAnswerFlag = false;
@@ -81,7 +86,7 @@ private:
                        {-1,-1,-1,NAN},    //Knee Point
                        {0,0,3,TEXT},       //ND Filter
                        {17,17,33,TEXT},    //Shutter
-                       {1,1,10,NORMAL},      //PT Speed
+                       {5,1,10,NORMAL},      //PT Speed
                        {1,1,10,NORMAL},      //Trans Speed
                        {1,1,10,NORMAL},      //Ramp
                        {1,1,6,NORMAL},       //SPP1
@@ -141,7 +146,7 @@ private:
                        {127,0,254,CENTER},    //Knee Point
                        {-1,-1,-1,NAN},       //ND Filter
                        {0,0,7,TEXT},    //Shutter
-                       {1,1,10,NORMAL},      //PT Speed
+                       {5,1,10,NORMAL},      //PT Speed
                        {1,1,10,NORMAL},      //Trans Speed
                        {1,1,10,NORMAL},      //Ramp
                        {1,1,6,NORMAL},       //SPP1
@@ -150,6 +155,10 @@ private:
                        {12,1,127,NORMAL},    //Bounce Zoom Speed
                        {0,0,2,TEXT}        //Head Power
                       };
+    int commandtype[ROW_ENTRIES]{-1,IRIS_OPEN,MASTER_PED_UP,FOCUS_SET_ABSOLUTE,
+    RED_GAIN_ADJ_UP,BLUE_GAIN_ADJ_UP,RED_PED_UP,BLUE_PED_UP,CAMERA_GAIN_UP,GAMMA,
+    GAMMA_TABLE,DETAIL_LEVEL_ADJ,COLOR_UP,WHITE_BALANCE_PRST,KNEE_POINT_AUTO,-1,-1,
+    SHUTTER_UP,PAN_TILT_SPEED,-1,RAMP,-1,-1,-1,-1,HEAD_POWER};
 };
 
 #endif // MODEL_H

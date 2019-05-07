@@ -1,16 +1,15 @@
-#ifndef VIEW_H
-#define VIEW_H
+#ifndef VIE_H
+#define VIE_H
 
 #include <QWidget>
+#include <QMainWindow>
 #include "errorwindow.h"
-class Controller;       //forward declaration
-class Model;
 
 namespace Ui {
 class View;
 }
 
-class View : public QWidget
+class View : public QMainWindow
 {
     Q_OBJECT
 
@@ -19,11 +18,16 @@ public slots:
     void on_serverConnectionStatusChanged(bool connected);
 
 private slots:
-    void on_pbInc_clicked();
-    void on_pbClear_clicked();
-    void on_pbErrors_clicked();
 
-    void on_storePreset_clicked();
+
+
+    void on_btHome_clicked();
+
+    void on_btCamCtrl_clicked();
+
+    void on_btXptControl_clicked();
+
+    void on_btOthers_clicked();
 
 public:
     explicit View(QWidget *parent = nullptr);
@@ -34,7 +38,7 @@ private:
     Ui::View *ui;
     Controller* controller;
     Model* model;
-    ErrorWindow errorFenster;
+
 };
 
-#endif // VIEW_H
+#endif // VIE_H
