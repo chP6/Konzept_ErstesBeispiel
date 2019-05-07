@@ -1,9 +1,11 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
-#include <eventqueue.h>
+#include "eventqueue.h"
 #include "networkinterface.h"
 #include "tastenfeld.h"
+
+#define SAVEFILE_PATH   "/opt/savefile"
 
 class Model;        //forward declaration
 
@@ -21,6 +23,8 @@ public:
     void logSystemError(int err_no, std::string msg);
     void logError(std::string msg);
     void clearErrors();
+    int writeSavefile();
+    int loadSavefile();
 
 private:
     Model* model;

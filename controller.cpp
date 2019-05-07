@@ -6,6 +6,7 @@
 #include <errno.h>
 #include "config.h"
 #include <QDebug>
+#include <QSettings>
 
 #include <chrono>
 #include <ctime>
@@ -35,6 +36,7 @@ Controller::Controller(Model& model)// : poller(*this)    //poller Konstruktor a
         contr_err = errno;
         logSystemError(contr_err, "Could not open SPI-BUS 2");
     }
+
 }
 
 void Controller::setModel(Model &model){
@@ -69,8 +71,45 @@ void Controller::clearErrors(){
     model->clearErrors();
 }
 
+int Controller::writeSavefile(){
+    QSettings savefile(SAVEFILE_PATH, QSettings::NativeFormat);
+    savefile.clear();
+    int currCamera = model->getActiveCamera();
+
+    for (int i=1;i<=NUMBER_OF_CAMERAS;i++) {
+        model->setActiveCamera(i);
+        savefile.beginGroup("camera_"+QString::number(i));
+
+        for (int j=0;j<ROW_ENTRIES;j++) {
+            savefile.setValue("value_"+QString::number(j),model->getValue(ABS,j));
+        }
+        savefile.endGroup();
+    }
+    savefile.sync();
+
+    model->setActiveCamera(currCamera);
+    return savefile.status();
+}
 
 
+int Controller::loadSavefile(){
+    QSettings savefile(SAVEFILE_PATH, QSettings::NativeFormat);
+    int currCamera = model->getActiveCamera();
+
+    for (int i=1;i<=NUMBER_OF_CAMERAS;i++) {
+        model->setActiveCamera(i);
+        savefile.beginGroup("camera_"+QString::number(i));
+
+        for (int j=0;j<ROW_ENTRIES;j++) {
+            model->setValue(ABS, j, savefile.value("value_"+QString::number(j)).toInt());
+            // todo: send values to camera
+        }
+        savefile.endGroup();
+    }
+
+    model->setActiveCamera(currCamera);
+    return savefile.status();
+}
 
 
 
@@ -98,6 +137,8 @@ void Controller::queueEvent(int evt, std::vector<int> data){
 void Controller::queueEvent(int evt, bool sta){
     eventQueue.qeueEvent(evt, sta);
 }
+
+
 
 
 

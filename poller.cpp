@@ -135,6 +135,8 @@ void Poller::listener(){
                 data.push_back(1000);
                 data.push_back(5000);
                 controller->queueEvent(E_SET_TILT, data);
+                controller->writeSavefile();
+                qDebug("Write savefile");
             }
             else{
                 data.push_back(jsData.xCoord);
@@ -161,6 +163,11 @@ void Poller::listener(){
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Rotary1 value");
             }
+
+            //debug:
+            controller->loadSavefile();
+            qDebug("load savefile");
+
 
             //debug: preset test
 //            controller->queueEvent(E_INCREASE, rotary_val);
