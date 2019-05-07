@@ -36,6 +36,7 @@ void EventQueue::qeueEvent(int evt, bool sta){
 
 //no data eg. Watchdog
 void EventQueue::qeueEvent(int evt){
+
 //    gettimeofday(&tv1, NULL);
 
     event_s eventEntry;
@@ -59,7 +60,6 @@ void EventQueue::pullEvent(event_s& entry){
     }
     entry = queue.front();
     queue.erase(queue.begin());
-
 //    gettimeofday(&tv2, NULL);
 //    qDebug("Pull: %f seconds",
 //         (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +

@@ -29,7 +29,7 @@ void Home::update()
     ui->btSppWait->setText(QString::number(model->getValue(DISP,V_SPP_WAIT_TIME)));
     ui->btHeadNr->setText(QString::number(model->getValue(DISP,V_HEADNR)));
     ui->lPresetNr->setText(QString::number(model->getActivePreset()+1));
-    ui->lAutoZoomSpeed->setText(QString::number(model->getValue(DISP,V_BOUNCE_ZOOM_SPEED)));
+    ui->btAutoZoomSpeed->setText(QString::number(model->getValue(DISP,V_BOUNCE_ZOOM_SPEED)));
 }
 
 void Home::setModelController(Model *model, Controller *controller)

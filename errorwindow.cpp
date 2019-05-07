@@ -23,6 +23,8 @@ void ErrorWindow::on_pbEwClose_clicked()
     this->close();
 }
 
+
+
 void ErrorWindow::setModelController(Model* model, Controller* controller){
     this->model = model;
     this->controller = controller;

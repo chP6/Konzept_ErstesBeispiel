@@ -175,9 +175,11 @@ void Controller::processQeue(){
             field=model->getRotaryField();
             model->setValue(INC,field,loadedEvent.data[0]);     //Last Element
 
-
             if(model->getTxCommand(field) > 0){  //there could be values without commandtypes
                txSocket.send(model->getActiveCamera(),model->getTxCommand(field),model->getValue(ABS,field));
+            }
+            if(field==V_HEADNR){
+                model->setUpView();
             }
 
             break;

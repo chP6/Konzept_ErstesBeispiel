@@ -75,6 +75,7 @@ unsigned char Model::getActivePreset()
 void Model::setActiveCamera(unsigned char camNr)
 {
     activeCamera=camNr;
+    emit updateView();
 }
 
 unsigned char Model::getActiveCamera()
@@ -94,6 +95,7 @@ void Model::setCamType(int camNr, int type)
             for(int j=0;j<COLUM_ENTRIES;j++){cameras[camNr-1].values[i][j]=c1Values[i][j];}
         }
         cameras[camNr-1].camType=type;
+        cameras[camNr-1].textTable=&c1TextTable[0][0];
         break;
     case 2:
         for(int i= 0;i<ROW_ENTRIES;i++){
@@ -178,6 +180,11 @@ int Model::getValue(int type, int property)
     default:
         return -1;
     }
+}
+
+QString Model::getTextValue(int property)
+{
+    return *(cameras[activeCamera-1].textTable+(cameras[activeCamera-1].values[property][4]*15)+(cameras[activeCamera-1].values[property][0]-cameras[activeCamera-1].values[property][1]));
 }
 
 

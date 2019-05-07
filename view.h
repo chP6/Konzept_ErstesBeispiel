@@ -15,6 +15,7 @@ class View : public QMainWindow
 
 public slots:
     void on_modelUpdate();
+    void on_modelSetUp();
     void on_serverConnectionStatusChanged(bool connected);
 
 private slots:

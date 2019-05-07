@@ -83,16 +83,16 @@ void Telegrambuilder::encode(bool request, int bbm_dev_no, int bbm_command, std:
             datagram[6] = 0;
             break;
         case WHITE_BALANCE_PRST:
-            datagram[5] = (uint8_t)(data[0]>>8);
-            datagram[6] = (uint8_t)data[0];
+            datagram[7] = (uint8_t)(data[0]>>8);
+            datagram[8] = (uint8_t)data[0];
             break;
         case MIRROR_H_V:
             datagram[5] = 1;
             datagram[6] = (uint8_t)data[0];
             break;
         case SHUTTER_UP:
-            datagram[5] = (uint8_t)(data[0]>>8);
-            datagram[6] = (uint8_t)data[0];
+            datagram[7] = (uint8_t)(data[0]>>8);
+            datagram[8] = (uint8_t)data[0];
             break;
         case KNEE_POINT_AUTO:
             datagram[5] = 1;
@@ -116,8 +116,9 @@ void Telegrambuilder::encode(bool request, int bbm_dev_no, int bbm_command, std:
             datagram[8] = (uint8_t)data[0];
             break;
         case COLOR_UP:
-            datagram[5] = 1;
-            datagram[6] = (uint8_t)data[0];
+            datagram[7] = 1;
+            datagram[8] = (uint8_t)data[0];
+
             break;
         case MASTER_PED_UP:
             datagram[7] = (uint8_t)data[0]>>8;
@@ -140,8 +141,8 @@ void Telegrambuilder::encode(bool request, int bbm_dev_no, int bbm_command, std:
             datagram[6] = (uint8_t)data[0];
             break;
         case GAMMA_TABLE:
-            datagram[5] = 1;
-            datagram[6] = (uint8_t)data[0];
+            datagram[7] = 1;
+            datagram[8] = (uint8_t)data[0];
             break;
         case HEAD_POWER:
             datagram[5] = 1;
