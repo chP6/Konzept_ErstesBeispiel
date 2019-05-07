@@ -3,6 +3,7 @@
 #include "events.h"
 #include "config.h"
 #include <thread>
+#include <QDebug>
 
 UdpListener::UdpListener(Controller& controller)
 {
@@ -36,6 +37,13 @@ void UdpListener::listener(){
         telegramBuilder.decode(buffer, answer);
 
         // =========== DECIDE WHAT TO DO ==============================================
+
+        // Reply from camera/head
+        if(answer.command != WATCHDOG && answer.from != SERVER){
+            controller->queueEvent(E_CAMERA_ANSWER, answer.command, answer.data[0]);
+            //qDebug("Answer: %d", answer.data[0]);
+        }
+
 
         // Watchdog answer from server
         if(answer.command == WATCHDOG && answer.from == SERVER){

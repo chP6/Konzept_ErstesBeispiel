@@ -25,6 +25,7 @@ public:
     void clearErrors();
     int writeSavefile();
     int loadSavefile();
+    void requestCameraSettings();
 
 private:
     Model* model;

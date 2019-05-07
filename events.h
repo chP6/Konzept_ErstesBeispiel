@@ -24,6 +24,7 @@
 #define E_SHUTTER_CHANGE        20
 #define E_AUTOFOCUS             21
 #define E_AUTOFOCUS_ANSWER      22
+#define E_CAMERA_ANSWER         23
 
 
 

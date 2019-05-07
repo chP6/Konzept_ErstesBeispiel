@@ -116,6 +116,26 @@ int Controller::loadSavefile(){
 }
 
 
+void Controller::requestCameraSettings(){
+    txSocket.request(model->getActiveCamera(), CAMERA_GAIN_UP);
+    txSocket.request(model->getActiveCamera(), SHUTTER_UP);
+    //ND_FILTER
+    //DETAIL
+    txSocket.request(model->getActiveCamera(), RED_GAIN_ADJ_UP);
+    txSocket.request(model->getActiveCamera(), BLUE_GAIN_ADJ_UP);
+    //B_RED
+    //B_BLUE
+    txSocket.request(model->getActiveCamera(), MASTER_PED_UP);
+    txSocket.request(model->getActiveCamera(), IRIS_OPEN);
+    txSocket.request(model->getActiveCamera(), COLOR_UP);
+    txSocket.request(model->getActiveCamera(), WHITE_BALANCE_PRST);
+    //KNEE
+    //KNEE_POINT
+    //GAMMA
+    txSocket.request(model->getActiveCamera(), GAMMA_TABLE);
+}
+
+
 
 void Controller::queueEvent(int evt){
     eventQueue.qeueEvent(evt);
@@ -302,12 +322,18 @@ void Controller::processQeue(){
             qDebug("SHUTTER: %d, MIN: %d, MAX: %d", model->getValue(ABS,V_SHUTTER), model->getMin(V_SHUTTER),model->getMax(V_SHUTTER));
             break;
         case E_WRITE_SAVEFILE:
-            writeSavefile();
+            requestCameraSettings();
+            //writeSavefile();
             qDebug("wrote savefile");
             break;
         case E_LOAD_SAVEFILE:
             loadSavefile();
             qDebug("loaded savefile");
+            break;
+        case E_CAMERA_ANSWER:
+            //writing answer values from camera to respective properties in model
+            model->setValue(ABS, model->getValueFromBBMCommand(loadedEvent.data[0]), loadedEvent.data[1]);
+            qDebug("command: %d, value: %d", loadedEvent.data[0], loadedEvent.data[1]);
             break;
         default:
             break;

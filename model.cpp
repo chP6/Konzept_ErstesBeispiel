@@ -247,3 +247,12 @@ int Model::getTxCommand(int value)
 {
     return commandtype[value];
 }
+
+int Model::getValueFromBBMCommand(int bbm_command){
+    for (int i=0;i<ROW_ENTRIES;i++) {
+        if (bbm_command == commandtype[i]) {
+            return i;
+        }
+    }
+    return -1;
+}

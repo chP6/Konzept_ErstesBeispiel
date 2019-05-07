@@ -57,6 +57,7 @@ public:
     int getRotaryField();
     void setRotaryField(int field);
     int getTxCommand(int value);
+    int getValueFromBBMCommand(int bbm_command);
 
 private:
     QStringList errorList;
