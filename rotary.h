@@ -10,13 +10,14 @@ class Rotary
 public:
     Rotary();
     ~Rotary();
-    int init(int gpioNo, uint8_t slaveAddr);
+    int init(int sense_gpio, int button_gpio, uint8_t slaveAddr);
     int readSense();
     int readRotary(int8_t& res);
-    int fd_sense, fd_ic2;
+    int readButton();
+    int fd_sense, fd_ic2, fd_button;
 private:
-    int gpioNo;
-    uint8_t sense_val, slaveAddr;
+    int sense_gpio, button_gpio;
+    uint8_t sense_val, button_val, slaveAddr;
     int8_t rotary_val;
     int rot_err;
 };

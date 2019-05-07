@@ -11,10 +11,9 @@
 #define E_STORE_PRESET          7
 #define E_PRESET_CHANGE         8
 #define E_CAMERA_CHANGE         9
-#define E_SET_FOCUS             10
+#define E_FOCUS_CHANGE          10
 #define E_SET_ZOOM              11
 #define E_CHECK_CAMERA_TYPE     12
-
 #define E_IRIS_CHANGE           13
 #define E_PED_CHANGE            14
 #define E_WBLUE_CHANGE          15
@@ -23,14 +22,17 @@
 #define E_BRED_CHANGE           18
 #define E_GAIN_CHANGE           19
 #define E_SHUTTER_CHANGE        20
+#define E_AUTOFOCUS             21
+#define E_AUTOFOCUS_ANSWER      22
 
 
 #define E_STORE_PRESET_DEBUG        102
 #define E_GOTO_PRESET               101
+#define E_WRITE_SAVEFILE            103
+#define E_LOAD_SAVEFILE             104
 
 //Debug
 #define E_REQ_TEST          111
-#define E_FOCUS_TEST        112
 
 
 #endif // EVENTS_H

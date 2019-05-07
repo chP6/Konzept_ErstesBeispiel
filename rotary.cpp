@@ -16,29 +16,43 @@ Rotary::Rotary()
 Rotary::~Rotary()
 {
     close(fd_sense);
+    close(fd_button);
     close(fd_ic2);
 }
 
-int Rotary::init(int gpioNo, uint8_t slaveAddr){
-    this->gpioNo = gpioNo;
+int Rotary::init(int sense_gpio, int button_gpio, uint8_t slaveAddr){
+    this->sense_gpio = sense_gpio;
+    this->button_gpio = button_gpio;
     this->slaveAddr = slaveAddr;
 
     // Sense Leitung
     std::string out;
-    out = "echo '" + std::to_string(gpioNo) + "' >/sys/class/gpio/export";
+    out = "echo '" + std::to_string(sense_gpio) + "' >/sys/class/gpio/export";
     system(out.c_str());    // system("echo '4' >/sys/class/gpio/export");
-
-    out = "echo 'in' >/sys/class/gpio/gpio" + std::to_string(gpioNo) + "/direction";
+    out = "echo 'in' >/sys/class/gpio/gpio" + std::to_string(sense_gpio) + "/direction";
     system(out.c_str());    // system("echo 'in' >/sys/class/gpio/gpio4/direction");
-
-    out = "echo 'falling' >/sys/class/gpio/gpio" + std::to_string(gpioNo) + "/edge";
+    out = "echo 'falling' >/sys/class/gpio/gpio" + std::to_string(sense_gpio) + "/edge";
     system(out.c_str());    // system("echo 'falling' >/sys/class/gpio/gpio4/edge");
-
-    out = "/sys/class/gpio/gpio" + std::to_string(gpioNo) + "/value";
+    out = "/sys/class/gpio/gpio" + std::to_string(sense_gpio) + "/value";
     fd_sense = open(out.c_str(), O_RDONLY);
     if (fd_sense < 0) {
         return fd_sense;
     }
+
+    // Button Leitung
+    out = "echo '" + std::to_string(button_gpio) + "' >/sys/class/gpio/export";
+    system(out.c_str());    // system("echo '4' >/sys/class/gpio/export");
+    out = "echo 'in' >/sys/class/gpio/gpio" + std::to_string(button_gpio) + "/direction";
+    system(out.c_str());    // system("echo 'in' >/sys/class/gpio/gpio4/direction");
+    out = "echo 'falling' >/sys/class/gpio/gpio" + std::to_string(button_gpio) + "/edge";
+    system(out.c_str());    // system("echo 'falling' >/sys/class/gpio/gpio4/edge");
+    out = "/sys/class/gpio/gpio" + std::to_string(button_gpio) + "/value";
+    fd_button = open(out.c_str(), O_RDONLY);
+    if (fd_button < 0) {
+        return fd_button;
+    }
+
+
 
     // I2C
     char *i2cFilename = I2C_DEV_PATH;
@@ -80,4 +94,17 @@ int Rotary::readRotary(int8_t& res){
     res = rotary_val;
 
     return 0;
+}
+
+int Rotary::readButton(){
+    lseek(fd_button, 0, SEEK_SET);		//Leseposition wieder auf Null setzen
+    rot_err = read(fd_button, &button_val, 1);
+
+    if (button_val == '1') {
+      return 1;
+    }
+    else{
+      return 0;
+    }
+    return -1;
 }
