@@ -39,7 +39,6 @@ private:
     Ui::View *ui;
     Controller* controller;
     Model* model;
-
 };
 
 #endif // VIE_H

@@ -102,7 +102,11 @@ int Controller::loadSavefile(){
 
         for (int j=0;j<ROW_ENTRIES;j++) {
             model->setValue(ABS, j, savefile.value("value_"+QString::number(j)).toInt());
-            // todo: send values to camera
+
+            //send value to camera
+            if(model->getTxCommand(j) > 0){  //there could be values without commandtypes
+               txSocket.send(i,model->getTxCommand(j),model->getValue(ABS,j));
+            }
         }
         savefile.endGroup();
     }
@@ -147,14 +151,19 @@ void Controller::startQueueProcessThread(){
     t1.detach();
 }
 
+
+////debug:
+//loadSavefile();
+//qDebug("load savefile");
+
 void Controller::processQeue(){
     event_s loadedEvent;
-   // struct timeval  tv1, tv2;
+    //struct timeval  tv1, tv2;
 
 
     while(1){
         eventQueue.pullEvent(loadedEvent);      //blockiert, falls queue leer
-        //gettimeofday(&tv1, NULL);
+//        gettimeofday(&tv1, NULL);
 
         switch (loadedEvent.evt) {
         case E_CLEAR:
@@ -166,8 +175,8 @@ void Controller::processQeue(){
             field=model->getRotaryField();
             model->setValue(INC,field,loadedEvent.data[0]);     //Last Element
 
-            if((model->getTxCommand(field)) > 0){  //there could be values without commandtypes
-               txSocket.send(1,model->getTxCommand(field),model->getValue(ABS,field));
+            if(model->getTxCommand(field) > 0){  //there could be values without commandtypes
+               txSocket.send(model->getActiveCamera(),model->getTxCommand(field),model->getValue(ABS,field));
             }
             if(field==V_HEADNR){
                 model->setUpView();
@@ -179,7 +188,7 @@ void Controller::processQeue(){
             x = loadedEvent.data[0];
             y = loadedEvent.data[1];
             setAxis(x,10000-y);
-            txSocket.send(1, TILT_PAN, x, y);
+            txSocket.send(model->getActiveCamera(), TILT_PAN, x, y);
 
             //debug
             //char str[100];
@@ -188,7 +197,19 @@ void Controller::processQeue(){
 
             break;
          case E_SET_ZOOM:
-            txSocket.send(1,ZOOM_FOCUS_SET, loadedEvent.data[0]);
+            txSocket.send(model->getActiveCamera(),ZOOM_FOCUS_SET, loadedEvent.data[0]);
+            break;
+        case E_FOCUS_CHANGE:
+            model->setValue(INC, V_FOCUS, loadedEvent.data[0]);
+            txSocket.send(model->getActiveCamera(), FOCUS_SET_ABSOLUTE, model->getValue(ABS, V_FOCUS));
+            qDebug("FOCUS: %d", model->getValue(ABS,V_FOCUS));
+            break;
+        case E_AUTOFOCUS:
+            txSocket.send(model->getActiveCamera(), SET_FOCUS_PUSH);
+            qDebug("AUTOFOCUS!");
+            break;
+        case E_AUTOFOCUS_ANSWER:
+            model->setValue(ABS,V_FOCUS,loadedEvent.data[0]);
             break;
         case E_TX_WATCHDOG:
             txSocket.send(SERVER, WATCHDOG);
@@ -206,11 +227,7 @@ void Controller::processQeue(){
             logError("Store Preset!");
             break;
         case E_GOTO_PRESET:
-            txSocket.send(1, GOTO_PRESET, loadedEvent.data[0]);
-            break;
-        case E_FOCUS_TEST:
-            increment(loadedEvent.data[0]);
-            //txSocket.send(1, FOCUS_SET_ABSOLUTE, model->getData());
+            txSocket.send(model->getActiveCamera(), GOTO_PRESET, loadedEvent.data[0]);
             break;
         case E_STORE_PRESET:
             presetbus.setLed(ACT_PRESET_COLOR,model->getActivePreset());
@@ -223,16 +240,17 @@ void Controller::processQeue(){
             if(model->getCamFlag(PRST_IN_STORE)){
                 model->setUsedPreset(loadedEvent.data[0]);
                 model->setCamFlag(PRST_IN_STORE,FALSE);
-                txSocket.send(1, STORE_PRESET, loadedEvent.data[0]+1);
+                txSocket.send(model->getActiveCamera(), STORE_PRESET, loadedEvent.data[0]+1);
             }
             else{
-                txSocket.send(1, GOTO_PRESET, loadedEvent.data[0]+1);
+                txSocket.send(model->getActiveCamera(), GOTO_PRESET, loadedEvent.data[0]+1);
             }
             break;
         case E_CAMERA_CHANGE:
             camerabus.setLed(CAMERA_COLOR,loadedEvent.data[0]);
             model->setActiveCamera(loadedEvent.data[0]);
             presetbus.setLed(PRESET_COLOR,model->getActivePreset());
+
             break;
         case E_CHECK_CAMERA_TYPE:
             int from, type;
@@ -283,13 +301,20 @@ void Controller::processQeue(){
             txSocket.send(model->getActiveCamera(), SHUTTER_UP, model->getValue(ABS,V_SHUTTER));
             qDebug("SHUTTER: %d, MIN: %d, MAX: %d", model->getValue(ABS,V_SHUTTER), model->getMin(V_SHUTTER),model->getMax(V_SHUTTER));
             break;
+        case E_WRITE_SAVEFILE:
+            writeSavefile();
+            qDebug("wrote savefile");
+            break;
+        case E_LOAD_SAVEFILE:
+            loadSavefile();
+            qDebug("loaded savefile");
+            break;
         default:
             break;
         }
-        /*gettimeofday(&tv2, NULL);
-        qDebug("Work: %f seconds",
-             (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
-             (double) (tv2.tv_sec - tv1.tv_sec));
-             */
+//        gettimeofday(&tv2, NULL);
+//        qDebug("Work: %f seconds",
+//             (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+//             (double) (tv2.tv_sec - tv1.tv_sec));
     }
 }

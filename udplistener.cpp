@@ -47,11 +47,13 @@ void UdpListener::listener(){
             controller->queueEvent(E_CHECK_CAMERA_TYPE, answer.from, answer.data[1]);
         }
 
-
-
+        // Autofocus answer
+        if(answer.command == FOCUS_SET_ABSOLUTE){
+            controller->queueEvent(E_AUTOFOCUS_ANSWER, answer.data[0]);
+        }
 
         //debug: show answer packages in log
-        if(answer.command != WATCHDOG){
+        if(answer.from != SERVER && answer.type == TYPEC_FROM_HC){
             sprintf(buf,"UDP RX: %d,%d,%d,%d,%d,%d,%d,%d,%d,%d", buffer[0],buffer[1],buffer[2],buffer[3],buffer[4],buffer[5],buffer[6],buffer[7],buffer[8],buffer[9]);
             std::string str(buf);
             controller->logError(str + " Addr: " + addr);

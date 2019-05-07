@@ -40,9 +40,9 @@ void Home::setModelController(Model *model, Controller *controller)
 
 void Home::serverConnectionChanged(bool connection)
 {
-    if(connection){ui->lServer->setText("OK.");}
+    if(connection){ui->lServer->setText("OK");}
     else {
-        ui->lServer->setText("Not OK.");
+        ui->lServer->setText("Not OK");
     }
 }
 

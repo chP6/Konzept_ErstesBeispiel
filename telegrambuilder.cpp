@@ -213,6 +213,8 @@ void Telegrambuilder::decode(uint8_t* telegram, struct answer_s& answer){
         case ZOOM_SET_ABSOLUTE:
             break;
         case FOCUS_SET_ABSOLUTE:
+            temp = ( (telegram[7]<<8) | (telegram[8]) );    // [0]focus value
+            answer.data.push_back(temp);
             break;
         case ZOOM_FOCUS_SET:
             break;
