@@ -171,8 +171,9 @@
        </sizepolicy>
       </property>
       <widget class="Home" name="home"/>
-      <widget class="ErrorWindow" name="errorWindow"/>
+      <widget class="CameraView" name="cameraView"/>
       <widget class="QWidget" name="page_6"/>
+      <widget class="ErrorWindow" name="errorWindow"/>
      </widget>
     </item>
    </layout>
@@ -190,6 +191,12 @@
    <class>ErrorWindow</class>
    <extends>QWidget</extends>
    <header>errorwindow.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CameraView</class>
+   <extends>QWidget</extends>
+   <header>cameraview.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

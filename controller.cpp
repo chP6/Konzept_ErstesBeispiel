@@ -123,7 +123,14 @@ void Controller::processQeue(){
             logError("Counter cleared!");
             break;
         case E_INCREASE:
-            increment(loadedEvent.data.back());     //Last Element
+            int field;
+            field=model->getRotaryField();
+            model->setValue(INC,field,loadedEvent.data[0]);     //Last Element
+
+            if(field > 0){  //there could be values without commandtypes
+               txSocket.send(1,model->getTxCommand(field),model->getValue(ABS,field));
+            }
+
             break;
         case E_SET_TILT:
             int x,y;

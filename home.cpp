@@ -29,7 +29,7 @@ void Home::update()
     ui->btSppWait->setText(QString::number(model->getValue(DISP,V_SPP_WAIT_TIME)));
     ui->btHeadNr->setText(QString::number(model->getValue(DISP,V_HEADNR)));
     ui->lPresetNr->setText(QString::number(model->getActivePreset()+1));
-    ui->btPanTiltSpeed->update();
+    ui->lAutoZoomSpeed->setText(QString::number(model->getValue(DISP,V_BOUNCE_ZOOM_SPEED)));
 }
 
 void Home::setModelController(Model *model, Controller *controller)
@@ -58,7 +58,7 @@ void Home::on_btWideSet_clicked()
 
 void Home::on_btAutoZoomSpeed_clicked()
 {
-
+    model->setRotaryField(V_BOUNCE_ZOOM_SPEED);
 }
 
 void Home::on_btTransSpeed_clicked()

@@ -41,7 +41,8 @@ SOURCES += \
     smbus.cpp \
     ocp.cpp \
     home.cpp \
-    view.cpp
+    view.cpp \
+    cameraview.cpp
 
 HEADERS += \
     model.h \
@@ -62,12 +63,14 @@ HEADERS += \
     smbus.h \
     ocp.h \
     home.h \
-    view.h
+    view.h \
+    cameraview.h
 
 FORMS += \
     errorwindow.ui \
     home.ui \
-    view.ui
+    view.ui \
+    cameraview.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

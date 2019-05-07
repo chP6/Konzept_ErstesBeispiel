@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QStringList>
 #include "config.h"
+#include "bbmcommandtypes.h"
 //#include "view.h" //nix gut, circular dependency -> forward declaration.
 //class View;         //Make sure each header can be included on its own.
 
@@ -52,6 +53,7 @@ public:
     int setWatchdogWaitingflag(bool waiting);
     int getRotaryField();
     void setRotaryField(int field);
+    int getTxCommand(int value);
 
 private:
     QStringList errorList;
@@ -153,6 +155,10 @@ private:
                        {12,1,127,NORMAL},    //Bounce Zoom Speed
                        {0,0,2,TEXT}        //Head Power
                       };
+    int commandtype[ROW_ENTRIES]{-1,IRIS_OPEN,MASTER_PED_UP,FOCUS_SET_ABSOLUTE,
+    RED_GAIN_ADJ_UP,BLUE_GAIN_ADJ_UP,RED_PED_UP,BLUE_PED_UP,CAMERA_GAIN_UP,GAMMA,
+    GAMMA_TABLE,DETAIL_LEVEL_ADJ,COLOR_UP,WHITE_BALANCE_PRST,KNEE_POINT_AUTO,-1,-1,
+    SHUTTER_UP,PAN_TILT_SPEED,-1,RAMP,-1,-1,-1,-1,HEAD_POWER};
 };
 
 #endif // MODEL_H

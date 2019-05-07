@@ -235,3 +235,8 @@ void Model::setRotaryField(int field)
 {
     rotaryField=field;
 }
+
+int Model::getTxCommand(int value)
+{
+    return commandtype[value];
+}
