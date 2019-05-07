@@ -84,7 +84,7 @@
 #define V_USED_PRST           27
 
 #define ROW_ENTRIES           27
-#define COLUM_ENTRIES         4
+#define COLUM_ENTRIES         5
 #define NORMAL                0
 #define CENTER                1
 #define TEXT                  2

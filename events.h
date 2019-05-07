@@ -25,6 +25,7 @@
 #define E_SHUTTER_CHANGE        20
 
 
+
 #define E_STORE_PRESET_DEBUG        102
 #define E_GOTO_PRESET               101
 

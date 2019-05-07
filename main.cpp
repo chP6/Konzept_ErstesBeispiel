@@ -22,6 +22,8 @@ int main(int argc, char *argv[])
     view.setStyleSheet(StyleSheet);
     QObject::connect(&model, &Model::updateView,            // model signal mit view slot verbinden
                      &view, &View::on_modelUpdate);
+    QObject::connect(&model, &Model::setUpView,            // model signal mit view slot verbinden
+                     &view, &View::on_modelSetUp);
     QObject::connect(&model, &Model::updateServerConnectionStatus,
                      &view, &View::on_serverConnectionStatusChanged);
 

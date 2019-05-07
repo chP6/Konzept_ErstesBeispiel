@@ -164,9 +164,7 @@ void Poller::listener(){
                 controller->logSystemError(poll_err, "Could not readout Rotary1 value");
             }
 
-            //debug:
-            controller->loadSavefile();
-            qDebug("load savefile");
+
 
 
             //debug: preset test

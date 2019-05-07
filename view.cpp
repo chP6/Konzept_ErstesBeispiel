@@ -23,6 +23,7 @@ void View::setModelController(Model& model, Controller& controller){
     this->model = &model;
     ui->errorWindow->setModelController(this->model, this->controller);
     ui->home->setModelController(this->model, this->controller);
+    ui->cameraView->setModelController(this->model, this->controller);
 }
 
 
@@ -31,6 +32,12 @@ void View::on_modelUpdate()
 {
     ui->errorWindow->update();
     ui->home->update();
+    ui->cameraView->update();
+}
+
+void View::on_modelSetUp()
+{
+    ui->cameraView->setUpUi();
 }
 
 

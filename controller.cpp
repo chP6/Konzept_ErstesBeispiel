@@ -149,12 +149,12 @@ void Controller::startQueueProcessThread(){
 
 void Controller::processQeue(){
     event_s loadedEvent;
-    struct timeval  tv1, tv2;
+   // struct timeval  tv1, tv2;
 
 
     while(1){
         eventQueue.pullEvent(loadedEvent);      //blockiert, falls queue leer
-        gettimeofday(&tv1, NULL);
+        //gettimeofday(&tv1, NULL);
 
         switch (loadedEvent.evt) {
         case E_CLEAR:
@@ -166,8 +166,11 @@ void Controller::processQeue(){
             field=model->getRotaryField();
             model->setValue(INC,field,loadedEvent.data[0]);     //Last Element
 
-            if(field > 0){  //there could be values without commandtypes
+            if((model->getTxCommand(field)) > 0){  //there could be values without commandtypes
                txSocket.send(1,model->getTxCommand(field),model->getValue(ABS,field));
+            }
+            if(field==V_HEADNR){
+                model->setUpView();
             }
 
             break;
@@ -283,9 +286,10 @@ void Controller::processQeue(){
         default:
             break;
         }
-        gettimeofday(&tv2, NULL);
+        /*gettimeofday(&tv2, NULL);
         qDebug("Work: %f seconds",
              (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
              (double) (tv2.tv_sec - tv1.tv_sec));
+             */
     }
 }
