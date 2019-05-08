@@ -12,7 +12,7 @@ struct camera_s{
   int camType;
   int activePreset;
   int usedPresets;
-  bool flags[3];
+  bool flags[NUMBER_OF_FLAGS];
   int values [ROW_ENTRIES][COLUM_ENTRIES];
   QString *textTable;
 };
@@ -27,6 +27,7 @@ signals:
     void updateView();
     void setUpView();
     void updateServerConnectionStatus(bool connected);
+    void updateCameraConnectionStatus(int slotNr, bool connected);
 
 public:
     Model();
@@ -37,27 +38,38 @@ public:
     void addError(std::string str);
     void clearErrors();
     void setUsedPreset(int presetNr);
+    void setUsedPreset(int slotNr, int presetNr);
     int getUsedPreset();
-    void setActivePreset(unsigned char actPreset);
-    unsigned char getActivePreset();
-    void setActiveCamera(unsigned char camNr);
-    unsigned char getActiveCamera();
+    int getUsedPreset(int slotNr);
+    void setActivePreset(int actPreset);
+    void setActivePreset(int slotNr, int actPreset);
+    int getActivePreset();
+    int getActivePreset(int slotNr);
+    int setActiveCameraSlot(int slotNr);
+    int getActiveCameraSlot();
     QStringList* getErrorList();
-    void setCamType(int camNr, int type);
+    void setCamType(int slotNr, int type);
+    void setCamTypeWithDefValues(int slotNr, int type);
     unsigned char getCamtype();
-    unsigned char getCamtype(int camNr);
+    unsigned char getCamtype(int slotNr);
     void setValue(int type, int property, int value);
+    void setValue(int slotNr, int type, int property, int value);
     int getValue(int type, int property);
+    int getValue(int slotNr, int type, int property);
     QString getTextValue(int property);
     int getMin(int property);
     int getMax(int property);
     void setCamFlag(int flag, bool value);
+    void setCamFlag(int slotNr, int flag, bool value);
     bool getCamFlag(int flag);
+    bool getCamFlag(int slotNr, int flag);
     int setWatchdogWaitingflag(bool waiting);
     int getRotaryField();
     void setRotaryField(int field);
     int getTxCommand(int value);
     int getValueFromBBMCommand(int bbm_command);
+    void setTextTable(int slotNr, int type);
+
 
 private:
     QStringList errorList;
@@ -68,8 +80,8 @@ private:
     int y = 5000;
     bool watchdogWaitingForAnswerFlag = false;
     bool serverConnected = false;
-    struct camera_s cameras[NUMBER_OF_CAMERAS];
-    unsigned char activeCamera;     // 1-6
+    struct camera_s cameras[NUMBER_OF_SLOTS];
+    int activeCameraSlot;     // 0-5
     // camera type 2 init values
     int c2Values[ROW_ENTRIES][COLUM_ENTRIES]=
                       {{1,0,49,NORMAL},     //headnr init_value, min_value, max_value
@@ -80,16 +92,16 @@ private:
                        {127,0,255,CENTER}, //w_Blue
                        {100,0,200,CENTER}, //b_Red
                        {100,0,200,CENTER}, //b_Blue
-                       {0,0,14,TEXT},    //Gain
+                       {0,0,14,TEXT,0},    //Gain
                        {255,0,512,CENTER},   //Gamma
-                       {0,0,2,TEXT},      //Gamma-Table
+                       {0,0,2,TEXT,1},      //Gamma-Table
                        {128,1,254,CENTER},  //Detail
                        {127,1,255,CENTER},  //Color
-                       {0,0,5,TEXT},      //Color Temp
+                       {0,0,5,TEXT,2},      //Color Temp
                        {-1,-1,-1,NAN},    //Knee
                        {-1,-1,-1,NAN},    //Knee Point
-                       {0,0,3,TEXT},       //ND Filter
-                       {17,17,33,TEXT},    //Shutter
+                       {0,0,3,TEXT,4},       //ND Filter
+                       {17,17,33,TEXT,3},    //Shutter
                        {5,1,10,NORMAL},      //PT Speed
                        {1,1,10,NORMAL},      //Trans Speed
                        {1,1,10,NORMAL},      //Ramp
@@ -97,7 +109,7 @@ private:
                        {2,1,6,NORMAL},       //SPP2
                        {0,0,30,NORMAL},      //SPP Wait Time
                        {12,1,127,NORMAL},    //Bounce Zoom Speed
-                       {0,0,2,TEXT}        //Head Power
+                       {0,0,2,TEXT,0}        //Head Power
                       };
 
     // camera type 1 init values
@@ -127,7 +139,7 @@ private:
                        {2,1,6,NORMAL},       //SPP2
                        {0,0,30,NORMAL},      //SPP Wait Time
                        {12,1,127,NORMAL},    //Bounce Zoom Speed
-                       {0,0,2,TEXT,4}        //Head Power
+                       {0,0,2,TEXT,0}        //Head Power
                       };
 
     // camera type 3&4 init values
@@ -140,16 +152,16 @@ private:
                        {127,0,255,CENTER}, //w_Blue
                        {127,0,255,CENTER}, //b_Red
                        {127,0,255,CENTER}, //b_Blue
-                       {0,0,9,TEXT},    //Gain
+                       {0,0,9,TEXT,0},    //Gain
                        {127,0,255,CENTER},   //Gamma
-                       {0,0,2,TEXT},      //Gamma-Table
+                       {0,0,2,TEXT,1},      //Gamma-Table
                        {127,0,255,CENTER},  //Detail
                        {64,0,127,CENTER},  //Color
-                       {0,0,4,TEXT},      //Color Temp
-                       {0,0,2,TEXT},    //Knee
+                       {0,0,4,TEXT,2},      //Color Temp
+                       {0,0,2,TEXT,4},    //Knee
                        {127,0,254,CENTER},    //Knee Point
                        {-1,-1,-1,NAN},       //ND Filter
-                       {0,0,7,TEXT},    //Shutter
+                       {0,0,7,TEXT,3},    //Shutter
                        {5,1,10,NORMAL},      //PT Speed
                        {1,1,10,NORMAL},      //Trans Speed
                        {1,1,10,NORMAL},      //Ramp
@@ -157,7 +169,7 @@ private:
                        {2,1,6,NORMAL},       //SPP2
                        {0,0,30,NORMAL},      //SPP Wait Time
                        {12,1,127,NORMAL},    //Bounce Zoom Speed
-                       {0,0,2,TEXT}        //Head Power
+                       {0,0,2,TEXT,0}        //Head Power
                       };
     int commandtype[ROW_ENTRIES]{-1,IRIS_OPEN,MASTER_PED_UP,FOCUS_SET_ABSOLUTE,
     RED_GAIN_ADJ_UP,BLUE_GAIN_ADJ_UP,RED_PED_UP,BLUE_PED_UP,CAMERA_GAIN_UP,GAMMA,

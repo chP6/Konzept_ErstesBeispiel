@@ -210,10 +210,10 @@ int Tastenfeld::setLed(unsigned int color, unsigned char button)
 }
 
 
-int Tastenfeld::showStored(int usedPresets, unsigned char activePreset)
+int Tastenfeld::showStored(int usedPresets, int activePreset)
 {
     memset(tx,0,sizeof (tx));
-    mapTx(0xfff,0xfff,0xfff,activePreset);
+    mapTx(0xfff,0xfff,0xfff,(unsigned char)activePreset);
     if(!usedPresets){
         for(unsigned char i=0;i<6;i++){
             if(i!=activePreset){

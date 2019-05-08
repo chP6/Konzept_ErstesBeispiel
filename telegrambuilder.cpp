@@ -39,12 +39,10 @@ void Telegrambuilder::encode(bool request, int bbm_dev_no, int bbm_command, std:
             datagram[8] = (uint8_t)data[0];
             break;
         case RAMP:
-            datagram[5] = 1;
-            datagram[6] = (uint8_t)data[0];
+            datagram[8] = (uint8_t)data[0];
             break;
         case PAN_TILT_SPEED:
-            datagram[5] = 1;
-            datagram[6] = (uint8_t)data[0];
+            datagram[8] = (uint8_t)data[0];
             break;
         case ZOOM_SET_ABSOLUTE:
             // only for answer?

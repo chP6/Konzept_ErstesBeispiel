@@ -12,10 +12,15 @@ Model::Model()
 
     memset(cameras,0,sizeof(cameras));
     //set all cameras to type 1 (CODGER)
-    for (int i=1; i < NUMBER_OF_CAMERAS+1; i++) {
-        setCamType(i,SONY_EVS_CODGER);
+    for (int i=0; i < NUMBER_OF_SLOTS; i++) {
+        setCamTypeWithDefValues(i,SONY_EVS_CODGER);
+        //set all flags to flase
+        for (int j=0;j<NUMBER_OF_FLAGS;j++) {
+            cameras[i].flags[j] = false;
+        }
     }
-    activeCamera=1;
+
+    activeCameraSlot=0;
 }
 
 void Model::setData(int data){
@@ -50,75 +55,107 @@ void Model::clearErrors(){
 
 void Model::setUsedPreset(int presetNr)
 {
-    cameras[activeCamera].usedPresets |= 1 << presetNr;
-     //cameras[activeCamera].usedPresets[presetNr]=1;
+    cameras[activeCameraSlot].usedPresets |= 1 << presetNr;
+     //cameras[activeCameraSlot].usedPresets[presetNr]=1;
+}
+
+//overload, absolut value from savefile
+void Model::setUsedPreset(int slotNr, int presetNr)
+{
+    cameras[slotNr].usedPresets = presetNr;
 }
 
 int Model::getUsedPreset()
 {
-    return cameras[activeCamera].usedPresets;
+    return cameras[activeCameraSlot].usedPresets;
 }
 
-void Model::setActivePreset(unsigned char actPreset)
+//overload
+int Model::getUsedPreset(int slotNr)
 {
-    cameras[activeCamera].activePreset=actPreset;
+    return cameras[slotNr].usedPresets;
+}
+
+void Model::setActivePreset(int actPreset)
+{
+    cameras[activeCameraSlot].activePreset=actPreset;
     emit updateView();
 }
 
-unsigned char Model::getActivePreset()
+//overload
+void Model::setActivePreset(int slotNr, int actPreset)
 {
-    return cameras[activeCamera].activePreset;
-}
-
-
-
-void Model::setActiveCamera(unsigned char camNr)
-{
-    activeCamera=camNr;
+    cameras[slotNr].activePreset=actPreset;
     emit updateView();
 }
 
-unsigned char Model::getActiveCamera()
+int Model::getActivePreset()
 {
-    return activeCamera;
+    return cameras[activeCameraSlot].activePreset;
+}
+
+//overload
+int Model::getActivePreset(int slotNr)
+{
+    return cameras[slotNr].activePreset;
+}
+
+
+// returns headnumber
+int Model::setActiveCameraSlot(int slotNr)
+{
+    activeCameraSlot=slotNr;
+    emit updateView();
+    return cameras[activeCameraSlot].values[V_HEADNR][VAL];
+}
+
+int Model::getActiveCameraSlot()
+{
+    return activeCameraSlot;
 }
 
 QStringList* Model::getErrorList(){
     return &errorList;
 }
 
-void Model::setCamType(int camNr, int type)
+void Model::setCamType(int slotNr, int type){
+    cameras[slotNr].camType=type;
+}
+
+void Model::setCamTypeWithDefValues(int slotNr, int type)
 {
     switch (type) {
     case 1:
         for(int i= 0;i<ROW_ENTRIES;i++){
-            for(int j=0;j<COLUM_ENTRIES;j++){cameras[camNr-1].values[i][j]=c1Values[i][j];}
+            for(int j=0;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=c1Values[i][j];}
         }
-        cameras[camNr-1].camType=type;
-        cameras[camNr-1].textTable=&c1TextTable[0][0];
+        cameras[slotNr].camType=type;
+        cameras[slotNr].textTable=&c1TextTable[0][0];
         break;
     case 2:
         for(int i= 0;i<ROW_ENTRIES;i++){
-            for(int j=0;j<COLUM_ENTRIES;j++){cameras[camNr-1].values[i][j]=c2Values[i][j];}
+            for(int j=0;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=c2Values[i][j];}
         }
-        cameras[camNr-1].camType=type;
+        cameras[slotNr].camType=type;
+        cameras[slotNr].textTable=&c1TextTable[0][0];
         break;
     case 5:
         for(int i= 0;i<ROW_ENTRIES;i++){
-            for(int j=0;j<COLUM_ENTRIES;j++){cameras[camNr-1].values[i][j]=rValues[i][j];}
+            for(int j=0;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=rValues[i][j];}
         }
-        cameras[camNr-1].camType=type;
+        cameras[slotNr].camType=type;
+        cameras[slotNr].textTable=&c1TextTable[0][0];
         break;
     case 6:
         for(int i= 0;i<ROW_ENTRIES;i++){
-            for(int j=0;j<COLUM_ENTRIES;j++){cameras[camNr-1].values[i][j]=rValues[i][j];}
+            for(int j=0;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=rValues[i][j];}
         }
-        cameras[camNr-1].values[V_ND_FILTER][0]=0;
-        cameras[camNr-1].values[V_ND_FILTER][1]=0;
-        cameras[camNr-1].values[V_ND_FILTER][2]=3;
-        cameras[camNr-1].camType=type;
+        cameras[slotNr].values[V_ND_FILTER][0]=0;
+        cameras[slotNr].values[V_ND_FILTER][1]=0;
+        cameras[slotNr].values[V_ND_FILTER][2]=3;
+        cameras[slotNr].camType=type;
+        cameras[slotNr].textTable=&c1TextTable[0][0];
         break;
-
     }
 }
 
@@ -126,31 +163,58 @@ void Model::setCamType(int camNr, int type)
 // for active camera
 unsigned char Model::getCamtype()
 {
-    return cameras[activeCamera-1].camType;
+    return cameras[activeCameraSlot].camType;
 }
 
 // overload for specific camera
-unsigned char Model::getCamtype(int camNr)
+unsigned char Model::getCamtype(int slotNr)
 {
-    return cameras[camNr-1].camType;
+    return cameras[slotNr].camType;
 }
 
 void Model::setValue(int type, int property, int value)
 {
     switch (type) {
     case ABS:
-        cameras[activeCamera-1].values[property][VAL]=value;
+        cameras[activeCameraSlot].values[property][VAL]=value;
         emit updateView();
         break;
     case INC:
-        cameras[activeCamera-1].values[property][VAL]+=value;
+        cameras[activeCameraSlot].values[property][VAL]+=value;
+        qDebug("Slot: %d, Value: %d", activeCameraSlot, cameras[activeCameraSlot].values[property][VAL]);
         emit updateView();
-        if (cameras[activeCamera-1].values[property][VAL] > cameras[activeCamera-1].values[property][MAX]) {
-            cameras[activeCamera-1].values[property][VAL] = cameras[activeCamera-1].values[property][MAX];
+        if (cameras[activeCameraSlot].values[property][VAL] > cameras[activeCameraSlot].values[property][MAX]) {
+            cameras[activeCameraSlot].values[property][VAL] = cameras[activeCameraSlot].values[property][MAX];
        emit updateView();
         }
-        if (cameras[activeCamera-1].values[property][VAL] < cameras[activeCamera-1].values[property][MIN]) {
-            cameras[activeCamera-1].values[property][VAL] = cameras[activeCamera-1].values[property][MIN];
+        if (cameras[activeCameraSlot].values[property][VAL] < cameras[activeCameraSlot].values[property][MIN]) {
+            cameras[activeCameraSlot].values[property][VAL] = cameras[activeCameraSlot].values[property][MIN];
+        emit updateView();
+        }
+        break;
+    default:
+        break;
+    }
+}
+
+//overload with slotNr
+void Model::setValue(int slotNr, int type, int property, int value)
+{
+    switch (type) {
+    case ABS:
+        cameras[slotNr].values[property][VAL]=value;
+        emit updateView();
+        break;
+    case INC:
+        cameras[slotNr].values[property][VAL]+=value;
+        qDebug("Slot: %d, Value: %d", slotNr, cameras[slotNr].values[property][VAL]);
+        emit updateView();
+        if (cameras[slotNr].values[property][VAL] > cameras[slotNr].values[property][MAX]) {
+            cameras[slotNr].values[property][VAL] = cameras[slotNr].values[property][MAX];
+       emit updateView();
+        }
+        if (cameras[slotNr].values[property][VAL] < cameras[slotNr].values[property][MIN]) {
+            cameras[slotNr].values[property][VAL] = cameras[slotNr].values[property][MIN];
         emit updateView();
         }
         break;
@@ -163,13 +227,37 @@ int Model::getValue(int type, int property)
 {
     switch (type) {
     case ABS:
-        return cameras[activeCamera-1].values[property][VAL];
+        return cameras[activeCameraSlot].values[property][VAL];
     case DISP:
-        switch (cameras[activeCamera-1].values[property][TYP]) {
+        switch (cameras[activeCameraSlot].values[property][TYP]) {
         case NORMAL:
-            return cameras[activeCamera-1].values[property][VAL];
+            return cameras[activeCameraSlot].values[property][VAL];
         case CENTER:
-            return cameras[activeCamera-1].values[property][VAL]-(cameras[activeCamera-1].values[property][MAX]-cameras[activeCamera-1].values[property][MIN])/2;
+            return cameras[activeCameraSlot].values[property][VAL]-(cameras[activeCameraSlot].values[property][MAX]-cameras[activeCameraSlot].values[property][MIN])/2;
+        case NAN:
+            return -2048;
+        case TEXT:
+            return -2049;
+        default:
+            return -1;
+        }
+    default:
+        return -1;
+    }
+}
+
+//overload with slot nr
+int Model::getValue(int slotNr, int type, int property)
+{
+    switch (type) {
+    case ABS:
+        return cameras[slotNr].values[property][VAL];
+    case DISP:
+        switch (cameras[slotNr].values[property][TYP]) {
+        case NORMAL:
+            return cameras[slotNr].values[property][VAL];
+        case CENTER:
+            return cameras[slotNr].values[property][VAL]-(cameras[slotNr].values[property][MAX]-cameras[slotNr].values[property][MIN])/2;
         case NAN:
             return -2048;
         case TEXT:
@@ -184,28 +272,40 @@ int Model::getValue(int type, int property)
 
 QString Model::getTextValue(int property)
 {
-    return *(cameras[activeCamera-1].textTable+(cameras[activeCamera-1].values[property][4]*15)+(cameras[activeCamera-1].values[property][0]-cameras[activeCamera-1].values[property][1]));
+    return *(cameras[activeCameraSlot].textTable+(cameras[activeCameraSlot].values[property][4]*15)+(cameras[activeCameraSlot].values[property][0]-cameras[activeCameraSlot].values[property][1]));
 }
 
 
 int Model::getMin(int property)
 {
-    return cameras[activeCamera-1].values[property][MIN];
+    return cameras[activeCameraSlot].values[property][MIN];
 }
 
 int Model::getMax(int property)
 {
-    return cameras[activeCamera-1].values[property][MAX];
+    return cameras[activeCameraSlot].values[property][MAX];
 }
 
 void Model::setCamFlag(int flag, bool value)
 {
-   cameras[activeCamera-1].flags[flag]=value;
+   cameras[activeCameraSlot].flags[flag]=value;
+}
+
+//overload with slotNr
+void Model::setCamFlag(int slotNr, int flag, bool value)
+{
+   cameras[slotNr].flags[flag]=value;
 }
 
 bool Model::getCamFlag(int flag)
 {
-    return cameras[activeCamera-1].flags[flag];
+    return cameras[activeCameraSlot].flags[flag];
+}
+
+//overload with slotNr
+bool Model::getCamFlag(int slotNr, int flag)
+{
+    return cameras[slotNr].flags[flag];
 }
 
 int Model::setWatchdogWaitingflag(bool waiting){
@@ -255,4 +355,22 @@ int Model::getValueFromBBMCommand(int bbm_command){
         }
     }
     return -1;
+}
+
+void Model::setTextTable(int slotNr, int type){
+    switch (type) {
+    case 1:
+        cameras[slotNr].textTable=&c1TextTable[0][0];
+        break;
+    case 2:
+        cameras[slotNr].textTable=&c1TextTable[0][0];
+        break;
+    case 5:
+        cameras[slotNr].textTable=&c1TextTable[0][0];
+        break;
+    case 6:
+        cameras[slotNr].textTable=&c1TextTable[0][0];
+        break;
+    }
+
 }

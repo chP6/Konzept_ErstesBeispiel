@@ -36,7 +36,7 @@ Controller::Controller(Model& model)// : poller(*this)    //poller Konstruktor a
         contr_err = errno;
         logSystemError(contr_err, "Could not open SPI-BUS 2");
     }
-
+    queueEvent(E_SETUP_HEAD);
 }
 
 void Controller::setModel(Model &model){
@@ -71,68 +71,85 @@ void Controller::clearErrors(){
     model->clearErrors();
 }
 
+
 int Controller::writeSavefile(){
     QSettings savefile(SAVEFILE_PATH, QSettings::NativeFormat);
     savefile.clear();
-    int currCamera = model->getActiveCamera();
+    int currSlot = model->getActiveCameraSlot();
 
-    for (int i=1;i<=NUMBER_OF_CAMERAS;i++) {
-        model->setActiveCamera(i);
-        savefile.beginGroup("camera_"+QString::number(i));
+    for (int i=0;i<NUMBER_OF_SLOTS;i++) {
+        savefile.beginGroup("slot_"+QString::number(i));
 
+        savefile.setValue("camType",model->getCamtype(i));
+        savefile.setValue("activePreset",model->getActivePreset(i));
+        savefile.setValue("usedPresets",model->getUsedPreset(i));
+        for (int k=0;k<NUMBER_OF_FLAGS;k++) {
+            savefile.setValue("flag_"+QString::number(k),model->getCamFlag(i,k));
+        }
         for (int j=0;j<ROW_ENTRIES;j++) {
-            savefile.setValue("value_"+QString::number(j),model->getValue(ABS,j));
+            savefile.setValue("value_"+QString::number(j),model->getValue(i,ABS,j));
         }
         savefile.endGroup();
     }
     savefile.sync();
 
-    model->setActiveCamera(currCamera);
+    model->setActiveCameraSlot(currSlot);
     return savefile.status();
 }
 
 
 int Controller::loadSavefile(){
     QSettings savefile(SAVEFILE_PATH, QSettings::NativeFormat);
-    int currCamera = model->getActiveCamera();
+    int currSlot = model->getActiveCameraSlot();
 
-    for (int i=1;i<=NUMBER_OF_CAMERAS;i++) {
-        model->setActiveCamera(i);
-        savefile.beginGroup("camera_"+QString::number(i));
+    for (int i=0;i<NUMBER_OF_SLOTS;i++) {
+        savefile.beginGroup("slot_"+QString::number(i));
+
+        model->setCamType(i,savefile.value("camType").toInt());
+        model->setActivePreset(i,savefile.value("activePreset").toInt());
+        model->setUsedPreset(i,savefile.value("usedPresets").toInt());
+
+        for (int k=0;k<NUMBER_OF_FLAGS;k++) {
+            model->setCamFlag(i,k,savefile.value("flag_"+QString::number(k)).toBool());
+        }
+
+        //Set texttable pointer according to type
+        model->setTextTable(i,model->getCamtype(i));
 
         for (int j=0;j<ROW_ENTRIES;j++) {
-            model->setValue(ABS, j, savefile.value("value_"+QString::number(j)).toInt());
+            model->setValue(i, ABS, j, savefile.value("value_"+QString::number(j)).toInt());
 
             //send value to camera
             if(model->getTxCommand(j) > 0){  //there could be values without commandtypes
-               txSocket.send(i,model->getTxCommand(j),model->getValue(ABS,j));
+               txSocket.send(model->getValue(i,ABS,V_HEADNR), model->getTxCommand(j),model->getValue(ABS,j));
             }
         }
         savefile.endGroup();
     }
 
-    model->setActiveCamera(currCamera);
+    model->setActiveCameraSlot(currSlot);
+    presetbus.setLed(PRESET_COLOR, model->getActivePreset());
     return savefile.status();
 }
 
 
 void Controller::requestCameraSettings(){
-    txSocket.request(model->getActiveCamera(), CAMERA_GAIN_UP);
-    txSocket.request(model->getActiveCamera(), SHUTTER_UP);
+    txSocket.request(model->getValue(ABS,V_HEADNR), CAMERA_GAIN_UP);
+    txSocket.request(model->getValue(ABS,V_HEADNR), SHUTTER_UP);
     //ND_FILTER
     //DETAIL
-    txSocket.request(model->getActiveCamera(), RED_GAIN_ADJ_UP);
-    txSocket.request(model->getActiveCamera(), BLUE_GAIN_ADJ_UP);
+    txSocket.request(model->getValue(ABS,V_HEADNR), RED_GAIN_ADJ_UP);
+    txSocket.request(model->getValue(ABS,V_HEADNR), BLUE_GAIN_ADJ_UP);
     //B_RED
     //B_BLUE
-    txSocket.request(model->getActiveCamera(), MASTER_PED_UP);
-    txSocket.request(model->getActiveCamera(), IRIS_OPEN);
-    txSocket.request(model->getActiveCamera(), COLOR_UP);
-    txSocket.request(model->getActiveCamera(), WHITE_BALANCE_PRST);
+    txSocket.request(model->getValue(ABS,V_HEADNR), MASTER_PED_UP);
+    txSocket.request(model->getValue(ABS,V_HEADNR), IRIS_OPEN);
+    txSocket.request(model->getValue(ABS,V_HEADNR), COLOR_UP);
+    txSocket.request(model->getValue(ABS,V_HEADNR), WHITE_BALANCE_PRST);
     //KNEE
     //KNEE_POINT
     //GAMMA
-    txSocket.request(model->getActiveCamera(), GAMMA_TABLE);
+    txSocket.request(model->getValue(ABS,V_HEADNR), GAMMA_TABLE);
 }
 
 
@@ -154,6 +171,15 @@ void Controller::queueEvent(int evt, int dataA, int dataB){
     eventQueue.qeueEvent(evt, data);
 }
 
+void Controller::queueEvent(int evt, int dataA, int dataB, int dataC){
+    std::vector<int> data;
+    data.push_back(dataA);
+    data.push_back(dataB);
+    data.push_back(dataC);
+    eventQueue.qeueEvent(evt, data);
+}
+
+
 void Controller::queueEvent(int evt, std::vector<int> data){
     eventQueue.qeueEvent(evt, data);
 }
@@ -161,8 +187,6 @@ void Controller::queueEvent(int evt, std::vector<int> data){
 void Controller::queueEvent(int evt, bool sta){
     eventQueue.qeueEvent(evt, sta);
 }
-
-
 
 
 
@@ -178,6 +202,7 @@ void Controller::startQueueProcessThread(){
 
 void Controller::processQeue(){
     event_s loadedEvent;
+    int from, type, command, data;
     //struct timeval  tv1, tv2;
 
 
@@ -196,9 +221,11 @@ void Controller::processQeue(){
             model->setValue(INC,field,loadedEvent.data[0]);     //Last Element
 
             if(model->getTxCommand(field) > 0){  //there could be values without commandtypes
-               txSocket.send(model->getActiveCamera(),model->getTxCommand(field),model->getValue(ABS,field));
+               txSocket.send(model->getValue(ABS,V_HEADNR),model->getTxCommand(field),model->getValue(ABS,field));
             }
             if(field==V_HEADNR){
+                model->setCamFlag(KNOWN, false);
+                qDebug("KNOWN Flag cleared!");
                 model->setUpView();
             }
 
@@ -208,7 +235,7 @@ void Controller::processQeue(){
             x = loadedEvent.data[0];
             y = loadedEvent.data[1];
             setAxis(x,10000-y);
-            txSocket.send(model->getActiveCamera(), TILT_PAN, x, y);
+            txSocket.send(model->getValue(ABS,V_HEADNR), TILT_PAN, x, y);
 
             //debug
             //char str[100];
@@ -217,25 +244,25 @@ void Controller::processQeue(){
 
             break;
          case E_SET_ZOOM:
-            txSocket.send(model->getActiveCamera(),ZOOM_FOCUS_SET, loadedEvent.data[0]);
+            txSocket.send(model->getValue(ABS,V_HEADNR),ZOOM_FOCUS_SET, loadedEvent.data[0]);
             break;
         case E_FOCUS_CHANGE:
             model->setValue(INC, V_FOCUS, loadedEvent.data[0]);
-            txSocket.send(model->getActiveCamera(), FOCUS_SET_ABSOLUTE, model->getValue(ABS, V_FOCUS));
+            txSocket.send(model->getValue(ABS,V_HEADNR), FOCUS_SET_ABSOLUTE, model->getValue(ABS, V_FOCUS));
             qDebug("FOCUS: %d", model->getValue(ABS,V_FOCUS));
             break;
         case E_AUTOFOCUS:
-            txSocket.send(model->getActiveCamera(), SET_FOCUS_PUSH);
+            txSocket.send(model->getValue(ABS,V_HEADNR), SET_FOCUS_PUSH);
             qDebug("AUTOFOCUS!");
             break;
         case E_AUTOFOCUS_ANSWER:
             model->setValue(ABS,V_FOCUS,loadedEvent.data[0]);
             break;
-        case E_TX_WATCHDOG:
+        case E_TX_SERV_WATCHDOG:
             txSocket.send(SERVER, WATCHDOG);
             model->setWatchdogWaitingflag(true);
             break;
-        case E_RX_WATCHDOG:
+        case E_RX_SERV_WATCHDOG:
             model->setWatchdogWaitingflag(false);   //clear flag
             break;
         case E_REQ_TEST:
@@ -247,7 +274,7 @@ void Controller::processQeue(){
             logError("Store Preset!");
             break;
         case E_GOTO_PRESET:
-            txSocket.send(model->getActiveCamera(), GOTO_PRESET, loadedEvent.data[0]);
+            txSocket.send(model->getValue(ABS,V_HEADNR), GOTO_PRESET, loadedEvent.data[0]);
             break;
         case E_STORE_PRESET:
             presetbus.setLed(ACT_PRESET_COLOR,model->getActivePreset());
@@ -260,70 +287,71 @@ void Controller::processQeue(){
             if(model->getCamFlag(PRST_IN_STORE)){
                 model->setUsedPreset(loadedEvent.data[0]);
                 model->setCamFlag(PRST_IN_STORE,FALSE);
-                txSocket.send(model->getActiveCamera(), STORE_PRESET, loadedEvent.data[0]+1);
+                txSocket.send(model->getValue(ABS,V_HEADNR), STORE_PRESET, loadedEvent.data[0]+1);
             }
             else{
-                txSocket.send(model->getActiveCamera(), GOTO_PRESET, loadedEvent.data[0]+1);
+                txSocket.send(model->getValue(ABS,V_HEADNR), GOTO_PRESET, loadedEvent.data[0]+1);
             }
             break;
         case E_CAMERA_CHANGE:
             camerabus.setLed(CAMERA_COLOR,loadedEvent.data[0]);
-            model->setActiveCamera(loadedEvent.data[0]);
+            model->setActiveCameraSlot(loadedEvent.data[0]);
             presetbus.setLed(PRESET_COLOR,model->getActivePreset());
-
             break;
         case E_CHECK_CAMERA_TYPE:
-            int from, type;
             from = loadedEvent.data[0];
             type = loadedEvent.data[1];
-            if(model->getCamtype(from) != type){
-                model->setCamType(from, type);
-                logError("Camera Head Type changed");
+            for (int i=0;i<NUMBER_OF_SLOTS;i++) {
+                if (model->getValue(i,ABS,V_HEADNR) == from && !model->getCamFlag(i,KNOWN)) {    //if headnumber == from
+                    model->setCamType(i, type);
+                    requestCameraSettings();
+                    model->setCamFlag(i,KNOWN,true);
+                    qDebug("KNOWN Flag Set, requested camera settings");
+                }
             }
             break;
         case E_IRIS_CHANGE:
             model->setValue(INC, V_IRIS, loadedEvent.data[0]);
-            txSocket.send(model->getActiveCamera(), IRIS_OPEN, model->getValue(ABS,V_IRIS));
+            txSocket.send(model->getValue(ABS,V_HEADNR), IRIS_OPEN, model->getValue(ABS,V_IRIS));
             qDebug("IRIS: %d", model->getValue(ABS,V_IRIS));
             break;
         case E_PED_CHANGE:
             model->setValue(INC, V_PED, loadedEvent.data[0]);
-            txSocket.send(model->getActiveCamera(), MASTER_PED_UP, model->getValue(ABS,V_PED));
+            txSocket.send(model->getValue(ABS,V_HEADNR), MASTER_PED_UP, model->getValue(ABS,V_PED));
             qDebug("PED: %d", model->getValue(ABS,V_PED));
             break;
         case E_WBLUE_CHANGE:
             model->setValue(INC, V_W_BLUE, loadedEvent.data[0]);
-            txSocket.send(model->getActiveCamera(), BLUE_GAIN_ADJ_UP, model->getValue(ABS,V_W_BLUE));
+            txSocket.send(model->getValue(ABS,V_HEADNR), BLUE_GAIN_ADJ_UP, model->getValue(ABS,V_W_BLUE));
             qDebug("WBLUE: %d", model->getValue(ABS,V_W_BLUE));
             break;
         case E_WRED_CHANGE:
             model->setValue(INC, V_W_RED, loadedEvent.data[0]);
-            txSocket.send(model->getActiveCamera(), RED_GAIN_ADJ_UP, model->getValue(ABS,V_W_RED));
+            txSocket.send(model->getValue(ABS,V_HEADNR), RED_GAIN_ADJ_UP, model->getValue(ABS,V_W_RED));
             qDebug("WRED: %d", model->getValue(ABS,V_W_RED));
             break;
         case E_BBLUE_CHANGE:
             model->setValue(INC, V_B_BLUE, loadedEvent.data[0]);
-            txSocket.send(model->getActiveCamera(), BLUE_PED_UP, model->getValue(ABS,V_B_BLUE));
+            txSocket.send(model->getValue(ABS,V_HEADNR), BLUE_PED_UP, model->getValue(ABS,V_B_BLUE));
             qDebug("BBLUE: %d", model->getValue(ABS,V_B_BLUE));
             break;
         case E_BRED_CHANGE:
             model->setValue(INC, V_B_RED, loadedEvent.data[0]);
-            txSocket.send(model->getActiveCamera(), RED_PED_UP, model->getValue(ABS,V_B_RED));
+            txSocket.send(model->getValue(ABS,V_HEADNR), RED_PED_UP, model->getValue(ABS,V_B_RED));
             qDebug("BRED: %d", model->getValue(ABS,V_B_RED));
             break;
         case E_GAIN_CHANGE:
             model->setValue(INC, V_GAIN, loadedEvent.data[0]);
-            txSocket.send(model->getActiveCamera(), CAMERA_GAIN_UP, model->getValue(ABS,V_GAIN));
+            txSocket.send(model->getValue(ABS,V_HEADNR), CAMERA_GAIN_UP, model->getValue(ABS,V_GAIN));
             qDebug("GAIN: %d", model->getValue(ABS,V_GAIN));
             break;
         case E_SHUTTER_CHANGE:
             model->setValue(INC, V_SHUTTER, loadedEvent.data[0]);
-            txSocket.send(model->getActiveCamera(), SHUTTER_UP, model->getValue(ABS,V_SHUTTER));
+            txSocket.send(model->getValue(ABS,V_HEADNR), SHUTTER_UP, model->getValue(ABS,V_SHUTTER));
             qDebug("SHUTTER: %d, MIN: %d, MAX: %d", model->getValue(ABS,V_SHUTTER), model->getMin(V_SHUTTER),model->getMax(V_SHUTTER));
             break;
         case E_WRITE_SAVEFILE:
-            requestCameraSettings();
-            //writeSavefile();
+            writeSavefile();
             qDebug("wrote savefile");
             break;
         case E_LOAD_SAVEFILE:
@@ -331,9 +359,25 @@ void Controller::processQeue(){
             qDebug("loaded savefile");
             break;
         case E_CAMERA_ANSWER:
-            //writing answer values from camera to respective properties in model
-            model->setValue(ABS, model->getValueFromBBMCommand(loadedEvent.data[0]), loadedEvent.data[1]);
-            qDebug("command: %d, value: %d", loadedEvent.data[0], loadedEvent.data[1]);
+            from = loadedEvent.data[0];
+            command = loadedEvent.data[1];
+            data = loadedEvent.data[2];
+
+            //writing answer values from camera to respective properties in model, if headnumber exists
+            for (int i=0;i<NUMBER_OF_SLOTS;i++) {
+                if(model->getValue(i,ABS,V_HEADNR) == from){
+                    model->setValue(i, ABS, model->getValueFromBBMCommand(command), data);
+                    qDebug("ANSWER | command: %d, value: %d", command, data);
+                }
+            }
+            break;
+        case E_SETUP_HEAD:
+            //send init values to head
+            for (int i=0;i<NUMBER_OF_SLOTS;i++) {
+                txSocket.send(model->getValue(i,ABS,V_HEADNR), RAMP, model->getValue(i,ABS,V_RAMP));
+                txSocket.send(model->getValue(i,ABS,V_HEADNR), PAN_TILT_SPEED, model->getValue(i,ABS,V_PT_SPEED));
+            }
+            qDebug("HEAD init done");
             break;
         default:
             break;
