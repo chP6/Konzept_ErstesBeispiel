@@ -24,8 +24,11 @@
 #define E_SHUTTER_CHANGE        20
 #define E_AUTOFOCUS             21
 #define E_AUTOFOCUS_ANSWER      22
-#define E_CAMERA_ANSWER         23
-#define E_SETUP_HEAD            24
+#define E_FAST_TRANS            23
+#define E_BOUNCE                24
+#define E_WIDESET               25
+#define E_CAMERA_ANSWER         26
+#define E_SETUP_HEAD            27
 
 
 

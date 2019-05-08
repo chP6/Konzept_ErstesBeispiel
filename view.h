@@ -19,9 +19,6 @@ public slots:
     void on_serverConnectionStatusChanged(bool connected);
 
 private slots:
-
-
-
     void on_btHome_clicked();
 
     void on_btCamCtrl_clicked();
@@ -29,6 +26,8 @@ private slots:
     void on_btXptControl_clicked();
 
     void on_btOthers_clicked();
+signals:
+    void stackChanged();
 
 public:
     explicit View(QWidget *parent = nullptr);

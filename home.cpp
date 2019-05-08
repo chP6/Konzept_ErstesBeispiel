@@ -19,7 +19,7 @@ Home::~Home()
     delete ui;
 }
 
-void Home::update()
+void Home::updateUi()
 {
     ui->btPanTiltSpeed->setText(QString::number(model->getValue(DISP,V_PT_SPEED)));
     ui->btTransSpeed->setText(QString::number(model->getValue(DISP,V_TRANS_SPEED)));
@@ -48,17 +48,21 @@ void Home::serverConnectionChanged(bool connection)
 
 void Home::on_btBounce_clicked(bool checked)
 {
-
+    ui->btWideSet->setEnabled(checked);
+    model->setCamFlag(F_BOUNCE_ENABLE,checked);
+    controller->queueEvent(E_BOUNCE);
 }
 
 void Home::on_btWideSet_clicked()
 {
-
+    controller->queueEvent(E_WIDESET);
 }
 
 void Home::on_btAutoZoomSpeed_clicked()
 {
     model->setRotaryField(V_BOUNCE_ZOOM_SPEED);
+
+
 }
 
 void Home::on_btTransSpeed_clicked()
@@ -78,7 +82,8 @@ void Home::on_btRamp_clicked()
 
 void Home::on_btFasttrans_clicked(bool checked)
 {
-
+    model->setCamFlag(F_FASTTRANS,checked);
+    controller->queueEvent(E_FAST_TRANS);
 }
 
 void Home::on_btSpp1_clicked()
@@ -110,5 +115,19 @@ void Home::on_btStorePreset_clicked()
 {
     controller->queueEvent(E_STORE_PRESET);
 }
+
+void Home::stackChanged()
+{
+    QPushButton *button=ui->btRamp;
+    QList<QPushButton*> allButtons=this->findChildren<QPushButton*>();
+    for(int i=0;i<allButtons.size();i++){
+        if(allButtons[i]->isChecked())
+        {button=allButtons[i];}
+
+    }
+    button->click();
+}
+
+
 
 

@@ -8,7 +8,11 @@
 #include "tastenfeld.h"
 #include "config.h"
 #include <QDebug>
-
+#include <QTimer>
+#include <time.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 Poller::Poller(Controller& controller)
 {
@@ -173,19 +177,25 @@ void Poller::listener(){
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Rotary1 value");
             }
+
             controller->queueEvent(E_INCREASE, rotary_val);
             qDebug("Rot Val: %d", rotary_val);
         }
 
         if(poll_fd[3].revents & POLLPRI){                    // Rotary1 Button
             usleep(DEBOUNCE_T);
-            //todo proper debounce
+
             poll_err = rotary1.readButton();
             if(poll_err<0){
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Rotary1 button");
             }
-            controller->queueEvent(E_WRITE_SAVEFILE);
+            if(poll_err==0){ //otherwise it was a bounce
+                controller->queueEvent(E_WRITE_SAVEFILE);
+            }
+
+
+
         }
 
         if(poll_fd[4].revents & POLLPRI){                    // Rotary2 event
@@ -205,14 +215,16 @@ void Poller::listener(){
         }
 
         if(poll_fd[5].revents & POLLPRI){                    // Rotary2 Button
-            usleep(DEBOUNCE_T);
+
             //todo proper debounce
             poll_err = rotary2.readButton();
             if(poll_err<0){
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Rotary2 button");
             }
+            if(poll_err==0){
             controller->queueEvent(E_LOAD_SAVEFILE);
+            }
         }
 
 
@@ -310,117 +322,141 @@ void Poller::listener(){
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Presetbus Button 1");
             }
-            controller->queueEvent(E_PRESET_CHANGE,(unsigned char)0);
+            if(poll_err==0){
+                controller->queueEvent(E_PRESET_CHANGE,(unsigned char)0);
+            }
         }
 
         if(poll_fd[9].revents & POLLPRI){
             usleep(DEBOUNCE_T);
-            presetbus.readButton(1);
+            poll_err=presetbus.readButton(1);
             if (poll_err<0) {
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Presetbus Button 2");
             }
-            controller->queueEvent(E_PRESET_CHANGE,(unsigned char)1);
+            if(poll_err==0){
+                controller->queueEvent(E_PRESET_CHANGE,(unsigned char)1);
+            }
         }
 
         if(poll_fd[10].revents & POLLPRI){
             usleep(DEBOUNCE_T);
-            presetbus.readButton(2);
+            poll_err=presetbus.readButton(2);
             if (poll_err<0) {
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Presetbus Button 3");
             }
-            controller->queueEvent(E_PRESET_CHANGE,(unsigned char)2);
+            if(poll_err==0){
+                controller->queueEvent(E_PRESET_CHANGE,(unsigned char)2);
+            }
         }
 
         if(poll_fd[11].revents & POLLPRI){
             usleep(DEBOUNCE_T);
-            presetbus.readButton(3);
+            poll_err=presetbus.readButton(3);
             if (poll_err<0) {
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Presetbus Button 4");
             }
-            controller->queueEvent(E_PRESET_CHANGE,(unsigned char)3);
+            if(poll_err==0){
+                controller->queueEvent(E_PRESET_CHANGE,(unsigned char)3);
+            }
         }
 
         if(poll_fd[12].revents & POLLPRI){
             usleep(DEBOUNCE_T);
-            presetbus.readButton(4);
+            poll_err=presetbus.readButton(4);
             if (poll_err<0) {
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Presetbus Button 5");
             }
-            controller->queueEvent(E_PRESET_CHANGE,(unsigned char)4);
+            if(poll_err==0){
+                controller->queueEvent(E_PRESET_CHANGE,(unsigned char)4);
+            }
         }
 
         if(poll_fd[13].revents & POLLPRI){
             usleep(DEBOUNCE_T);
-            presetbus.readButton(5);
+            poll_err=presetbus.readButton(5);
             if (poll_err<0) {
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Presetbus Button 6");
             }
-            controller->queueEvent(E_PRESET_CHANGE,(unsigned char)5);
+            if(poll_err==0){
+                controller->queueEvent(E_PRESET_CHANGE,(unsigned char)5);
+            }
         }
 
         if(poll_fd[14].revents & POLLPRI){
             usleep(DEBOUNCE_T);
-            camerabus.readButton(0);
+            poll_err=camerabus.readButton(0);
             if (poll_err<0) {
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Camerabus Button 1");
             }
-            controller->queueEvent(E_CAMERA_CHANGE,(unsigned char)0);
+            if(poll_err==0){
+                 controller->queueEvent(E_CAMERA_CHANGE,(unsigned char)0);
+            }
         }
 
         if(poll_fd[15].revents & POLLPRI){
             usleep(DEBOUNCE_T);
-            camerabus.readButton(1);
+            poll_err=camerabus.readButton(1);
             if (poll_err<0) {
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Camerabus Button 2");
             }
-            controller->queueEvent(E_CAMERA_CHANGE,(unsigned char)1);
+            if(poll_err==0){
+                controller->queueEvent(E_CAMERA_CHANGE,(unsigned char)1);
+            }
         }
 
         if(poll_fd[16].revents & POLLPRI){
             usleep(DEBOUNCE_T);
-            camerabus.readButton(2);
+            poll_err=camerabus.readButton(2);
             if (poll_err<0) {
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Camerabus Button 3");
             }
-            controller->queueEvent(E_CAMERA_CHANGE,(unsigned char)2);
+            if(poll_err==0){
+                controller->queueEvent(E_CAMERA_CHANGE,(unsigned char)2);
+            }
         }
 
         if(poll_fd[17].revents & POLLPRI){
             usleep(DEBOUNCE_T);
-            camerabus.readButton(3);
+            poll_err=camerabus.readButton(3);
             if (poll_err<0) {
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Camerabus Button 4");
             }
-            controller->queueEvent(E_CAMERA_CHANGE,(unsigned char)3);
+            if(poll_err==0){
+                controller->queueEvent(E_CAMERA_CHANGE,(unsigned char)3);
+            }
         }
 
         if(poll_fd[18].revents & POLLPRI){
             usleep(DEBOUNCE_T);
-            camerabus.readButton(4);
+            poll_err=camerabus.readButton(4);
             if (poll_err<0) {
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Camerabus Button 5");
             }
-            controller->queueEvent(E_CAMERA_CHANGE,(unsigned char)4);
-        }
+            if(poll_err==0){
+                controller->queueEvent(E_CAMERA_CHANGE,(unsigned char)4);
+            }
+     }
 
         if(poll_fd[19].revents & POLLPRI){
             usleep(DEBOUNCE_T);
-            camerabus.readButton(5);
+            poll_err=camerabus.readButton(5);
             if (poll_err<0) {
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Camerabus Button 6");
             }
-            controller->queueEvent(E_CAMERA_CHANGE,(unsigned char)5);
+            if(poll_err==0){
+                controller->queueEvent(E_CAMERA_CHANGE,(unsigned char)5);
+            }
         }
     }
 }

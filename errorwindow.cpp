@@ -30,7 +30,7 @@ void ErrorWindow::setModelController(Model* model, Controller* controller){
     this->controller = controller;
 }
 
-void ErrorWindow::update(){
+void ErrorWindow::updateUi(){
     listModel->setStringList(*model->getErrorList());
     ui->listView->setModel(listModel);
 }

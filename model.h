@@ -86,7 +86,7 @@ private:
     int c2Values[ROW_ENTRIES][COLUM_ENTRIES]=
                       {{1,0,49,NORMAL},     //headnr init_value, min_value, max_value
                        {127,0,255,NORMAL}, //Iris
-                       {64,0,128,NORMAL},  //Pedestal
+                       {64,0,128,CENTER},  //Pedestal
                        {0,0,8000,NORMAL},  //Focus
                        {127,0,255,CENTER}, //w_Red
                        {127,0,255,CENTER}, //w_Blue
@@ -100,8 +100,8 @@ private:
                        {0,0,5,TEXT,2},      //Color Temp
                        {-1,-1,-1,NAN},    //Knee
                        {-1,-1,-1,NAN},    //Knee Point
-                       {0,0,3,TEXT,4},       //ND Filter
-                       {17,17,33,TEXT,3},    //Shutter
+                       {0,0,3,TEXT,3},       //ND Filter
+                       {17,17,32,TEXT,4},    //Shutter
                        {5,1,10,NORMAL},      //PT Speed
                        {1,1,10,NORMAL},      //Trans Speed
                        {1,1,10,NORMAL},      //Ramp
@@ -109,14 +109,14 @@ private:
                        {2,1,6,NORMAL},       //SPP2
                        {0,0,30,NORMAL},      //SPP Wait Time
                        {12,1,127,NORMAL},    //Bounce Zoom Speed
-                       {0,0,2,TEXT,0}        //Head Power
+                       {0,0,2,TEXT,5}        //Head Power
                       };
 
     // camera type 1 init values
     int c1Values[ROW_ENTRIES][COLUM_ENTRIES]=
                       {{1,1,49,NORMAL},     //headnr init_value, min_value, max_value
                        {127,0,255,NORMAL}, //Iris
-                       {64,0,127,NORMAL},  //Pedestal
+                       {64,0,127,CENTER},  //Pedestal
                        {0,0,8000,NORMAL},  //Focus
                        {127,0,255,CENTER}, //w_Red
                        {127,0,255,CENTER}, //w_Blue
@@ -146,7 +146,7 @@ private:
     int rValues[ROW_ENTRIES][COLUM_ENTRIES]=
                       {{1,1,49,NORMAL},     //headnr init_value, min_value, max_value
                        {2000,0,4000,NORMAL}, //Iris
-                       {127,0,255,NORMAL},  //Pedestal
+                       {127,0,255,CENTER},  //Pedestal
                        {1000,1000,3250,NORMAL},  //Focus
                        {127,0,255,CENTER}, //w_Red
                        {127,0,255,CENTER}, //w_Blue
@@ -158,10 +158,10 @@ private:
                        {127,0,255,CENTER},  //Detail
                        {64,0,127,CENTER},  //Color
                        {0,0,4,TEXT,2},      //Color Temp
-                       {0,0,2,TEXT,4},    //Knee
+                       {0,0,2,TEXT,3},    //Knee
                        {127,0,254,CENTER},    //Knee Point
                        {-1,-1,-1,NAN},       //ND Filter
-                       {0,0,7,TEXT,3},    //Shutter
+                       {0,0,7,TEXT,5},    //Shutter
                        {5,1,10,NORMAL},      //PT Speed
                        {1,1,10,NORMAL},      //Trans Speed
                        {1,1,10,NORMAL},      //Ramp
@@ -169,7 +169,7 @@ private:
                        {2,1,6,NORMAL},       //SPP2
                        {0,0,30,NORMAL},      //SPP Wait Time
                        {12,1,127,NORMAL},    //Bounce Zoom Speed
-                       {0,0,2,TEXT,0}        //Head Power
+                       {0,0,2,TEXT,6}        //Head Power
                       };
     int commandtype[ROW_ENTRIES]{-1,IRIS_OPEN,MASTER_PED_UP,FOCUS_SET_ABSOLUTE,
     RED_GAIN_ADJ_UP,BLUE_GAIN_ADJ_UP,RED_PED_UP,BLUE_PED_UP,CAMERA_GAIN_UP,GAMMA,
@@ -177,12 +177,28 @@ private:
     SHUTTER_UP,PAN_TILT_SPEED,-1,RAMP,-1,-1,-1,-1,HEAD_POWER};
 
     QString c1TextTable[5][15]={{"-10.5dB","-9dB","-7.5dB","-6dB","-4.5dB","-3dB","-1.5dB","0dB","1.5dB","3dB","4.5dB","6dB","7.5dB","9dB","10.5dB"},
-                               {"LOW","MID","HIGH"},
+                               {"High","Low"},
                                 {"2800K","3200K","4000K","4600K","5600K","6300K"},
                                 {"1/50","1/75","1/100","1/120","1/150","1/215","1/300","1/425","1/600","1/1000","1/1250","1/1750","1/2500","1/3500","1/6000"},
-                                {"High","Low"}
-
+                                {"Low","Mid","High"}
                                };
+    QString c2TextTable[6][15]={{"-10.5dB","-9dB","-7.5dB","-6dB","-4.5dB","-3dB","-1.5dB","0dB","1.5dB","3dB","4.5dB","6dB","7.5dB","9dB","10.5dB"},
+                               {"Low","Mid","High"},
+                                {"2800K","3200K","4000K","4600K","5600K","6300K"},
+                                {"Clear","1/4","1/16","1/64"},
+                                {"1/50","1/75","1/100","1/120","1/150","1/215","1/300","1/425","1/600","1/1000","1/1250","1/1750","1/2500","1/3500","1/6000"},
+                                {"Low","Mid","High"}
+                               };
+    QString rTextTable[7][15]={{"-5dB","-4dB","-3dB","-2dB","-1dB","0dB","-1dB","2dB","3dB","4dB","5dB"},
+                               {"Low","Mid","High"},
+                                {"2800K","3200K","4000K","4600K","5600K"},
+                                {"Off","On","Auto"},
+                                {"Clear","1/4","1/16","1/64"},
+                                {"1/50","1/75","1/100","1/120","1/150","1/215","1/300","1/425"},
+                                {"Low","Mid","High"}
+                               };
+
+
 };
 
 #endif // MODEL_H

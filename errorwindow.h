@@ -19,7 +19,7 @@ public:
     explicit ErrorWindow(QWidget *parent = nullptr);
     ~ErrorWindow();
     void setModelController(Model* model, Controller* controller);
-    void update();
+    void updateUi();
 
 private slots:
     void on_pbEwClose_clicked();

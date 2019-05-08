@@ -40,7 +40,7 @@
 #define SPI_SPEED 2500000
 
 /*Debounce Time in us*/
-#define DEBOUNCE_T 10 //in us
+#define DEBOUNCE_T 20 //in us
 
 /*others*/
 #define TRUE 1
@@ -91,13 +91,13 @@
 #define NAN                   3
 
 /*flags*/
-#define NUMBER_OF_FLAGS     6
-#define PRST_IN_STORE       0
-#define BOUNCING            1
-#define SPP_ON              2
-
-#define KNOWN               4
-#define CONNECTED           5
+#define PRST_IN_STORE         0
+#define F_BOUNCING            1
+#define F_SPP_ON              2
+#define F_FASTTRANS           3
+#define F_BOUNCE_ENABLE       4
+#define F_KNOWN               5
+#define F_CONNECTED           6
 
 /*set,get types*/
 #define ABS                 1
