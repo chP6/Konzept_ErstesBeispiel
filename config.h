@@ -80,8 +80,7 @@
 #define V_SPP_WAIT_TIME       23
 #define V_BOUNCE_ZOOM_SPEED   24
 #define V_HEAD_POWER          25
-#define V_ACTIVE_PRST         26
-#define V_USED_PRST           27
+#define V_MIRROR              26
 
 #define ROW_ENTRIES           27
 #define COLUM_ENTRIES         5
@@ -90,8 +89,9 @@
 #define TEXT                  2
 #define NAN                   3
 
+#define NUMBER_OF_FLAGS       7
 /*flags*/
-#define PRST_IN_STORE         0
+#define F_PRST_IN_STORE         0
 #define F_BOUNCING            1
 #define F_SPP_ON              2
 #define F_FASTTRANS           3

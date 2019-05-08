@@ -42,7 +42,9 @@ SOURCES += \
     ocp.cpp \
     home.cpp \
     view.cpp \
-    cameraview.cpp
+    cameraview.cpp \
+    others.cpp
+
 
 HEADERS += \
     model.h \
@@ -64,13 +66,16 @@ HEADERS += \
     ocp.h \
     home.h \
     view.h \
-    cameraview.h
+    cameraview.h \
+    others.h
+
 
 FORMS += \
     errorwindow.ui \
     home.ui \
     view.ui \
-    cameraview.ui
+    cameraview.ui \
+    others.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

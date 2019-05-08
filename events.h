@@ -29,6 +29,10 @@
 #define E_WIDESET               25
 #define E_CAMERA_ANSWER         26
 #define E_SETUP_HEAD            27
+#define E_CALIB_HEAD            28
+#define E_SET_UPPER_LIMIT       29
+#define E_SET_LOWER_LIMIT       30
+#define E_CLEAR_LIMIT           31
 
 
 

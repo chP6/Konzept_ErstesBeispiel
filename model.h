@@ -109,7 +109,8 @@ private:
                        {2,1,6,NORMAL},       //SPP2
                        {0,0,30,NORMAL},      //SPP Wait Time
                        {12,1,127,NORMAL},    //Bounce Zoom Speed
-                       {0,0,2,TEXT,5}        //Head Power
+                       {0,0,2,TEXT,5},       //Head Power
+                       {0,0,3,TEXT,6}               //Mirror
                       };
 
     // camera type 1 init values
@@ -139,7 +140,8 @@ private:
                        {2,1,6,NORMAL},       //SPP2
                        {0,0,30,NORMAL},      //SPP Wait Time
                        {12,1,127,NORMAL},    //Bounce Zoom Speed
-                       {0,0,2,TEXT,0}        //Head Power
+                       {0,0,2,TEXT,4},        //Head Power
+                       {0,0,3,TEXT,5}               //Mirror
                       };
 
     // camera type 3&4 init values
@@ -169,33 +171,37 @@ private:
                        {2,1,6,NORMAL},       //SPP2
                        {0,0,30,NORMAL},      //SPP Wait Time
                        {12,1,127,NORMAL},    //Bounce Zoom Speed
-                       {0,0,2,TEXT,6}        //Head Power
+                       {0,0,2,TEXT,6},        //Head Power
+                       {0,0,3,TEXT,7}               //Mirror
                       };
     int commandtype[ROW_ENTRIES]{-1,IRIS_OPEN,MASTER_PED_UP,FOCUS_SET_ABSOLUTE,
     RED_GAIN_ADJ_UP,BLUE_GAIN_ADJ_UP,RED_PED_UP,BLUE_PED_UP,CAMERA_GAIN_UP,GAMMA,
     GAMMA_TABLE,DETAIL_LEVEL_ADJ,COLOR_UP,WHITE_BALANCE_PRST,KNEE_POINT_AUTO,-1,-1,
-    SHUTTER_UP,PAN_TILT_SPEED,-1,RAMP,-1,-1,-1,-1,HEAD_POWER};
+    SHUTTER_UP,PAN_TILT_SPEED,-1,RAMP,-1,-1,-1,-1,HEAD_POWER,MIRROR_H_V};
 
-    QString c1TextTable[5][15]={{"-10.5dB","-9dB","-7.5dB","-6dB","-4.5dB","-3dB","-1.5dB","0dB","1.5dB","3dB","4.5dB","6dB","7.5dB","9dB","10.5dB"},
+    QString c1TextTable[6][15]={{"-10.5dB","-9dB","-7.5dB","-6dB","-4.5dB","-3dB","-1.5dB","0dB","1.5dB","3dB","4.5dB","6dB","7.5dB","9dB","10.5dB"},
                                {"High","Low"},
                                 {"2800K","3200K","4000K","4600K","5600K","6300K"},
                                 {"1/50","1/75","1/100","1/120","1/150","1/215","1/300","1/425","1/600","1/1000","1/1250","1/1750","1/2500","1/3500","1/6000"},
-                                {"Low","Mid","High"}
+                                {"Low","Mid","High"},
+                                {"Normal","H-Inverted","V-Inverted","HV-Inverted"}
                                };
-    QString c2TextTable[6][15]={{"-10.5dB","-9dB","-7.5dB","-6dB","-4.5dB","-3dB","-1.5dB","0dB","1.5dB","3dB","4.5dB","6dB","7.5dB","9dB","10.5dB"},
+    QString c2TextTable[7][15]={{"-10.5dB","-9dB","-7.5dB","-6dB","-4.5dB","-3dB","-1.5dB","0dB","1.5dB","3dB","4.5dB","6dB","7.5dB","9dB","10.5dB"},
                                {"Low","Mid","High"},
                                 {"2800K","3200K","4000K","4600K","5600K","6300K"},
                                 {"Clear","1/4","1/16","1/64"},
                                 {"1/50","1/75","1/100","1/120","1/150","1/215","1/300","1/425","1/600","1/1000","1/1250","1/1750","1/2500","1/3500","1/6000"},
-                                {"Low","Mid","High"}
+                                {"Low","Mid","High"},
+                                {"Normal","H-Inverted","V-Inverted","HV-Inverted"}
                                };
-    QString rTextTable[7][15]={{"-5dB","-4dB","-3dB","-2dB","-1dB","0dB","-1dB","2dB","3dB","4dB","5dB"},
+    QString rTextTable[8][15]={{"-5dB","-4dB","-3dB","-2dB","-1dB","0dB","-1dB","2dB","3dB","4dB","5dB"},
                                {"Low","Mid","High"},
                                 {"2800K","3200K","4000K","4600K","5600K"},
                                 {"Off","On","Auto"},
                                 {"Clear","1/4","1/16","1/64"},
                                 {"1/50","1/75","1/100","1/120","1/150","1/215","1/300","1/425"},
-                                {"Low","Mid","High"}
+                                {"Low","Mid","High"},
+                               {"Normal","H-Inverted","V-Inverted","HV-Inverted"}
                                };
 
 

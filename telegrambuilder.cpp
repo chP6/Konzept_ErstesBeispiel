@@ -86,7 +86,7 @@ void Telegrambuilder::encode(bool request, int bbm_dev_no, int bbm_command, std:
             break;
         case MIRROR_H_V:
             datagram[5] = 1;
-            datagram[6] = (uint8_t)data[0];
+            datagram[8] = (uint8_t)data[0];
             break;
         case SHUTTER_UP:
             datagram[7] = (uint8_t)(data[0]>>8);

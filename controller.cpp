@@ -36,6 +36,8 @@ Controller::Controller(Model& model)// : poller(*this)    //poller Konstruktor a
         contr_err = errno;
         logSystemError(contr_err, "Could not open SPI-BUS 2");
     }
+    camerabus.setLed(CAMERA_COLOR,model.getActiveCameraSlot());
+    presetbus.setLed(PRESET_COLOR,model.getActivePreset());
     queueEvent(E_SETUP_HEAD);
 }
 
@@ -224,9 +226,9 @@ void Controller::processQeue(){
                txSocket.send(model->getValue(ABS,V_HEADNR),model->getTxCommand(field),model->getValue(ABS,field));
             }
             if(field==V_HEADNR){
-                model->setCamFlag(KNOWN, false);
+                model->setCamFlag(F_KNOWN, false);
                 qDebug("KNOWN Flag cleared!");
-                model->setUpView();
+
             }
 
             break;
@@ -236,7 +238,10 @@ void Controller::processQeue(){
             y = loadedEvent.data[1];
             setAxis(x,10000-y);
             txSocket.send(model->getValue(ABS,V_HEADNR), TILT_PAN, x, y);
-
+            if(model->getCamFlag(F_BOUNCING)){
+                model->setCamFlag(F_BOUNCING,false);
+                presetbus.setLed(PRESET_COLOR,model->getActivePreset());
+            }
             //debug
             //char str[100];
             //sprintf(str,"%d/%d",x,y);
@@ -278,8 +283,9 @@ void Controller::processQeue(){
             break;
         case E_STORE_PRESET:
             presetbus.setLed(ACT_PRESET_COLOR,model->getActivePreset());
-            model->setCamFlag(PRST_IN_STORE,TRUE);
+            model->setCamFlag(F_PRST_IN_STORE,TRUE);
             presetbus.showStored(model->getUsedPreset(),model->getActivePreset());
+            presetbus.blink(1);
             break;
         case E_PRESET_CHANGE:
             int previousPreset;
@@ -287,9 +293,9 @@ void Controller::processQeue(){
             previousPreset=model->getActivePreset();
             model->setActivePreset(loadedEvent.data[0]);
 
-            if(model->getCamFlag(PRST_IN_STORE)){
+            if(model->getCamFlag(F_PRST_IN_STORE)){
                 model->setUsedPreset(loadedEvent.data[0]);
-                model->setCamFlag(PRST_IN_STORE,FALSE);
+                model->setCamFlag(F_PRST_IN_STORE,FALSE);
                 txSocket.send(model->getValue(ABS,V_HEADNR), STORE_PRESET, loadedEvent.data[0]+1);
             }
             else{
@@ -308,7 +314,7 @@ void Controller::processQeue(){
             break;
         case E_CAMERA_CHANGE:
             camerabus.setLed(CAMERA_COLOR,loadedEvent.data[0]);
-            model->setActiveCamera(loadedEvent.data[0]);
+            model->setActiveCameraSlot(loadedEvent.data[0]);
             if(!(model->getCamFlag(F_BOUNCING))){
                 presetbus.setLed(PRESET_COLOR,model->getActivePreset());
             }
@@ -320,11 +326,12 @@ void Controller::processQeue(){
             from = loadedEvent.data[0];
             type = loadedEvent.data[1];
             for (int i=0;i<NUMBER_OF_SLOTS;i++) {
-                if (model->getValue(i,ABS,V_HEADNR) == from && !model->getCamFlag(i,KNOWN)) {    //if headnumber == from
+                if (model->getValue(i,ABS,V_HEADNR) == from && !model->getCamFlag(i,F_KNOWN)) {    //if headnumber == from
                     model->setCamType(i, type);
                     requestCameraSettings();
-                    model->setCamFlag(i,KNOWN,true);
+                    model->setCamFlag(i,F_KNOWN,true);
                     qDebug("KNOWN Flag Set, requested camera settings");
+                    model->setUpView();
                 }
             }
             break;
@@ -407,6 +414,18 @@ void Controller::processQeue(){
                 txSocket.send(model->getValue(i,ABS,V_HEADNR), PAN_TILT_SPEED, model->getValue(i,ABS,V_PT_SPEED));
             }
             qDebug("HEAD init done");
+            break;
+        case E_CALIB_HEAD:
+            txSocket.send(model->getValue(ABS,V_HEADNR),CALIBRATE_HEAD);
+            break;
+        case E_SET_LOWER_LIMIT:
+            txSocket.send(model->getValue(ABS,V_HEADNR),TILT_LOWER_LIMIT);
+            break;
+        case E_SET_UPPER_LIMIT:
+            txSocket.send(model->getValue(ABS,V_HEADNR),TILT_UPPER_LIMIT);
+            break;
+        case E_CLEAR_LIMIT:
+            txSocket.send(model->getValue(ABS,V_HEADNR),TILT_CLEAR_LIMIT);
             break;
         default:
             break;
