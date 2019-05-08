@@ -53,12 +53,16 @@ private slots:
 
     void on_btGammaTab_clicked();
 
+    void on_btBlackLevel_clicked();
+
+    void on_btIris_clicked();
+
 private:
     Ui::CameraView *ui;
     Model* model;
     Controller* controller;
-    struct s_UiValue standard[14];
-    struct s_UiValue text[14];
+    struct s_UiValue standard[16];
+    struct s_UiValue text[16];
     int standardLength=0;
     int textLength=0;
 

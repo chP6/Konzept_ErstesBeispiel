@@ -48,12 +48,14 @@ void Home::serverConnectionChanged(bool connection)
 
 void Home::on_btBounce_clicked(bool checked)
 {
-
+    ui->btWideSet->setEnabled(checked);
+    model->setCamFlag(F_BOUNCE_ENABLE,checked);
+    controller->queueEvent(E_BOUNCE);
 }
 
 void Home::on_btWideSet_clicked()
 {
-
+    controller->queueEvent(E_WIDESET);
 }
 
 void Home::on_btAutoZoomSpeed_clicked()
@@ -80,7 +82,8 @@ void Home::on_btRamp_clicked()
 
 void Home::on_btFasttrans_clicked(bool checked)
 {
-
+    model->setCamFlag(F_FASTTRANS,checked);
+    controller->queueEvent(E_FAST_TRANS);
 }
 
 void Home::on_btSpp1_clicked()

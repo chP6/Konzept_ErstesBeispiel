@@ -21,6 +21,7 @@ void CameraView::updateUi()
 {
     for(int i =0;i<standardLength;i++){
         standard[i].button->setText(QString::number(model->getValue(DISP,standard[i].value)));
+
     }
     for(int i =0;i<textLength;i++){
         text[i].button->setText(model->getTextValue(text[i].value));
@@ -46,7 +47,7 @@ void CameraView::updateUi()
 
 void CameraView::setUpUi()
 {
-    for (int i=0;i<14;i++) {
+    for (int i=0;i<16;i++) {
         text[i].button=ui->btGamma;
     }
     int value;
@@ -96,6 +97,21 @@ void CameraView::setUpUi()
     case -2049:
                text[textLength].button=ui->btwBlue;
                text[textLength].value=V_W_BLUE;
+               textLength++;
+    }
+
+    value=model->getValue(DISP,V_W_RED);
+    switch (value) {
+    default:standard[standardLength].button=ui->btwRed;
+            standard[standardLength].value=V_W_RED;
+            standardLength++;
+        break;
+    case -2048:ui->btwRed->setDisabled(true);
+               ui->btwRed->setText("-");
+        break;
+    case -2049:
+               text[textLength].button=ui->btwRed;
+               text[textLength].value=V_W_RED;
                textLength++;
     }
 
@@ -259,6 +275,38 @@ void CameraView::setUpUi()
                textLength++;
     }
 
+    value=model->getValue(DISP,V_PED);
+    switch (value) {
+
+    default:standard[standardLength].button=ui->btBlackLevel;
+            standard[standardLength].value=V_PED;
+            standardLength++;
+        break;
+    case -2048:ui->btBlackLevel->setDisabled(true);
+               ui->btBlackLevel->setText("-");
+        break;
+    case -2049:
+               text[textLength].button=ui->btBlackLevel;
+               text[textLength].value=V_PED;
+               textLength++;
+    }
+
+    value=model->getValue(DISP,V_IRIS);
+    switch (value) {
+
+    default:standard[standardLength].button=ui->btIris;
+            standard[standardLength].value=V_IRIS;
+            standardLength++;
+        break;
+    case -2048:ui->btIris->setDisabled(true);
+               ui->btIris->setText("-");
+        break;
+    case -2049:
+               text[textLength].button=ui->btIris;
+               text[textLength].value=V_IRIS;
+               textLength++;
+    }
+
 }
 
 void CameraView::setModelController(Model *model, Controller *controller)
@@ -339,6 +387,21 @@ void CameraView::on_btGammaTab_clicked()
     model->setRotaryField(V_GAMMA_TAB);
 }
 
+
+
+
+void CameraView::on_btBlackLevel_clicked()
+{
+    model->setRotaryField(V_PED);
+}
+
+void CameraView::on_btIris_clicked()
+{
+    model->setRotaryField(V_IRIS);
+}
+
+
+
 void CameraView::stackChanged()
 {
     QPushButton *button=ui->btGain;
@@ -350,4 +413,3 @@ void CameraView::stackChanged()
     }
     button->click();
 }
-

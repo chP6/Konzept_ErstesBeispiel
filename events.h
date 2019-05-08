@@ -24,6 +24,9 @@
 #define E_SHUTTER_CHANGE        20
 #define E_AUTOFOCUS             21
 #define E_AUTOFOCUS_ANSWER      22
+#define E_FAST_TRANS            23
+#define E_BOUNCE                24
+#define E_WIDESET               25
 
 
 

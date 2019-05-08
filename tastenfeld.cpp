@@ -244,7 +244,8 @@ int Tastenfeld::readButton(int buttonNr){
         return button_err;
     }
     lseek(button[buttonNr],0,SEEK_SET);
-    return 0;
+    button_err=atoi(buffer);
+    return button_err;
 }
 
 

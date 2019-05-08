@@ -102,12 +102,14 @@ void Model::setCamType(int camNr, int type)
             for(int j=0;j<COLUM_ENTRIES;j++){cameras[camNr-1].values[i][j]=c2Values[i][j];}
         }
         cameras[camNr-1].camType=type;
+        cameras[camNr-1].textTable=&c2TextTable[0][0];
         break;
     case 5:
         for(int i= 0;i<ROW_ENTRIES;i++){
             for(int j=0;j<COLUM_ENTRIES;j++){cameras[camNr-1].values[i][j]=rValues[i][j];}
         }
         cameras[camNr-1].camType=type;
+        cameras[camNr-1].textTable=&rTextTable[0][0];
         break;
     case 6:
         for(int i= 0;i<ROW_ENTRIES;i++){
@@ -116,7 +118,9 @@ void Model::setCamType(int camNr, int type)
         cameras[camNr-1].values[V_ND_FILTER][0]=0;
         cameras[camNr-1].values[V_ND_FILTER][1]=0;
         cameras[camNr-1].values[V_ND_FILTER][2]=3;
+        cameras[camNr-1].values[V_ND_FILTER][3]=4;
         cameras[camNr-1].camType=type;
+        cameras[camNr-1].textTable=&rTextTable[0][0];
         break;
 
     }

@@ -235,8 +235,11 @@ void Controller::processQeue(){
             presetbus.showStored(model->getUsedPreset(),model->getActivePreset());
             break;
         case E_PRESET_CHANGE:
+            int previousPreset;
             presetbus.setLed(PRESET_COLOR,loadedEvent.data[0]);
+            previousPreset=model->getActivePreset();
             model->setActivePreset(loadedEvent.data[0]);
+
             if(model->getCamFlag(PRST_IN_STORE)){
                 model->setUsedPreset(loadedEvent.data[0]);
                 model->setCamFlag(PRST_IN_STORE,FALSE);
@@ -245,12 +248,26 @@ void Controller::processQeue(){
             else{
                 txSocket.send(model->getActiveCamera(), GOTO_PRESET, loadedEvent.data[0]+1);
             }
+
+            if(model->getCamFlag(F_BOUNCE_ENABLE) && !(model->getCamFlag(F_BOUNCING))){
+                if(previousPreset==model->getActivePreset()){
+                    presetbus.setLed(CAMERA_COLOR,loadedEvent.data[0]);
+                    txSocket.send(model->getValue(ABS,V_HEADNR),BNCE_ZOOM_TELE_SET);
+                    txSocket.send(model->getValue(ABS,V_HEADNR),BNCE_ZOOM_START);
+                    model->setCamFlag(F_BOUNCING,true);
+                }
+            }
+            else{model->setCamFlag(F_BOUNCING,false);}
             break;
         case E_CAMERA_CHANGE:
             camerabus.setLed(CAMERA_COLOR,loadedEvent.data[0]);
             model->setActiveCamera(loadedEvent.data[0]);
-            presetbus.setLed(PRESET_COLOR,model->getActivePreset());
-
+            if(!(model->getCamFlag(F_BOUNCING))){
+                presetbus.setLed(PRESET_COLOR,model->getActivePreset());
+            }
+            else{
+                presetbus.setLed(CAMERA_COLOR,model->getActivePreset());
+            }
             break;
         case E_CHECK_CAMERA_TYPE:
             int from, type;
@@ -308,6 +325,18 @@ void Controller::processQeue(){
         case E_LOAD_SAVEFILE:
             loadSavefile();
             qDebug("loaded savefile");
+            break;
+        case E_FAST_TRANS:
+            if(model->getCamFlag(F_FASTTRANS)){
+                //send... nicht sicher ob es ein befehl geben sollte
+            }
+            else {
+                //same
+            }
+            break;
+
+        case E_WIDESET:
+            txSocket.send(model->getValue(ABS,V_HEADNR),BNCE_ZOOM_WIDE_SET);
             break;
         default:
             break;
