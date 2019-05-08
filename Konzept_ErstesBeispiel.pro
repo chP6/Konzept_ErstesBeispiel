@@ -42,7 +42,8 @@ SOURCES += \
     ocp.cpp \
     home.cpp \
     view.cpp \
-    cameraview.cpp
+    cameraview.cpp \
+    generictimer.cpp
 
 HEADERS += \
     model.h \
@@ -64,7 +65,8 @@ HEADERS += \
     ocp.h \
     home.h \
     view.h \
-    cameraview.h
+    cameraview.h \
+    generictimer.h
 
 FORMS += \
     errorwindow.ui \

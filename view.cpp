@@ -47,6 +47,11 @@ void View::on_serverConnectionStatusChanged(bool connected)
     ui->home->serverConnectionChanged(connected);
 }
 
+void View::on_cameraConnectionStatusChanged(bool connected)
+{
+    ui->home->cameraConnectionChanged(connected);
+}
+
 
 
 

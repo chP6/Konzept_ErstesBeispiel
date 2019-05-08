@@ -129,7 +129,8 @@ void Poller::listener(){
         poll_err = poll(poll_fd,20,-1);                      //poll. Blocks until event occurs -> SIZE setzen! current = 15; -1 = infinite timeout
 
         if(poll_err<0){
-            error(poll_err,errno, "fail at poll");
+            poll_err = errno;
+            controller->logSystemError(poll_err, "Could not read Poller pollstruct");
         }
 
         if(poll_fd[0].revents & POLLIN) {                    // Server watchdog event

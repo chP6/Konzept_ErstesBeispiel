@@ -4,6 +4,7 @@
 #include "eventqueue.h"
 #include "networkinterface.h"
 #include "tastenfeld.h"
+#include "generictimer.h"
 
 #define SAVEFILE_PATH   "/opt/savefile"
 
@@ -34,6 +35,7 @@ private:
     Networkinterface txSocket;
     Tastenfeld presetbus;
     Tastenfeld camerabus;
+    GenericTimer blinkTimer;
     void processQeue();
     void increment(int inc);
     void clear();

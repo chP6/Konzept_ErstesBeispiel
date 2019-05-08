@@ -46,6 +46,14 @@ void Home::serverConnectionChanged(bool connection)
     }
 }
 
+void Home::cameraConnectionChanged(bool connection)
+{
+    if(connection){ui->lCamera->setText("OK");}
+    else {
+        ui->lCamera->setText("Not OK");
+    }
+}
+
 void Home::on_btBounce_clicked(bool checked)
 {
     ui->btWideSet->setEnabled(checked);

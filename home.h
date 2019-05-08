@@ -20,6 +20,7 @@ public:
     void updateUi();
      void setModelController(Model* model, Controller* controller);
      void serverConnectionChanged(bool connection);
+     void cameraConnectionChanged(bool connection);
      void stackChanged();
 private:
     Ui::Home *ui;

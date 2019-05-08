@@ -26,8 +26,8 @@ int main(int argc, char *argv[])
                      &view, &View::on_modelSetUp);
     QObject::connect(&model, &Model::updateServerConnectionStatus,
                      &view, &View::on_serverConnectionStatusChanged);
-    //QObject::connect(&model, &Model::updateCameraConnectionStatus,
-    //                 &view, &View::on_cameraConnectionStatusChanged);
+    QObject::connect(&model, &Model::updateCameraConnectionStatus,
+                     &view, &View::on_cameraConnectionStatusChanged);
 
 
     Controller controller(model);

@@ -13,7 +13,7 @@
 #define E_CAMERA_CHANGE         9
 #define E_FOCUS_CHANGE          10
 #define E_SET_ZOOM              11
-#define E_CHECK_CAMERA_TYPE     12
+#define E_RX_CAMERA_WATCHDOG    12
 #define E_IRIS_CHANGE           13
 #define E_PED_CHANGE            14
 #define E_WBLUE_CHANGE          15
@@ -29,6 +29,7 @@
 #define E_WIDESET               25
 #define E_CAMERA_ANSWER         26
 #define E_SETUP_HEAD            27
+#define E_BOUNCE_BLINK          28
 
 
 

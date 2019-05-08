@@ -36,6 +36,8 @@ Controller::Controller(Model& model)// : poller(*this)    //poller Konstruktor a
         contr_err = errno;
         logSystemError(contr_err, "Could not open SPI-BUS 2");
     }
+
+    blinkTimer.init(500*1000,E_BOUNCE_BLINK,*this);
     queueEvent(E_SETUP_HEAD);
 }
 
@@ -224,9 +226,8 @@ void Controller::processQeue(){
                txSocket.send(model->getValue(ABS,V_HEADNR),model->getTxCommand(field),model->getValue(ABS,field));
             }
             if(field==V_HEADNR){
-                model->setCamFlag(KNOWN, false);
+                model->setCamFlag(F_KNOWN, false);
                 qDebug("KNOWN Flag cleared!");
-                model->setUpView();
             }
 
             break;
@@ -261,6 +262,13 @@ void Controller::processQeue(){
         case E_TX_SERV_WATCHDOG:
             txSocket.send(SERVER, WATCHDOG);
             model->setWatchdogWaitingflag(true);
+
+            //set all cameraWaitingFlags
+            for (int i=0;i<NUMBER_OF_SLOTS;i++) {
+                model->setCameraWaitingflag(i,true);
+            }
+            //qDebug("TX WATCHDOG");
+
             break;
         case E_RX_SERV_WATCHDOG:
             model->setWatchdogWaitingflag(false);   //clear flag
@@ -278,7 +286,7 @@ void Controller::processQeue(){
             break;
         case E_STORE_PRESET:
             presetbus.setLed(ACT_PRESET_COLOR,model->getActivePreset());
-            model->setCamFlag(PRST_IN_STORE,TRUE);
+            model->setCamFlag(F_PRST_IN_STORE,TRUE);
             presetbus.showStored(model->getUsedPreset(),model->getActivePreset());
             break;
         case E_PRESET_CHANGE:
@@ -287,9 +295,9 @@ void Controller::processQeue(){
             previousPreset=model->getActivePreset();
             model->setActivePreset(loadedEvent.data[0]);
 
-            if(model->getCamFlag(PRST_IN_STORE)){
+            if(model->getCamFlag(F_PRST_IN_STORE)){
                 model->setUsedPreset(loadedEvent.data[0]);
-                model->setCamFlag(PRST_IN_STORE,FALSE);
+                model->setCamFlag(F_PRST_IN_STORE,FALSE);
                 txSocket.send(model->getValue(ABS,V_HEADNR), STORE_PRESET, loadedEvent.data[0]+1);
             }
             else{
@@ -302,13 +310,27 @@ void Controller::processQeue(){
                     txSocket.send(model->getValue(ABS,V_HEADNR),BNCE_ZOOM_TELE_SET);
                     txSocket.send(model->getValue(ABS,V_HEADNR),BNCE_ZOOM_START);
                     model->setCamFlag(F_BOUNCING,true);
+                    blinkTimer.start();
                 }
             }
-            else{model->setCamFlag(F_BOUNCING,false);}
+            else{
+                model->setCamFlag(F_BOUNCING,false);
+
+                //only stop when all bouncing flags cleared
+                bool anyBouncingActive = false;
+                for (int i=0;i<NUMBER_OF_SLOTS;i++) {
+                    if (model->getCamFlag(i,F_BOUNCING)) {
+                        anyBouncingActive = true;
+                    }
+                }
+                if(!anyBouncingActive){
+                    blinkTimer.stop();
+                }
+            }
             break;
         case E_CAMERA_CHANGE:
             camerabus.setLed(CAMERA_COLOR,loadedEvent.data[0]);
-            model->setActiveCamera(loadedEvent.data[0]);
+            model->setActiveCameraSlot(loadedEvent.data[0]);
             if(!(model->getCamFlag(F_BOUNCING))){
                 presetbus.setLed(PRESET_COLOR,model->getActivePreset());
             }
@@ -316,17 +338,26 @@ void Controller::processQeue(){
                 presetbus.setLed(CAMERA_COLOR,model->getActivePreset());
             }
             break;
-        case E_CHECK_CAMERA_TYPE:
+        case E_RX_CAMERA_WATCHDOG:
             from = loadedEvent.data[0];
             type = loadedEvent.data[1];
             for (int i=0;i<NUMBER_OF_SLOTS;i++) {
-                if (model->getValue(i,ABS,V_HEADNR) == from && !model->getCamFlag(i,KNOWN)) {    //if headnumber == from
+
+                // camera exists -> clear cameraWaitingFlags
+                if (model->getValue(i,ABS,V_HEADNR) == from) {
+                    model->setCameraWaitingflag(i,false);
+                }
+
+                // respective camera exists in a slot & known flag is not set -> request camera settings
+                if (model->getValue(i,ABS,V_HEADNR) == from && !model->getCamFlag(i,F_KNOWN)) {    //if headnumber == from
                     model->setCamType(i, type);
                     requestCameraSettings();
-                    model->setCamFlag(i,KNOWN,true);
+                    model->setCamFlag(i,F_KNOWN,true);
+                    model->setUpView();     //grays out ui buttons for not supported camera settings
                     qDebug("KNOWN Flag Set, requested camera settings");
                 }
             }
+            //qDebug("RX WATCHDOG");
             break;
         case E_IRIS_CHANGE:
             model->setValue(INC, V_IRIS, loadedEvent.data[0]);
@@ -407,6 +438,16 @@ void Controller::processQeue(){
                 txSocket.send(model->getValue(i,ABS,V_HEADNR), PAN_TILT_SPEED, model->getValue(i,ABS,V_PT_SPEED));
             }
             qDebug("HEAD init done");
+            break;
+        case E_BOUNCE_BLINK:
+            if(model->getCamFlag(F_BOUNCING)){
+                if(model->toggleBlink()){
+                    presetbus.setLed(PRESET_COLOR, model->getActiveCameraSlot());
+                }
+                else{
+                    presetbus.setLed(0,0,0,model->getActiveCameraSlot());
+                }
+            }
             break;
         default:
             break;
