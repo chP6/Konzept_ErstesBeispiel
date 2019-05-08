@@ -12,7 +12,7 @@ struct camera_s{
   int camType;
   int activePreset;
   int usedPresets;
-  bool flags[6];
+  bool flags[NUMBER_OF_FLAGS];
   int values [ROW_ENTRIES][COLUM_ENTRIES];
   QString *textTable;
 };
@@ -27,6 +27,7 @@ signals:
     void updateView();
     void setUpView();
     void updateServerConnectionStatus(bool connected);
+    void updateCameraConnectionStatus(int slotNr, bool connected);
 
 public:
     Model();
@@ -37,26 +38,38 @@ public:
     void addError(std::string str);
     void clearErrors();
     void setUsedPreset(int presetNr);
+    void setUsedPreset(int slotNr, int presetNr);
     int getUsedPreset();
-    void setActivePreset(unsigned char actPreset);
-    unsigned char getActivePreset();
-    void setActiveCamera(unsigned char camNr);
-    unsigned char getActiveCamera();
+    int getUsedPreset(int slotNr);
+    void setActivePreset(int actPreset);
+    void setActivePreset(int slotNr, int actPreset);
+    int getActivePreset();
+    int getActivePreset(int slotNr);
+    int setActiveCameraSlot(int slotNr);
+    int getActiveCameraSlot();
     QStringList* getErrorList();
-    void setCamType(int camNr, int type);
+    void setCamType(int slotNr, int type);
+    void setCamTypeWithDefValues(int slotNr, int type);
     unsigned char getCamtype();
-    unsigned char getCamtype(int camNr);
+    unsigned char getCamtype(int slotNr);
     void setValue(int type, int property, int value);
+    void setValue(int slotNr, int type, int property, int value);
     int getValue(int type, int property);
+    int getValue(int slotNr, int type, int property);
     QString getTextValue(int property);
     int getMin(int property);
     int getMax(int property);
     void setCamFlag(int flag, bool value);
+    void setCamFlag(int slotNr, int flag, bool value);
     bool getCamFlag(int flag);
+    bool getCamFlag(int slotNr, int flag);
     int setWatchdogWaitingflag(bool waiting);
     int getRotaryField();
     void setRotaryField(int field);
     int getTxCommand(int value);
+    int getValueFromBBMCommand(int bbm_command);
+    void setTextTable(int slotNr, int type);
+
 
 private:
     QStringList errorList;
@@ -67,8 +80,8 @@ private:
     int y = 5000;
     bool watchdogWaitingForAnswerFlag = false;
     bool serverConnected = false;
-    struct camera_s cameras[NUMBER_OF_CAMERAS];
-    unsigned char activeCamera;     // 1-6
+    struct camera_s cameras[NUMBER_OF_SLOTS];
+    int activeCameraSlot;     // 0-5
     // camera type 2 init values
     int c2Values[ROW_ENTRIES][COLUM_ENTRIES]=
                       {{1,0,49,NORMAL},     //headnr init_value, min_value, max_value
@@ -126,7 +139,7 @@ private:
                        {2,1,6,NORMAL},       //SPP2
                        {0,0,30,NORMAL},      //SPP Wait Time
                        {12,1,127,NORMAL},    //Bounce Zoom Speed
-                       {0,0,2,TEXT,4}        //Head Power
+                       {0,0,2,TEXT,0}        //Head Power
                       };
 
     // camera type 3&4 init values

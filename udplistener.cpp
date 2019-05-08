@@ -3,6 +3,7 @@
 #include "events.h"
 #include "config.h"
 #include <thread>
+#include <QDebug>
 
 UdpListener::UdpListener(Controller& controller)
 {
@@ -37,9 +38,15 @@ void UdpListener::listener(){
 
         // =========== DECIDE WHAT TO DO ==============================================
 
+        // Reply from camera/head
+        if(answer.command != WATCHDOG && answer.from != SERVER){
+            controller->queueEvent(E_CAMERA_ANSWER, answer.from, answer.command, answer.data[0]);
+            //qDebug("Answer: %d", answer.data[0]);
+        }
+
         // Watchdog answer from server
         if(answer.command == WATCHDOG && answer.from == SERVER){
-            controller->queueEvent(E_RX_WATCHDOG);
+            controller->queueEvent(E_RX_SERV_WATCHDOG);
         }
 
         // Watchdog answer from camera/head
@@ -47,17 +54,17 @@ void UdpListener::listener(){
             controller->queueEvent(E_CHECK_CAMERA_TYPE, answer.from, answer.data[1]);
         }
 
-        // Autofocus answer
+        // Autofocus answer (todo: remove! double with reply from camera)
         if(answer.command == FOCUS_SET_ABSOLUTE){
             controller->queueEvent(E_AUTOFOCUS_ANSWER, answer.data[0]);
         }
 
         //debug: show answer packages in log
-        if(answer.from != SERVER && answer.type == TYPEC_FROM_HC){
-            sprintf(buf,"UDP RX: %d,%d,%d,%d,%d,%d,%d,%d,%d,%d", buffer[0],buffer[1],buffer[2],buffer[3],buffer[4],buffer[5],buffer[6],buffer[7],buffer[8],buffer[9]);
-            std::string str(buf);
-            controller->logError(str + " Addr: " + addr);
-        }
+//        if(answer.from != SERVER && answer.type == TYPEC_FROM_HC){
+//            sprintf(buf,"UDP RX: %d,%d,%d,%d,%d,%d,%d,%d,%d,%d", buffer[0],buffer[1],buffer[2],buffer[3],buffer[4],buffer[5],buffer[6],buffer[7],buffer[8],buffer[9]);
+//            std::string str(buf);
+//            controller->logError(str + " Addr: " + addr);
+//        }
         answer.data.clear();
     }
 }

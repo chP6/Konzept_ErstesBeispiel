@@ -138,7 +138,7 @@ void Poller::listener(){
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not read Watchdog Timer");
             }
-            controller->queueEvent(E_TX_WATCHDOG);
+            controller->queueEvent(E_TX_SERV_WATCHDOG);
         }
 
         if(poll_fd[1].revents & POLLIN) {                   // Joystick event
@@ -179,7 +179,7 @@ void Poller::listener(){
             }
 
             controller->queueEvent(E_INCREASE, rotary_val);
-
+            qDebug("Rot Val: %d", rotary_val);
         }
 
         if(poll_fd[3].revents & POLLPRI){                    // Rotary1 Button
@@ -223,9 +223,8 @@ void Poller::listener(){
                 controller->logSystemError(poll_err, "Could not readout Rotary2 button");
             }
             if(poll_err==0){
-            controller->queueEvent(E_WRITE_SAVEFILE);
+            controller->queueEvent(E_LOAD_SAVEFILE);
             }
-
         }
 
 

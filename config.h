@@ -45,7 +45,7 @@
 /*others*/
 #define TRUE 1
 #define FALSE 0
-#define NUMBER_OF_CAMERAS 6
+#define NUMBER_OF_SLOTS 6
 
 /*property array*/
 #define VAL 0
@@ -95,7 +95,9 @@
 #define F_BOUNCING            1
 #define F_SPP_ON              2
 #define F_FASTTRANS           3
-#define F_BOUNCE_ENABLE       5
+#define F_BOUNCE_ENABLE       4
+#define F_KNOWN               5
+#define F_CONNECTED           6
 
 /*set,get types*/
 #define ABS                 1

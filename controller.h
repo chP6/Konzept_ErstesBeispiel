@@ -18,6 +18,7 @@ public:
     void queueEvent(int evt);
     void queueEvent(int evt, int dataA);
     void queueEvent(int evt, int dataA, int dataB);
+    void queueEvent(int evt, int dataA, int dataB, int dataC);
     void queueEvent(int evt, std::vector<int> data);
     void queueEvent(int evt, bool sta);
     void logSystemError(int err_no, std::string msg);
@@ -25,6 +26,7 @@ public:
     void clearErrors();
     int writeSavefile();
     int loadSavefile();
+    void requestCameraSettings();
 
 private:
     Model* model;

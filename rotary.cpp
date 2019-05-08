@@ -88,7 +88,7 @@ int Rotary::readRotary(int8_t& res){
     if (rot_err < 0) {
       return rot_err;
     }
-    if(rotary_val < -80){       // i2c error workaround
+    if(rotary_val < -80 || rotary_val > 80){       // i2c error workaround
         rotary_val = 0;
     }
     res = rotary_val;
