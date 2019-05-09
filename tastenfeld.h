@@ -1,10 +1,12 @@
 #ifndef TASTENFELD_H
 #define TASTENFELD_H
+#include <QWidget>
 
 
 
 class Tastenfeld
 {
+
 public:
     Tastenfeld();
     ~Tastenfeld();
@@ -16,6 +18,7 @@ public:
     int initSpi();
     void setRow(int row);
     int showStored(int usedPresets, int activePreset);
+    void blink(char button);
 
 private:
 
@@ -28,6 +31,7 @@ private:
     int spi_err;
     char *spi_bus;
     int button_bus;
+
 
 };
 

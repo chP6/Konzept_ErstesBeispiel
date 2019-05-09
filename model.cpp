@@ -19,6 +19,9 @@ Model::Model()
             cameras[i].flags[j] = false;
         }
     }
+    for (int i=0;i<NUMBER_OF_SLOTS;i++) { //every camera a different HeadNr
+        cameras[i].values[V_HEADNR][0]=i+1;
+    }
 
     activeCameraSlot=0;
 }

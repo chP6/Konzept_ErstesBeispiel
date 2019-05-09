@@ -33,6 +33,9 @@
          <height>40</height>
         </size>
        </property>
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
+       </property>
        <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
        </property>
@@ -55,6 +58,9 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
+       </property>
        <property name="text">
         <string>Detail</string>
        </property>
@@ -62,6 +68,9 @@
      </item>
      <item row="7" column="1" rowspan="2">
       <widget class="Line" name="line_4">
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
+       </property>
        <property name="orientation">
         <enum>Qt::Vertical</enum>
        </property>
@@ -80,6 +89,9 @@
          <width>110</width>
          <height>40</height>
         </size>
+       </property>
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
        </property>
        <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
@@ -103,6 +115,9 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
+       </property>
        <property name="text">
         <string>Black</string>
        </property>
@@ -116,6 +131,9 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
+       </property>
        <property name="text">
         <string>Blue</string>
        </property>
@@ -128,6 +146,9 @@
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
        </property>
        <property name="text">
         <string>Blue</string>
@@ -147,6 +168,9 @@
          <width>110</width>
          <height>40</height>
         </size>
+       </property>
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
        </property>
        <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
@@ -175,6 +199,9 @@
          <width>110</width>
          <height>40</height>
         </size>
+       </property>
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
        </property>
        <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
@@ -214,6 +241,9 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
+       </property>
        <property name="text">
         <string>Shutter</string>
        </property>
@@ -227,6 +257,9 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
+       </property>
        <property name="text">
         <string>Gain</string>
        </property>
@@ -234,6 +267,9 @@
      </item>
      <item row="12" column="1" rowspan="2">
       <widget class="Line" name="line_3">
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
+       </property>
        <property name="orientation">
         <enum>Qt::Vertical</enum>
        </property>
@@ -241,6 +277,9 @@
      </item>
      <item row="10" column="0" colspan="3">
       <widget class="Line" name="line">
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
+       </property>
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -262,6 +301,9 @@
          <width>110</width>
          <height>40</height>
         </size>
+       </property>
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
        </property>
        <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
@@ -285,6 +327,9 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
+       </property>
        <property name="text">
         <string>ND Filter</string>
        </property>
@@ -303,6 +348,9 @@
          <width>110</width>
          <height>40</height>
         </size>
+       </property>
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
        </property>
        <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
@@ -326,6 +374,9 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
+       </property>
        <property name="text">
         <string>White</string>
        </property>
@@ -338,6 +389,9 @@
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
        </property>
        <property name="text">
         <string>Red</string>
@@ -357,6 +411,9 @@
          <width>110</width>
          <height>40</height>
         </size>
+       </property>
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
        </property>
        <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
@@ -386,6 +443,9 @@
          <height>40</height>
         </size>
        </property>
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
+       </property>
        <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
        </property>
@@ -402,6 +462,9 @@
      </item>
      <item row="6" column="0" colspan="3">
       <widget class="Line" name="line_2">
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
+       </property>
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -415,6 +478,9 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
+       </property>
        <property name="text">
         <string>Red</string>
        </property>
@@ -422,6 +488,9 @@
      </item>
      <item row="2" column="1" rowspan="2">
       <widget class="Line" name="line_5">
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
+       </property>
        <property name="orientation">
         <enum>Qt::Vertical</enum>
        </property>
@@ -429,6 +498,9 @@
      </item>
      <item row="0" column="1" rowspan="2">
       <widget class="Line" name="line_6">
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
+       </property>
        <property name="orientation">
         <enum>Qt::Vertical</enum>
        </property>
@@ -465,6 +537,9 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
+       </property>
        <property name="text">
         <string>Col. Temp.</string>
        </property>
@@ -483,6 +558,9 @@
          <width>110</width>
          <height>40</height>
         </size>
+       </property>
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
        </property>
        <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
@@ -505,6 +583,9 @@
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
        </property>
        <property name="text">
         <string>Gamma Tab.</string>
@@ -547,6 +628,9 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
+       </property>
        <property name="text">
         <string>Knee</string>
        </property>
@@ -565,6 +649,9 @@
          <width>110</width>
          <height>40</height>
         </size>
+       </property>
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
        </property>
        <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
@@ -587,6 +674,9 @@
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
        </property>
        <property name="text">
         <string>Gamma</string>
@@ -629,6 +719,9 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
+       </property>
        <property name="text">
         <string>Saturation</string>
        </property>
@@ -647,6 +740,9 @@
          <width>110</width>
          <height>40</height>
         </size>
+       </property>
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
        </property>
        <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
@@ -670,6 +766,9 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
+       </property>
        <property name="text">
         <string>Knee Point</string>
        </property>
@@ -689,6 +788,9 @@
          <height>40</height>
         </size>
        </property>
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
+       </property>
        <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
        </property>
@@ -705,6 +807,9 @@
      </item>
      <item row="4" column="1" rowspan="2">
       <widget class="Line" name="line_7">
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
+       </property>
        <property name="orientation">
         <enum>Qt::Vertical</enum>
        </property>
@@ -712,6 +817,9 @@
      </item>
      <item row="2" column="1" rowspan="2">
       <widget class="Line" name="line_8">
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
+       </property>
        <property name="orientation">
         <enum>Qt::Vertical</enum>
        </property>
@@ -719,6 +827,9 @@
      </item>
      <item row="0" column="1" rowspan="2">
       <widget class="Line" name="line_9">
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
+       </property>
        <property name="orientation">
         <enum>Qt::Vertical</enum>
        </property>
@@ -741,6 +852,9 @@
          <width>110</width>
          <height>0</height>
         </size>
+       </property>
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
        </property>
        <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
@@ -773,6 +887,9 @@
          <height>0</height>
         </size>
        </property>
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
+       </property>
        <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
        </property>
@@ -798,6 +915,9 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
+       </property>
        <property name="text">
         <string>Black Level</string>
        </property>
@@ -813,6 +933,9 @@
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
        </property>
        <property name="layoutDirection">
         <enum>Qt::LeftToRight</enum>

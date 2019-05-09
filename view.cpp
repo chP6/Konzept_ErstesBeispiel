@@ -21,18 +21,20 @@ View::~View()
 void View::setModelController(Model& model, Controller& controller){
     this->controller = &controller;
     this->model = &model;
-    ui->errorWindow->setModelController(this->model, this->controller);
+
     ui->home->setModelController(this->model, this->controller);
     ui->cameraView->setModelController(this->model, this->controller);
+    ui->others->setModelController(this->model, this->controller);
 }
 
 
 
 void View::on_modelUpdate()
 {
-    ui->errorWindow->updateUi();
+
     ui->home->updateUi();
     ui->cameraView->updateUi();
+    ui->others->updateUi();
 }
 
 void View::on_modelSetUp()
@@ -78,5 +80,6 @@ void View::on_btXptControl_clicked()
 void View::on_btOthers_clicked()
 {
     ui->stackedWidget->setCurrentIndex(3);
+    ui->others->stackChanged();
 
 }

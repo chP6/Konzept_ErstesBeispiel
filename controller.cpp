@@ -37,6 +37,8 @@ Controller::Controller(Model& model)// : poller(*this)    //poller Konstruktor a
         logSystemError(contr_err, "Could not open SPI-BUS 2");
     }
 
+    camerabus.setLed(CAMERA_COLOR,model.getActiveCameraSlot());
+    presetbus.setLed(PRESET_COLOR,model.getActivePreset());
     blinkTimer.init(500*1000,E_BOUNCE_BLINK,*this);
     queueEvent(E_SETUP_HEAD);
 }
@@ -237,7 +239,10 @@ void Controller::processQeue(){
             y = loadedEvent.data[1];
             setAxis(x,10000-y);
             txSocket.send(model->getValue(ABS,V_HEADNR), TILT_PAN, x, y);
-
+            if(model->getCamFlag(F_BOUNCING)){
+                model->setCamFlag(F_BOUNCING,false);
+                presetbus.setLed(PRESET_COLOR,model->getActivePreset());
+            }
             //debug
             //char str[100];
             //sprintf(str,"%d/%d",x,y);
@@ -288,6 +293,7 @@ void Controller::processQeue(){
             presetbus.setLed(ACT_PRESET_COLOR,model->getActivePreset());
             model->setCamFlag(F_PRST_IN_STORE,TRUE);
             presetbus.showStored(model->getUsedPreset(),model->getActivePreset());
+            presetbus.blink(1);
             break;
         case E_PRESET_CHANGE:
             int previousPreset;
@@ -342,7 +348,6 @@ void Controller::processQeue(){
             from = loadedEvent.data[0];
             type = loadedEvent.data[1];
             for (int i=0;i<NUMBER_OF_SLOTS;i++) {
-
                 // camera exists -> clear cameraWaitingFlags
                 if (model->getValue(i,ABS,V_HEADNR) == from) {
                     model->setCameraWaitingflag(i,false);
@@ -355,6 +360,7 @@ void Controller::processQeue(){
                     model->setCamFlag(i,F_KNOWN,true);
                     model->setUpView();     //grays out ui buttons for not supported camera settings
                     qDebug("KNOWN Flag Set, requested camera settings");
+                    model->setUpView();
                 }
             }
             //qDebug("RX WATCHDOG");
@@ -439,6 +445,17 @@ void Controller::processQeue(){
             }
             qDebug("HEAD init done");
             break;
+        case E_CALIB_HEAD:
+            txSocket.send(model->getValue(ABS,V_HEADNR),CALIBRATE_HEAD);
+            break;
+        case E_SET_LOWER_LIMIT:
+            txSocket.send(model->getValue(ABS,V_HEADNR),TILT_LOWER_LIMIT);
+            break;
+        case E_SET_UPPER_LIMIT:
+            txSocket.send(model->getValue(ABS,V_HEADNR),TILT_UPPER_LIMIT);
+            break;
+        case E_CLEAR_LIMIT:
+            txSocket.send(model->getValue(ABS,V_HEADNR),TILT_CLEAR_LIMIT);
         case E_BOUNCE_BLINK:
             if(model->getCamFlag(F_BOUNCING)){
                 if(model->toggleBlink()){

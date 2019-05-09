@@ -29,6 +29,7 @@ public:
     int loadSavefile();
     void requestCameraSettings();
 
+
 private:
     Model* model;
     EventQueue eventQueue;
@@ -41,6 +42,7 @@ private:
     void clear();
     void setAxis(int x, int y);
     int contr_err;
+
 };
 
 #endif // CONTROLLER_H

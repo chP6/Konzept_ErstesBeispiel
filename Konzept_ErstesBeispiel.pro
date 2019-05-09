@@ -43,6 +43,7 @@ SOURCES += \
     home.cpp \
     view.cpp \
     cameraview.cpp \
+    others.cpp
     generictimer.cpp
 
 HEADERS += \
@@ -66,13 +67,15 @@ HEADERS += \
     home.h \
     view.h \
     cameraview.h \
+    others.h
     generictimer.h
 
 FORMS += \
     errorwindow.ui \
     home.ui \
     view.ui \
-    cameraview.ui
+    cameraview.ui \
+    others.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

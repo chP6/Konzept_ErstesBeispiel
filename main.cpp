@@ -9,9 +9,11 @@
 #include "config.h"
 #include <QFile>
 
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+
     View view;
     Model model;
     Q_INIT_RESOURCE(styles);

@@ -12,6 +12,7 @@ Home::Home(QWidget *parent) :
     ui(new Ui::Home)
 {
     ui->setupUi(this);
+
 }
 
 Home::~Home()
@@ -30,6 +31,8 @@ void Home::updateUi()
     ui->btHeadNr->setText(QString::number(model->getValue(DISP,V_HEADNR)));
     ui->lPresetNr->setText(QString::number(model->getActivePreset()+1));
     ui->btAutoZoomSpeed->setText(QString::number(model->getValue(DISP,V_BOUNCE_ZOOM_SPEED)));
+    ui->btBounce->setChecked(model->getCamFlag(F_BOUNCE_ENABLE));
+    ui->btFasttrans->setChecked(model->getCamFlag(F_FASTTRANS));
 }
 
 void Home::setModelController(Model *model, Controller *controller)

@@ -14,6 +14,7 @@
 
 
 
+
 Tastenfeld::Tastenfeld()
 {
 
@@ -234,7 +235,13 @@ int Tastenfeld::showStored(int usedPresets, int activePreset)
         }
     spi_err=write(spi_fd, &tx, sizeof(tx));
             if(spi_err<0){return -1;}
-    return 0;
+            return 0;
+}
+
+void Tastenfeld::blink(char button)
+{
+
+
 }
 
 int Tastenfeld::readButton(int buttonNr){
