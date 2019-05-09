@@ -250,6 +250,9 @@ int Model::getValue(int type, int property)
             return -2048;
         case TEXT:
             return -2049;
+        case OFFSET:
+            return cameras[activeCameraSlot].values[property][VAL]+1;
+            break;
         default:
             return -1;
         }
@@ -411,4 +414,12 @@ void Model::setTextTable(int slotNr, int type){
 int Model::toggleBlink(){
     blinkToggle=!blinkToggle;
     return blinkToggle;
+}
+
+void Model::setSppState(int slotNr, int state){
+    sppState[slotNr] = state;
+}
+
+int Model::getSppState(int slotNr){
+    return sppState[slotNr];
 }

@@ -42,6 +42,10 @@ void View::on_modelSetUp()
     ui->cameraView->setUpUi();
 }
 
+void View::on_sppUpdate(bool active)
+{
+    ui->home->sppUpdate(active);
+}
 
 
 void View::on_serverConnectionStatusChanged(bool connected)

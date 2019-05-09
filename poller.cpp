@@ -28,6 +28,8 @@ Poller::Poller(Controller& controller)
         controller.logSystemError(poll_err, "Could not initialize Watchdog Timer");
     }
 
+    jsTiltStill=true;
+    jsZoomStill=true;
     poll_err = joystick.init();
     if(poll_err < 0){
         poll_err = errno;
@@ -154,13 +156,35 @@ void Poller::listener(){
                 controller->queueEvent(E_AUTOFOCUS);
             }
             else{
-                data.push_back(jsData.xCoord);
-                data.push_back(jsData.yCoord);
-                controller->queueEvent(E_SET_TILT, data);
+                //reducing number of necessary events
+                if(!(jsData.xCoord == xold && jsData.yCoord == yold)){
+                    data.push_back(jsData.xCoord);
+                    data.push_back(jsData.yCoord);
+                    controller->queueEvent(E_SET_TILT, data);
+                }
 
-                data.clear();
-                data.push_back(jsData.zCoord);
-                controller->queueEvent(E_SET_ZOOM, data);
+
+                if(!(jsData.zCoord == zold)){
+                    data.clear();
+                    data.push_back(jsData.zCoord);
+                    controller->queueEvent(E_SET_ZOOM, data);
+                }
+
+
+
+                if(jsData.zCoord == zold)
+                    jsZoomStill=true;
+                else
+                    jsZoomStill=false;
+
+                if(jsData.xCoord==xold && jsData.yCoord == yold)
+                    jsTiltStill=true;
+                else
+                    jsTiltStill=false;
+
+                xold=jsData.xCoord;
+                yold=jsData.yCoord;
+                zold=jsData.zCoord;
             }
         }
 

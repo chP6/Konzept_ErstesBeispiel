@@ -22,6 +22,7 @@ public:
      void serverConnectionChanged(bool connection);
      void cameraConnectionChanged(bool connection);
      void stackChanged();
+     void sppUpdate(bool active);
 private:
     Ui::Home *ui;
     Model* model;

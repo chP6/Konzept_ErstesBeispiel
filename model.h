@@ -71,6 +71,8 @@ public:
     int getValueFromBBMCommand(int bbm_command);
     void setTextTable(int slotNr, int type);
     int toggleBlink();
+    void setSppState(int slotNr, int state);
+    int getSppState(int slotNr);
 
 
 private:
@@ -82,6 +84,7 @@ private:
     int y = 5000;
     bool watchdogWaitingForAnswerFlag = false;
     int cameraWaitingForAnswerStack[NUMBER_OF_SLOTS] = {0,0,0,0,0,0};
+    int sppState[NUMBER_OF_SLOTS] = {S_SPP_IDLE,S_SPP_IDLE,S_SPP_IDLE,S_SPP_IDLE,S_SPP_IDLE,S_SPP_IDLE};
     bool serverConnected = false;
     struct camera_s cameras[NUMBER_OF_SLOTS];
     int activeCameraSlot;     // 0-5
@@ -109,8 +112,8 @@ private:
                        {5,1,10,NORMAL},      //PT Speed
                        {1,1,10,NORMAL},      //Trans Speed
                        {1,1,10,NORMAL},      //Ramp
-                       {1,1,6,NORMAL},       //SPP1
-                       {2,1,6,NORMAL},       //SPP2
+                       {0,0,5,OFFSET},       //SPP1
+                       {1,0,5,OFFSET},       //SPP2
                        {0,0,30,NORMAL},      //SPP Wait Time
                        {12,1,127,NORMAL},    //Bounce Zoom Speed
                        {0,0,2,TEXT,5},       //Head Power
@@ -140,8 +143,8 @@ private:
                        {1,1,10,NORMAL},      //PT Speed
                        {1,1,10,NORMAL},      //Trans Speed
                        {1,1,10,NORMAL},      //Ramp
-                       {1,1,6,NORMAL},       //SPP1
-                       {2,1,6,NORMAL},       //SPP2
+                       {0,0,5,OFFSET},       //SPP1
+                       {1,0,5,OFFSET},       //SPP2
                        {0,0,30,NORMAL},      //SPP Wait Time
                        {12,1,127,NORMAL},    //Bounce Zoom Speed
                        {0,0,2,TEXT,4},        //Head Power
@@ -171,8 +174,8 @@ private:
                        {5,1,10,NORMAL},      //PT Speed
                        {1,1,10,NORMAL},      //Trans Speed
                        {1,1,10,NORMAL},      //Ramp
-                       {1,1,6,NORMAL},       //SPP1
-                       {2,1,6,NORMAL},       //SPP2
+                       {0,0,5,OFFSET},       //SPP1
+                       {1,0,5,OFFSET},       //SPP2
                        {0,0,30,NORMAL},      //SPP Wait Time
                        {12,1,127,NORMAL},    //Bounce Zoom Speed
                        {0,0,2,TEXT,6},        //Head Power

@@ -33,6 +33,7 @@ void Home::updateUi()
     ui->btAutoZoomSpeed->setText(QString::number(model->getValue(DISP,V_BOUNCE_ZOOM_SPEED)));
     ui->btBounce->setChecked(model->getCamFlag(F_BOUNCE_ENABLE));
     ui->btFasttrans->setChecked(model->getCamFlag(F_FASTTRANS));
+    ui->btSppStart->setChecked(model->getCamFlag(F_SPP_ON));
 }
 
 void Home::setModelController(Model *model, Controller *controller)
@@ -114,7 +115,12 @@ void Home::on_btSppWait_clicked()
 
 void Home::on_btSppStart_clicked(bool checked)
 {
-
+    if(!checked){
+        controller->queueEvent(E_SPP_ABORT);
+    }
+    else{
+        controller->queueEvent(E_SPP_START);
+    }
 }
 
 void Home::on_btHeadNr_clicked()
@@ -137,6 +143,11 @@ void Home::stackChanged()
 
     }
     button->click();
+}
+
+void Home::sppUpdate(bool active)
+{
+    ui->btSppStart->setChecked(active);
 }
 
 

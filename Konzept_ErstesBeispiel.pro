@@ -43,7 +43,7 @@ SOURCES += \
     home.cpp \
     view.cpp \
     cameraview.cpp \
-    others.cpp
+    others.cpp \
     generictimer.cpp
 
 HEADERS += \
@@ -67,7 +67,7 @@ HEADERS += \
     home.h \
     view.h \
     cameraview.h \
-    others.h
+    others.h \
     generictimer.h
 
 FORMS += \
