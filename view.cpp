@@ -25,6 +25,7 @@ void View::setModelController(Model& model, Controller& controller){
     ui->home->setModelController(this->model, this->controller);
     ui->cameraView->setModelController(this->model, this->controller);
     ui->others->setModelController(this->model, this->controller);
+    ui->xptControl->setModelController(this->model,this->controller);
 }
 
 
@@ -35,6 +36,7 @@ void View::on_modelUpdate()
     ui->home->updateUi();
     ui->cameraView->updateUi();
     ui->others->updateUi();
+    ui->xptControl->updateUi();
 }
 
 void View::on_modelSetUp()
@@ -52,6 +54,12 @@ void View::on_serverConnectionStatusChanged(bool connected)
 void View::on_cameraConnectionStatusChanged(bool connected)
 {
     ui->home->cameraConnectionChanged(connected);
+}
+
+void View::on_xptConnectionStatusChanged(bool connected)
+{
+    ui->xptControl->xptStatusChanged(connected);
+
 }
 
 
@@ -74,6 +82,7 @@ void View::on_btCamCtrl_clicked()
 void View::on_btXptControl_clicked()
 {
     ui->stackedWidget->setCurrentIndex(2);
+    ui->xptControl->stackChanged();
 
 }
 

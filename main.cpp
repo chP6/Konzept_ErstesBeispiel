@@ -30,6 +30,8 @@ int main(int argc, char *argv[])
                      &view, &View::on_serverConnectionStatusChanged);
     QObject::connect(&model, &Model::updateCameraConnectionStatus,
                      &view, &View::on_cameraConnectionStatusChanged);
+    QObject::connect(&model, &Model::updateXptConnectionStatus,
+                     &view, &View::on_xptConnectionStatusChanged);
 
 
     Controller controller(model);

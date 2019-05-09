@@ -3,6 +3,7 @@
 #include "config.h"
 #include "bbmcommandtypes.h"
 #include <QString>
+#include <stdio.h>
 
 Model::Model()
 {
@@ -21,9 +22,14 @@ Model::Model()
     }
     for (int i=0;i<NUMBER_OF_SLOTS;i++) { //every camera a different HeadNr
         cameras[i].values[V_HEADNR][0]=i+1;
+        cameras[i].xptSource=i+1;
     }
 
     activeCameraSlot=0;
+    xptFields[0]=192;
+    xptFields[1]=168;
+    xptFields[2]=1;
+    xptFields[3]=2;
 }
 
 void Model::setData(int data){
@@ -372,8 +378,14 @@ int Model::getRotaryField()
     return rotaryField;
 }
 
-void Model::setRotaryField(int field)
+int Model::getRotaryDestination()
 {
+    return rotaryDestination;
+}
+
+void Model::setRotaryField(int field, int destination)
+{
+    rotaryDestination=destination;
     rotaryField=field;
 }
 
@@ -411,4 +423,98 @@ void Model::setTextTable(int slotNr, int type){
 int Model::toggleBlink(){
     blinkToggle=!blinkToggle;
     return blinkToggle;
+}
+
+void Model::setXptConnected(bool flag)
+{
+   xptConnect=flag;
+   emit updateXptConnectionStatus(xptConnect);
+}
+
+bool Model::getXptConnected()
+{
+    return xptConnect;
+}
+
+void Model::setSlotSource(int source)
+{
+   cameras[xptSlot].xptSource+=source;
+    emit updateView();
+
+   if(cameras[xptSlot].xptSource > 40){
+       cameras[xptSlot].xptSource = 40;
+        emit updateView();
+   }
+   if(cameras[xptSlot].xptSource < 1){
+       cameras[xptSlot].xptSource = 1;
+        emit updateView();
+   }
+
+}
+
+int Model::getSlotSource(int slotNr)
+{
+    return  cameras[slotNr].xptSource;
+}
+
+void Model::setXptDestination(int destination)
+{
+    xptDestination+=destination;
+    emit updateView();
+    if(xptDestination > 40){
+        xptDestination = 40;
+         emit updateView();
+    }
+    if(xptDestination < 1){
+        xptDestination = 1;
+         emit updateView();
+    }
+
+}
+
+int Model::getXptDestination()
+{
+    return xptDestination;
+}
+
+void Model::setXptSlot(int slot)
+{
+    xptSlot=slot;
+}
+
+int Model::getXptSlot()
+{
+    return xptSlot;
+}
+
+void Model::setXptIpField(int field, int value)
+{
+    xptFields[field]+=value;
+    emit updateView();
+    if(xptFields[3] < 2){
+        xptFields[3] = 2;
+         emit updateView();
+    }
+    if(xptFields[field] > 254){
+        xptFields[field] = 254;
+         emit updateView();
+    }
+    if(xptFields[field] < 0){
+        xptFields[field] = 0;
+         emit updateView();
+    }
+
+
+}
+
+int Model::getXptIpField(int field)
+{
+    return xptFields[field];
+}
+
+
+char *Model::getXptIpAdress()
+{
+    sprintf(xptIpAddress,"%d.%d.%d.%d",xptFields[0],xptFields[1],xptFields[2],xptFields[3]);
+    return &xptIpAddress[0];
 }

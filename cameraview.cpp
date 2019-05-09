@@ -317,74 +317,74 @@ void CameraView::setModelController(Model *model, Controller *controller)
 
 void CameraView::on_btGain_clicked()
 {
-    model->setRotaryField(V_GAIN);
+    model->setRotaryField(V_GAIN,SEND);
 }
 
 void CameraView::on_btDetail_clicked()
 {
-    model->setRotaryField(V_DETAIL);
+    model->setRotaryField(V_DETAIL,SEND);
 }
 
 void CameraView::on_btShutter_clicked()
 {
-    model->setRotaryField(V_SHUTTER);
+    model->setRotaryField(V_SHUTTER,SEND);
 }
 
 void CameraView::on_btndFilter_clicked()
 {
-    model->setRotaryField(V_ND_FILTER);
+    model->setRotaryField(V_ND_FILTER,SEND);
 }
 
 void CameraView::on_btwRed_clicked()
 {
-    model->setRotaryField(V_W_RED);
+    model->setRotaryField(V_W_RED,SEND);
 }
 
 void CameraView::on_btwBlue_clicked()
 {
-    model->setRotaryField(V_W_BLUE);
+    model->setRotaryField(V_W_BLUE,SEND);
 }
 
 void CameraView::on_btbred_clicked()
 {
-    model->setRotaryField(V_B_RED);
+    model->setRotaryField(V_B_RED,SEND);
 }
 
 void CameraView::on_btbBlue_clicked()
 {
-    model->setRotaryField(V_B_BLUE);
+    model->setRotaryField(V_B_BLUE,SEND);
 }
 
 void CameraView::on_btSaturation_clicked()
 {
-    model->setRotaryField(V_COLOR);
+    model->setRotaryField(V_COLOR,SEND);
 }
 
 void CameraView::on_btColorTemp_clicked()
 {
-    model->setRotaryField(V_COL_TEMP);
+    model->setRotaryField(V_COL_TEMP,SEND);
 }
 
 void CameraView::on_btKnee_clicked()
 {
-    model->setRotaryField(V_KNEE);
+    model->setRotaryField(V_KNEE,SEND);
 }
 
 void CameraView::on_btKneePoint_clicked()
 {
-    model->setRotaryField(V_KNEE_POINT);
+    model->setRotaryField(V_KNEE_POINT,SEND);
 }
 
 void CameraView::on_btGamma_clicked()
 {
-    model->setRotaryField(V_GAMMA);
+    model->setRotaryField(V_GAMMA,SEND);
 }
 
 
 
 void CameraView::on_btGammaTab_clicked()
 {
-    model->setRotaryField(V_GAMMA_TAB);
+    model->setRotaryField(V_GAMMA_TAB,SEND);
 }
 
 
@@ -392,12 +392,12 @@ void CameraView::on_btGammaTab_clicked()
 
 void CameraView::on_btBlackLevel_clicked()
 {
-    model->setRotaryField(V_PED);
+    model->setRotaryField(V_PED,SEND);
 }
 
 void CameraView::on_btIris_clicked()
 {
-    model->setRotaryField(V_IRIS);
+    model->setRotaryField(V_IRIS,SEND);
 }
 
 

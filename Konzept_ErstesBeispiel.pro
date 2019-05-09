@@ -43,8 +43,10 @@ SOURCES += \
     home.cpp \
     view.cpp \
     cameraview.cpp \
-    others.cpp
-    generictimer.cpp
+    others.cpp \
+    generictimer.cpp \
+    xptcontrol.cpp \
+    xptinterface.cpp
 
 HEADERS += \
     model.h \
@@ -67,15 +69,18 @@ HEADERS += \
     home.h \
     view.h \
     cameraview.h \
-    others.h
-    generictimer.h
+    others.h \
+    generictimer.h \
+    xptcontrol.h \
+    xptinterface.h
 
 FORMS += \
     errorwindow.ui \
     home.ui \
     view.ui \
     cameraview.ui \
-    others.ui
+    others.ui \
+    xptcontrol.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

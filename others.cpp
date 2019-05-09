@@ -38,27 +38,27 @@ void Others::setModelController(Model *model, Controller *controller)
 
 void Others::on_btPanInvert_clicked(bool checked)
 {
-
+     model->setCamFlag(F_X_INVERT,checked);
 }
 
 void Others::on_btTiltInvert_clicked(bool checked)
 {
-
+    model->setCamFlag(F_Y_INVERT,checked);
 }
 
 void Others::on_btZoomInvert_clicked(bool checked)
 {
-
+    model->setCamFlag(F_Z_INVERT,checked);
 }
 
 void Others::on_btFocusInvert_clicked(bool checked)
 {
-
+    model->setCamFlag(F_FOCUSINVERT,checked);
 }
 
 void Others::on_btMirror_clicked()
 {
-    model->setRotaryField(V_MIRROR);
+    model->setRotaryField(V_MIRROR,SEND);
 }
 
 void Others::on_btUpperLimit_clicked()
@@ -83,7 +83,7 @@ void Others::on_btCalibrate_clicked()
 
 void Others::on_btHeadPower_clicked()
 {
-    model->setRotaryField(V_HEAD_POWER);
+    model->setRotaryField(V_HEAD_POWER,SEND);
 }
 
 void Others::on_btRequest_clicked()
@@ -111,7 +111,7 @@ void Others::stackChanged()
     QPushButton *button=ui->btMirror;
     QList<QPushButton*> allButtons=this->findChildren<QPushButton*>();
     for(int i=0;i<allButtons.size();i++){
-        if(allButtons[i]->isChecked())
+        if(allButtons[i]->isChecked() && allButtons[i]->autoExclusive() )
         {button=allButtons[i];}
 
     }

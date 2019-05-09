@@ -1,5 +1,9 @@
 #include "xptcontrol.h"
 #include "ui_xptcontrol.h"
+#include "model.h"
+#include "controller.h"
+#include "events.h"
+#include <QString>
 
 XptControl::XptControl(QWidget *parent) :
     QWidget(parent),
@@ -11,4 +15,150 @@ XptControl::XptControl(QWidget *parent) :
 XptControl::~XptControl()
 {
     delete ui;
+}
+
+void XptControl::updateUi()
+{
+
+    ui->btSource1->setText(QString::number(model->getValue(0,DISP,V_XPT_SOURCE)));
+    ui->btSource2->setText(QString::number(model->getValue(1,DISP,V_XPT_SOURCE)));
+    ui->btSource3->setText(QString::number(model->getValue(2,DISP,V_XPT_SOURCE)));
+    ui->btSource4->setText(QString::number(model->getValue(3,DISP,V_XPT_SOURCE)));
+    ui->btSource5->setText(QString::number(model->getValue(4,DISP,V_XPT_SOURCE)));
+    ui->btSource6->setText(QString::number(model->getValue(5,DISP,V_XPT_SOURCE)));
+    ui->btDestination->setText(QString::number(model->getXptDestination()));
+    ui->btXPTIp_1->setText(QString::number(model->getXptIpField(0)));
+    ui->btXPTIp_2->setText(QString::number(model->getXptIpField(1)));
+    ui->btXPTIp_3->setText(QString::number(model->getXptIpField(2)));
+    ui->btXPTIp_4->setText(QString::number(model->getXptIpField(3)));
+
+
+}
+
+void XptControl::xptStatusChanged(bool connected)
+{
+    ui->btConnect->setChecked(connected);
+    if(connected){
+        ui->lStatus->setText("Connected");
+        ui->btConnect->setText("Disconnect");
+        ui->btXPTIp_1->setEnabled(false);
+        ui->btXPTIp_2->setEnabled(false);
+        ui->btXPTIp_3->setEnabled(false);
+        ui->btXPTIp_4->setEnabled(false);
+
+
+    }
+    else{
+       ui->lStatus->setText("Not Connected");
+       ui->btConnect->setText("Connect");
+       ui->btXPTIp_1->setEnabled(true);
+       ui->btXPTIp_2->setEnabled(true);
+       ui->btXPTIp_3->setEnabled(true);
+       ui->btXPTIp_4->setEnabled(true);
+
+    }
+
+}
+
+void XptControl::setModelController(Model *model, Controller *controller)
+{
+    this->model = model;
+    this->controller = controller;
+}
+void XptControl::on_btSource1_clicked()
+{
+    model->setXptSlot(0);
+    model->setRotaryField(V_XPT_SOURCE,INTERNAL);
+
+}
+
+void XptControl::on_btSource2_clicked()
+{
+    model->setXptSlot(1);
+    model->setRotaryField(V_XPT_SOURCE,INTERNAL);
+}
+
+void XptControl::on_btSource3_clicked()
+{
+    model->setXptSlot(2);
+    model->setRotaryField(V_XPT_SOURCE,INTERNAL);
+}
+
+void XptControl::on_btSource4_clicked()
+{
+    model->setXptSlot(3);
+    model->setRotaryField(V_XPT_SOURCE,INTERNAL);
+}
+
+void XptControl::on_btSource5_clicked()
+{
+    model->setXptSlot(4);
+    model->setRotaryField(V_XPT_SOURCE,INTERNAL);
+}
+
+void XptControl::on_btSource6_clicked()
+{
+    model->setXptSlot(5);
+    model->setRotaryField(V_XPT_SOURCE,INTERNAL);
+}
+
+void XptControl::on_btDestination_clicked()
+{
+    model->setRotaryField(XPT_DESTINATION,INTERNAL);
+}
+
+void XptControl::on_btXPTIp_1_clicked()
+{
+    model->setRotaryField(XPT_IP_FIELD_1,INTERNAL);
+}
+
+void XptControl::on_btXPTIp_2_clicked()
+{
+    model->setRotaryField(XPT_IP_FIELD_2,INTERNAL);
+}
+
+void XptControl::on_btXPTIp_3_clicked()
+{
+    model->setRotaryField(XPT_IP_FIELD_3,INTERNAL);
+}
+
+void XptControl::on_btXPTIp_4_clicked()
+{
+    model->setRotaryField(XPT_IP_FIELD_4,INTERNAL);
+}
+
+
+
+void XptControl::on_btConnect_clicked(bool checked)
+{
+    model->setXptConnected(checked);
+    if(!checked){
+        ui->btConnect->setText("Connect");
+        ui->btXPTIp_1->setEnabled(true);
+        ui->btXPTIp_2->setEnabled(true);
+        ui->btXPTIp_3->setEnabled(true);
+        ui->btXPTIp_4->setEnabled(true);
+        controller->queueEvent(E_XPT_CONNECT);
+
+    }
+    else{
+        ui->btConnect->setText("Disconnect");
+        ui->btXPTIp_1->setEnabled(false);
+        ui->btXPTIp_2->setEnabled(false);
+        ui->btXPTIp_3->setEnabled(false);
+        ui->btXPTIp_4->setEnabled(false);
+        controller->queueEvent(E_XPT_CONNECT);
+    }
+}
+
+void XptControl::stackChanged()
+{
+    QPushButton *button=ui->btSource1;
+    QList<QPushButton*> allButtons=this->findChildren<QPushButton*>();
+    for(int i=0;i<allButtons.size();i++){
+        if(allButtons[i]->isChecked() && allButtons[i]->autoExclusive())
+        {button=allButtons[i];}
+
+    }
+    button->click();
 }

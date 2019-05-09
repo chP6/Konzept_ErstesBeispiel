@@ -81,15 +81,16 @@
 #define V_BOUNCE_ZOOM_SPEED   24
 #define V_HEAD_POWER          25
 #define V_MIRROR              26
+#define V_XPT_SOURCE          27
 
-#define ROW_ENTRIES           27
+#define ROW_ENTRIES           28
 #define COLUM_ENTRIES         5
 #define NORMAL                0
 #define CENTER                1
 #define TEXT                  2
 #define NAN                   3
 
-#define NUMBER_OF_FLAGS       7
+#define NUMBER_OF_FLAGS       11
 /*flags*/
 #define F_PRST_IN_STORE       0
 #define F_BOUNCING            1
@@ -98,10 +99,22 @@
 #define F_BOUNCE_ENABLE       4
 #define F_KNOWN               5
 #define F_CONNECTED           6
+#define F_X_INVERT            7
+#define F_Y_INVERT            8
+#define F_Z_INVERT            9
+#define F_FOCUSINVERT         10
 
 /*set,get types*/
 #define ABS                 1
 #define INC                 2
 #define DISP                3
+
+#define INTERNAL            0
+#define SEND                1
+#define XPT_DESTINATION     0
+#define XPT_IP_FIELD_1      1
+#define XPT_IP_FIELD_2      2
+#define XPT_IP_FIELD_3      3
+#define XPT_IP_FIELD_4      4
 
 #endif // CONFIG_H

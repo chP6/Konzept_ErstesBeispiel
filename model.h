@@ -5,6 +5,7 @@
 #include <QStringList>
 #include "config.h"
 #include "bbmcommandtypes.h"
+#include <stdio.h>
 //#include "view.h" //nix gut, circular dependency -> forward declaration.
 //class View;         //Make sure each header can be included on its own.
 
@@ -15,6 +16,7 @@ struct camera_s{
   bool flags[NUMBER_OF_FLAGS];
   int values [ROW_ENTRIES][COLUM_ENTRIES];
   QString *textTable;
+  int xptSource;
 };
 
 
@@ -28,6 +30,7 @@ signals:
     void setUpView();
     void updateServerConnectionStatus(bool connected);
     void updateCameraConnectionStatus(bool connected);
+    void updateXptConnectionStatus(bool connected);
 
 public:
     Model();
@@ -66,11 +69,23 @@ public:
     int setWatchdogWaitingflag(bool waiting);
     int setCameraWaitingflag(int slotNr, bool waiting);
     int getRotaryField();
-    void setRotaryField(int field);
+    void setRotaryField(int field, int destination);
+    int getRotaryDestination();
     int getTxCommand(int value);
     int getValueFromBBMCommand(int bbm_command);
     void setTextTable(int slotNr, int type);
     int toggleBlink();
+    void setXptConnected(bool flag);
+    bool getXptConnected();
+    void setSlotSource(int source);
+    int getSlotSource(int slotNr);
+    void setXptDestination(int destination);
+    int getXptDestination();
+    void setXptSlot(int slot);
+    int getXptSlot();
+    void setXptIpField(int field,int value);
+    int getXptIpField(int field);
+    char* getXptIpAdress();
 
 
 private:
@@ -78,14 +93,22 @@ private:
     int answerStack;
     int count;
     int rotaryField;
+    int rotaryDestination;
     int x = 5000;
     int y = 5000;
     bool watchdogWaitingForAnswerFlag = false;
+    bool xptConnect=false;
     int cameraWaitingForAnswerStack[NUMBER_OF_SLOTS] = {0,0,0,0,0,0};
     bool serverConnected = false;
     struct camera_s cameras[NUMBER_OF_SLOTS];
     int activeCameraSlot;     // 0-5
     bool blinkToggle = false;
+    int xptDestination=1;
+    int xptSlot;
+    char xptIpAddress[20];
+    int xptFields[4];
+
+
     // camera type 2 init values
     int c2Values[ROW_ENTRIES][COLUM_ENTRIES]=
                       {{1,0,49,NORMAL},     //headnr init_value, min_value, max_value
@@ -114,7 +137,8 @@ private:
                        {0,0,30,NORMAL},      //SPP Wait Time
                        {12,1,127,NORMAL},    //Bounce Zoom Speed
                        {0,0,2,TEXT,5},       //Head Power
-                       {0,0,3,TEXT,6}               //Mirror
+                       {0,0,3,TEXT,6},               //Mirror
+                       {1,1,40,NORMAL}
                       };
 
     // camera type 1 init values
@@ -145,7 +169,8 @@ private:
                        {0,0,30,NORMAL},      //SPP Wait Time
                        {12,1,127,NORMAL},    //Bounce Zoom Speed
                        {0,0,2,TEXT,4},        //Head Power
-                       {0,0,3,TEXT,5}               //Mirror
+                       {0,0,3,TEXT,5},               //Mirror
+                       {1,1,40,NORMAL}
                       };
 
     // camera type 3&4 init values
@@ -176,12 +201,13 @@ private:
                        {0,0,30,NORMAL},      //SPP Wait Time
                        {12,1,127,NORMAL},    //Bounce Zoom Speed
                        {0,0,2,TEXT,6},        //Head Power
-                       {0,0,3,TEXT,7}               //Mirror
+                       {0,0,3,TEXT,7},               //Mirror
+                       {1,1,40,NORMAL}
                       };
     int commandtype[ROW_ENTRIES]{-1,IRIS_OPEN,MASTER_PED_UP,FOCUS_SET_ABSOLUTE,
     RED_GAIN_ADJ_UP,BLUE_GAIN_ADJ_UP,RED_PED_UP,BLUE_PED_UP,CAMERA_GAIN_UP,GAMMA,
     GAMMA_TABLE,DETAIL_LEVEL_ADJ,COLOR_UP,WHITE_BALANCE_PRST,KNEE_POINT_AUTO,-1,-1,
-    SHUTTER_UP,PAN_TILT_SPEED,-1,RAMP,-1,-1,-1,-1,HEAD_POWER,MIRROR_H_V};
+    SHUTTER_UP,PAN_TILT_SPEED,-1,RAMP,-1,-1,-1,-1,HEAD_POWER,MIRROR_H_V,-1};
 
     QString c1TextTable[6][15]={{"-10.5dB","-9dB","-7.5dB","-6dB","-4.5dB","-3dB","-1.5dB","0dB","1.5dB","3dB","4.5dB","6dB","7.5dB","9dB","10.5dB"},
                                {"High","Low"},
@@ -207,6 +233,7 @@ private:
                                 {"Low","Mid","High"},
                                {"Normal","H-Inverted","V-Inverted","HV-Inverted"}
                                };
+
 };
 
 #endif // MODEL_H

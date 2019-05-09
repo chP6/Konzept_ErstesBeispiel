@@ -34,6 +34,7 @@
 #define E_SET_LOWER_LIMIT       30
 #define E_CLEAR_LIMIT           31
 #define E_BOUNCE_BLINK          32
+#define E_XPT_CONNECT           33
 
 
 

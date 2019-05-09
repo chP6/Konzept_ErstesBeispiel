@@ -18,6 +18,7 @@ public slots:
     void on_modelSetUp();
     void on_serverConnectionStatusChanged(bool connected);
     void on_cameraConnectionStatusChanged(bool connected);
+    void on_xptConnectionStatusChanged(bool connected);
 
 private slots:
     void on_btHome_clicked();

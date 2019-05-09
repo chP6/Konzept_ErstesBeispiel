@@ -5,6 +5,7 @@
 #include "networkinterface.h"
 #include "tastenfeld.h"
 #include "generictimer.h"
+#include "xptinterface.h"
 
 #define SAVEFILE_PATH   "/opt/savefile"
 
@@ -37,6 +38,7 @@ private:
     Tastenfeld presetbus;
     Tastenfeld camerabus;
     GenericTimer blinkTimer;
+    XptInterface xptSocket;
     void processQeue();
     void increment(int inc);
     void clear();
