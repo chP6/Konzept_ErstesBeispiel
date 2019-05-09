@@ -91,7 +91,7 @@
 
 #define NUMBER_OF_FLAGS       7
 /*flags*/
-#define F_PRST_IN_STORE         0
+#define F_PRST_IN_STORE       0
 #define F_BOUNCING            1
 #define F_SPP_ON              2
 #define F_FASTTRANS           3

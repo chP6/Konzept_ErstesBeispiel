@@ -44,7 +44,7 @@ SOURCES += \
     view.cpp \
     cameraview.cpp \
     others.cpp
-
+    generictimer.cpp
 
 HEADERS += \
     model.h \
@@ -68,7 +68,7 @@ HEADERS += \
     view.h \
     cameraview.h \
     others.h
-
+    generictimer.h
 
 FORMS += \
     errorwindow.ui \

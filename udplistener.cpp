@@ -51,7 +51,7 @@ void UdpListener::listener(){
 
         // Watchdog answer from camera/head
         if(answer.command == WATCHDOG && answer.from != SERVER){
-            controller->queueEvent(E_CHECK_CAMERA_TYPE, answer.from, answer.data[1]);
+            controller->queueEvent(E_RX_CAMERA_WATCHDOG, answer.from, answer.data[1]);
         }
 
         // Autofocus answer (todo: remove! double with reply from camera)

@@ -109,6 +109,14 @@ int Model::setActiveCameraSlot(int slotNr)
 {
     activeCameraSlot=slotNr;
     emit updateView();
+    // update connection status of camera
+    if(cameras[slotNr].flags[F_CONNECTED]){
+        emit updateCameraConnectionStatus(true);
+    }
+    else{
+        emit updateCameraConnectionStatus(false);
+    }
+
     return cameras[activeCameraSlot].values[V_HEADNR][VAL];
 }
 
@@ -315,9 +323,8 @@ bool Model::getCamFlag(int slotNr, int flag)
 int Model::setWatchdogWaitingflag(bool waiting){
     if(waiting){
         if(watchdogWaitingForAnswerFlag){
-            watchdogWaitingForAnswerFlag = true;
             if(serverConnected){
-                emit updateServerConnectionStatus(false);       //signal connection lost
+                emit updateServerConnectionStatus(false);       //signal: connection lost
             }
             serverConnected = false;
             return -1;      // error, already waiting for answer -> connection lost
@@ -330,11 +337,34 @@ int Model::setWatchdogWaitingflag(bool waiting){
     else{
         watchdogWaitingForAnswerFlag = false;
         if(!serverConnected){
-            emit updateServerConnectionStatus(true);        //signal connected
+            emit updateServerConnectionStatus(true);        //signal: connected
         }
         serverConnected = true;
         return 0;           // ok, clear flag
     }
+}
+
+int Model::setCameraWaitingflag(int slotNr, bool waiting){
+    if(waiting){        // out ping sent -> decrement stack 1
+        if (cameraWaitingForAnswerStack[slotNr]<=0) {   // empty -> signal disconnect if connection status not already disconnected
+            if(cameras[slotNr].flags[F_CONNECTED]){
+                emit updateCameraConnectionStatus(false);        //signal: disconnected
+                cameras[slotNr].flags[F_CONNECTED] = false;
+            }
+        }
+        else {
+            cameraWaitingForAnswerStack[slotNr]--;
+        }
+    }
+    else{   // Answer received -> fill stack, send signal if connection status was not already ok
+        cameraWaitingForAnswerStack[slotNr] = 2;
+        if(!cameras[slotNr].flags[F_CONNECTED]){
+            emit updateCameraConnectionStatus(true);        //signal: connected
+        }
+        cameras[slotNr].flags[F_CONNECTED] = true;
+        return 0;           // ok, clear flag
+    }
+    //qDebug("stack: %d",cameraWaitingForAnswerStack[slotNr]);
 }
 
 int Model::getRotaryField()
@@ -367,14 +397,18 @@ void Model::setTextTable(int slotNr, int type){
         cameras[slotNr].textTable=&c1TextTable[0][0];
         break;
     case 2:
-        cameras[slotNr].textTable=&c1TextTable[0][0];
+        cameras[slotNr].textTable=&c2TextTable[0][0];
         break;
     case 5:
-        cameras[slotNr].textTable=&c1TextTable[0][0];
+        cameras[slotNr].textTable=&rTextTable[0][0];
         break;
     case 6:
-        cameras[slotNr].textTable=&c1TextTable[0][0];
+        cameras[slotNr].textTable=&rTextTable[0][0];
         break;
     }
+}
 
+int Model::toggleBlink(){
+    blinkToggle=!blinkToggle;
+    return blinkToggle;
 }

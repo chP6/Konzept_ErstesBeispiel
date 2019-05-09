@@ -27,7 +27,7 @@ signals:
     void updateView();
     void setUpView();
     void updateServerConnectionStatus(bool connected);
-    void updateCameraConnectionStatus(int slotNr, bool connected);
+    void updateCameraConnectionStatus(bool connected);
 
 public:
     Model();
@@ -64,11 +64,13 @@ public:
     bool getCamFlag(int flag);
     bool getCamFlag(int slotNr, int flag);
     int setWatchdogWaitingflag(bool waiting);
+    int setCameraWaitingflag(int slotNr, bool waiting);
     int getRotaryField();
     void setRotaryField(int field);
     int getTxCommand(int value);
     int getValueFromBBMCommand(int bbm_command);
     void setTextTable(int slotNr, int type);
+    int toggleBlink();
 
 
 private:
@@ -79,9 +81,11 @@ private:
     int x = 5000;
     int y = 5000;
     bool watchdogWaitingForAnswerFlag = false;
+    int cameraWaitingForAnswerStack[NUMBER_OF_SLOTS] = {0,0,0,0,0,0};
     bool serverConnected = false;
     struct camera_s cameras[NUMBER_OF_SLOTS];
     int activeCameraSlot;     // 0-5
+    bool blinkToggle = false;
     // camera type 2 init values
     int c2Values[ROW_ENTRIES][COLUM_ENTRIES]=
                       {{1,0,49,NORMAL},     //headnr init_value, min_value, max_value
@@ -203,8 +207,6 @@ private:
                                 {"Low","Mid","High"},
                                {"Normal","H-Inverted","V-Inverted","HV-Inverted"}
                                };
-
-
 };
 
 #endif // MODEL_H

@@ -13,6 +13,7 @@ ServerWatchdog::ServerWatchdog()
 int ServerWatchdog::init(){
     timer_fd = timerfd_create(CLOCK_MONOTONIC, 0);
 
+
     timeout.it_value.tv_sec = 1;
     timeout.it_value.tv_nsec = 0;
     timeout.it_interval.tv_sec = 1;
