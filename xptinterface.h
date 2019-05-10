@@ -10,6 +10,7 @@
 #include <string>
 #include <sys/types.h>
 #include <stdio.h>
+#include <QList>
 
 
 #define MAXDATASIZE 512
@@ -17,14 +18,26 @@
 class XptInterface
 {
 public:
+    enum SrvAnswer {
+        Error=-2,
+        NACK=-1,
+        ACK=0,
+        NOP,
+        DeviceType
+    };
     XptInterface();
     ~XptInterface();
     int init(int port, char* ipAdress);
     int changeIP(char* ipAdress);
     int sendChange(int source, int destination);
-    int requestConnection();
+    int checkConnection();
     int connectToXpt();
     int disconnect();
+    SrvAnswer processMessage(QList<QByteArray> &message);
+    QList<QByteArray> appendInput(QByteArray &input);
+    int getNumberOfInputs();
+    int getNumberOfOutputs();
+    
 
 
 private:
@@ -35,6 +48,10 @@ private:
     int connect_err;
     char rxbuffer[MAXDATASIZE];
     char txBuffer[35];
+    int numberOfInputs;
+    int numberOfOutputs;
+
+
 };
 
 #endif // XPTINTERFACE_H

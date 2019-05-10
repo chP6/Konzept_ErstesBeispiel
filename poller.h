@@ -18,7 +18,7 @@ public:
     void startListener();
 private:
     void listener();
-    struct pollfd poll_fd[20];
+    struct pollfd poll_fd[21];
     int poll_err;
     int sense_val;
     signed char rotary_val;
@@ -28,6 +28,7 @@ private:
     Rotary rotary1, rotary2;
     Tastenfeld presetbus;
     Tastenfeld camerabus;
+    ServerWatchdog xptWatchdog;
     OCP ocp;
 };
 

@@ -244,27 +244,27 @@ void Controller::processQeue(){
             }
            else{
                 switch (field) {
-                case V_XPT_SOURCE:
-                         model->setValue(model->getXptSlot(),INC,field,loadedEvent.data[0]);
+                case I_XPT_SOURCE:
+                         model->setXptSlotSource(loadedEvent.data[0]);
                     break;
-                case XPT_DESTINATION:
+                case I_XPT_DESTINATION:
                     model->setXptDestination(loadedEvent.data[0]);
                     break;
-                case XPT_IP_FIELD_1:
+                case I_XPT_IP_FIELD_1:
                     model->setXptIpField(0,loadedEvent.data[0]);
-                    xptSocket.changeIP(model->getXptIpAdress());
+
                     break;
-                case XPT_IP_FIELD_2:
+                case I_XPT_IP_FIELD_2:
                     model->setXptIpField(1,loadedEvent.data[0]);
-                    xptSocket.changeIP(model->getXptIpAdress());
+
                     break;
-                case XPT_IP_FIELD_3:
+                case I_XPT_IP_FIELD_3:
                     model->setXptIpField(2,loadedEvent.data[0]);
-                    xptSocket.changeIP(model->getXptIpAdress());
+
                     break;
-                case XPT_IP_FIELD_4:
+                case I_XPT_IP_FIELD_4:
                     model->setXptIpField(3,loadedEvent.data[0]);
-                    xptSocket.changeIP(model->getXptIpAdress());
+
                     break;
                 default:
                     break;
@@ -393,8 +393,8 @@ void Controller::processQeue(){
             else{
                 presetbus.setLed(CAMERA_COLOR,model->getActivePreset());
             }
-            if(model->getXptConnected()){
-                contr_err = xptSocket.sendChange(model->getValue(ABS,V_XPT_SOURCE),model->getXptDestination());
+            if(model->getXptEnabled()){
+                contr_err = xptSocket.sendChange(model->getXptSlotSource(model->getActiveCameraSlot()),model->getXptDestination());
                 if (contr_err < 0) {
                     contr_err = errno;  //zwischenspeichern (muss)
                     logSystemError(contr_err, "Could not send to Xpt");
@@ -515,6 +515,7 @@ void Controller::processQeue(){
             break;
         case E_CLEAR_LIMIT:
             txSocket.send(model->getValue(ABS,V_HEADNR),TILT_CLEAR_LIMIT);
+            break;
         case E_BOUNCE_BLINK:
             if(model->getCamFlag(F_BOUNCING)){
                 if(model->toggleBlink()){
@@ -526,14 +527,21 @@ void Controller::processQeue(){
             }
             break;
         case E_XPT_CONNECT:
-            if(model->getXptConnected()){
+            if(model->getXptEnabled()){
+                xptSocket.changeIP(model->getXptIpAdress());
                 contr_err = xptSocket.connectToXpt();
                 if(contr_err < 0){
-                    contr_err = errno;  //zwischenspeichern (muss)
+                    contr_err = errno;
                     logSystemError(contr_err, "Could not connect to Xpt");
                     model->setXptConnected(false);
+                }else {
+                    model->setXptConnected(true);
+                    }
+                if(contr_err){
+                    model->setXptNumberOfInputs(xptSocket.getNumberOfInputs());
+                    model->setXptNumberOfOutputs(xptSocket.getNumberOfOutputs());
                 }
-                model->updateXptConnectionStatus(model->getXptConnected());
+
             }
            else{
             contr_err = xptSocket.disconnect();
@@ -541,6 +549,27 @@ void Controller::processQeue(){
                 contr_err = errno;  //zwischenspeichern (muss)
                 logSystemError(contr_err, "Could not disconnect xpt");
             }
+                model->setXptConnected(false);
+            }
+            break;
+
+        case E_XPT_WATCHDOG:
+            if(model->getXptEnabled())
+            {
+                int connection;
+                connection = xptSocket.checkConnection();
+                if (connection <= 0) {
+                    if (xptSocket.connectToXpt() < 0) {
+                        model->setXptConnected(false);
+                    }
+
+                    break;
+                }
+                else if(connection == 1 && model->getXptConnected()==false) {
+                    model->setXptConnected(true);
+                    break;
+                }
+
             }
             break;
         default:

@@ -420,7 +420,7 @@
    <item row="1" column="2">
     <widget class="QLabel" name="lStatus">
      <property name="text">
-      <string>Connected</string>
+      <string>Not Connected</string>
      </property>
     </widget>
    </item>

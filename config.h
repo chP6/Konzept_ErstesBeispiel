@@ -81,9 +81,9 @@
 #define V_BOUNCE_ZOOM_SPEED   24
 #define V_HEAD_POWER          25
 #define V_MIRROR              26
-#define V_XPT_SOURCE          27
 
-#define ROW_ENTRIES           28
+
+#define ROW_ENTRIES           27
 #define COLUM_ENTRIES         5
 #define NORMAL                0
 #define CENTER                1
@@ -111,10 +111,13 @@
 
 #define INTERNAL            0
 #define SEND                1
-#define XPT_DESTINATION     0
-#define XPT_IP_FIELD_1      1
-#define XPT_IP_FIELD_2      2
-#define XPT_IP_FIELD_3      3
-#define XPT_IP_FIELD_4      4
+
+#define I_XPT_DESTINATION     0
+#define I_XPT_IP_FIELD_1      1
+#define I_XPT_IP_FIELD_2      2
+#define I_XPT_IP_FIELD_3      3
+#define I_XPT_IP_FIELD_4      4
+#define I_XPT_SOURCE          5
+
 
 #endif // CONFIG_H
