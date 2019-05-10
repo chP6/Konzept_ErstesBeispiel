@@ -4,6 +4,7 @@
 /*colors*/
 #define PRESET_COLOR 0xFFFFFF
 #define CAMERA_COLOR 0xFF00F0
+#define SPP_COLOR    0x2483D6
 #define ACT_PRESET_COLOR 0x00FF00
 
 /*GPIO Tasten*/
@@ -41,6 +42,8 @@
 
 /*Debounce Time in us*/
 #define DEBOUNCE_T 20 //in us
+#define CREEP_T    100000
+#define TX_T       150000
 
 /*others*/
 #define TRUE 1
@@ -89,6 +92,7 @@
 #define CENTER                1
 #define TEXT                  2
 #define NAN                   3
+#define OFFSET                4
 
 #define NUMBER_OF_FLAGS       11
 /*flags*/
@@ -109,6 +113,7 @@
 #define INC                 2
 #define DISP                3
 
+
 #define INTERNAL            0
 #define SEND                1
 
@@ -119,5 +124,13 @@
 #define I_XPT_IP_FIELD_4      4
 #define I_XPT_SOURCE          5
 
+
+
+/*SPP States*/
+#define S_SPP_IDLE            0
+#define S_SPP_GOTO1           1
+#define S_SPP_GOTO2           2
+#define S_SPP_WAIT1           3
+#define S_SPP_WAIT2           4
 
 #endif // CONFIG_H

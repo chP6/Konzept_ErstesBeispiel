@@ -44,6 +44,10 @@ void View::on_modelSetUp()
     ui->cameraView->setUpUi();
 }
 
+void View::on_sppUpdate(bool active)
+{
+    ui->home->sppUpdate(active);
+}
 
 
 void View::on_serverConnectionStatusChanged(bool connected)
@@ -56,9 +60,16 @@ void View::on_cameraConnectionStatusChanged(bool connected)
     ui->home->cameraConnectionChanged(connected);
 }
 
+
 void View::on_xptConnectionStatusChanged(bool connected)
 {
     ui->xptControl->xptStatusChanged(connected);
+}
+
+
+void View::on_loadButtonCleared()
+{
+    ui->others->clearLoadButton();
 
 }
 

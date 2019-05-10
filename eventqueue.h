@@ -20,6 +20,7 @@ public:
     void qeueEvent(int evt, unsigned char number);
     void qeueEvent(int evt);
     void pullEvent(event_s& entry);
+    void initCleanup();
 private:
     std::vector<event_s> queue;
     std:: mutex mtx;

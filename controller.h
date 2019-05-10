@@ -6,13 +6,19 @@
 #include "tastenfeld.h"
 #include "generictimer.h"
 #include "xptinterface.h"
+#include "config.h"
+
 
 #define SAVEFILE_PATH   "/opt/savefile"
 
 class Model;        //forward declaration
 
-class Controller
+class Controller : public QObject
 {
+    Q_OBJECT        //qmake vor erstem kompilieren laufen lassen!
+
+signals:
+    void clearLoadButon();
 public:
     Controller(Model& model);
     void setModel(Model& model);
@@ -37,8 +43,9 @@ private:
     Networkinterface txSocket;
     Tastenfeld presetbus;
     Tastenfeld camerabus;
-    GenericTimer blinkTimer;
     XptInterface xptSocket;
+    GenericTimer blinkTimer, sppTimer[NUMBER_OF_SLOTS];
+
     void processQeue();
     void increment(int inc);
     void clear();

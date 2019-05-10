@@ -20,6 +20,7 @@ public:
     void stackChanged();
     void setModelController(Model* model, Controller* controller);
     void updateUi();
+    void clearLoadButton();
     ~Others();
 
 private slots:

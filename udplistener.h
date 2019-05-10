@@ -20,7 +20,6 @@ private:
     uint8_t buffer[10];
     int rx_err;
     void listener();
-    void sort();
 };
 
 #endif // UDPLISTENER_H

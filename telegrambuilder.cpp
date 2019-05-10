@@ -142,8 +142,8 @@ void Telegrambuilder::encode(bool request, int bbm_dev_no, int bbm_command, std:
             datagram[8] = (uint8_t)data[0];
             break;
         case HEAD_POWER:
-            datagram[5] = 1;
-            datagram[6] = (uint8_t)data[0];
+            //datagram[5] = 1;
+            datagram[8] = (uint8_t)data[0];
             break;
         case TILT_UPPER_LIMIT:
             // all zeros

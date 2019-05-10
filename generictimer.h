@@ -2,6 +2,7 @@
 #define GENERICTIMER_H
 
 #include <poll.h>
+#include <thread>
 #include <sys/timerfd.h>
 
 class Controller;        //forward declaration
@@ -10,11 +11,15 @@ class GenericTimer
 {
 public:
     GenericTimer();
-    int init(int interval_us, int command, Controller& controller);
+    ~GenericTimer();
+    int init(int command, Controller& controller);
+    int init(int command, int command_data, Controller& controller);
     void start();
     void stop();
+    void setInterval(int interval_us);
     int command;
-    bool active = false;
+    int command_data;
+    bool active = true;
 
 private:
     void listen();
@@ -25,6 +30,7 @@ private:
     int timersElapsed;
     int timer_err;
     int sec,usec;
+    bool init_done = false;
 };
 
 #endif // GENERICTIMER_H

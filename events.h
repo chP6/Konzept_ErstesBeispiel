@@ -1,7 +1,7 @@
 #ifndef EVENTS_H
 #define EVENTS_H
 
-
+#define E_NULLEVENT             0
 #define E_INCREASE              1
 #define E_CLEAR                 2
 #define E_SET_TILT              3
@@ -34,9 +34,12 @@
 #define E_SET_LOWER_LIMIT       30
 #define E_CLEAR_LIMIT           31
 #define E_BOUNCE_BLINK          32
-#define E_XPT_CONNECT           33
-#define E_XPT_WATCHDOG          34
-
+#define E_SPP_START             33
+#define E_SPP_ABORT             34
+#define E_SPP_WAIT_DONE         35
+#define E_PRESET_REACHED        36
+#define E_XPT_CONNECT           37
+#define E_XPT_WATCHDOG          38
 
 
 

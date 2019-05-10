@@ -257,6 +257,9 @@ int Model::getValue(int type, int property)
             return -2048;
         case TEXT:
             return -2049;
+        case OFFSET:
+            return cameras[activeCameraSlot].values[property][VAL]+1;
+            break;
         default:
             return -1;
         }
@@ -426,6 +429,7 @@ int Model::toggleBlink(){
     return blinkToggle;
 }
 
+
 void Model::setXptConnected(bool flag)
 {
   if(xptConnect != flag){
@@ -557,4 +561,13 @@ void Model::setXptEnabled(bool flag)
     if(xptEnabled != flag){
         xptEnabled = flag;
     }
+}
+
+void Model::setSppState(int slotNr, int state){
+    sppState[slotNr] = state;
+}
+
+int Model::getSppState(int slotNr){
+    return sppState[slotNr];
+
 }

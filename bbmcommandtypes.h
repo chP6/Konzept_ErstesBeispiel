@@ -39,6 +39,7 @@
 #define GAMMA				71
 #define	GAMMA_TABLE			72
 #define DYN_NOISE_REDUCTION	74
+#define PRESET_REACHED      76
 #define MATRIX_LIN_RG		80
 #define MATRIX_LIN_GB		81
 #define MATRIX_LIN_BR		82

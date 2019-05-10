@@ -1,6 +1,5 @@
 #include "generictimer.h"
 #include "controller.h"
-#include <thread>
 #include <QDebug>
 
 
@@ -8,43 +7,102 @@ GenericTimer::GenericTimer()
 {
 }
 
-
-int GenericTimer::init(int interval_us, int command, Controller& controller){
-    this->controller = &controller;
-    this->command = command;
-
-    sec = interval_us/(1000*1000);
-    usec = interval_us%(1000*1000);
+GenericTimer::~GenericTimer(){
+    close(timer_fd);
+    active = false;
 }
 
-void GenericTimer::start(){
-    //only start if not already active
-    if(!active){
-        active = true;
-        timer_fd = timerfd_create(CLOCK_MONOTONIC, 0);
 
-        timeout.it_value.tv_sec = sec;
-        timeout.it_value.tv_nsec = usec*1000;
-        timeout.it_interval.tv_sec = sec;
-        timeout.it_interval.tv_nsec = usec*1000;
+int GenericTimer::init(int command, Controller& controller){
+    this->controller = &controller;
+    this->command = command;
+    this->command_data = -1;
 
-        timer_err = timerfd_settime(timer_fd, 0, &timeout, nullptr);
-        if (timer_err<0){
-            timer_err = errno;
-            controller->logSystemError(timer_err, "Could not create GenericTimer");
-        }
+    //creating timer, disarmed
+    timer_fd = timerfd_create(CLOCK_MONOTONIC, 0);
+    timeout.it_value.tv_sec = 0;
+    timeout.it_value.tv_nsec = 0;
+    timeout.it_interval.tv_sec = 0;
+    timeout.it_interval.tv_nsec = 0;
 
-        poll_fd[0].fd = timer_fd;
-        poll_fd[0].events = POLLIN;
+    timer_err = timerfd_settime(timer_fd, 0, &timeout, nullptr);
+    if (timer_err<0){
+        timer_err = errno;
+        controller.logSystemError(timer_err, "Could not create GenericTimer");
+    }
 
+    poll_fd[0].fd = timer_fd;
+    poll_fd[0].events = POLLIN;
+
+    if(!init_done){
+        init_done=true;
         std::thread t1(&GenericTimer::listen, this);                  //1.Arg: function type that will be called, 2.Arg: pointer to object (this)
         t1.detach();
+        //qDebug("Timer Thread created");
     }
 }
 
+int GenericTimer::init(int command, int command_data, Controller& controller){
+    this->controller = &controller;
+    this->command = command;
+    this->command_data = command_data;
+
+
+    //creating timer, disarmed
+    timer_fd = timerfd_create(CLOCK_MONOTONIC, 0);
+    timeout.it_value.tv_sec = 0;
+    timeout.it_value.tv_nsec = 0;
+    timeout.it_interval.tv_sec = 0;
+    timeout.it_interval.tv_nsec = 0;
+
+    timer_err = timerfd_settime(timer_fd, 0, &timeout, nullptr);
+    if (timer_err<0){
+        timer_err = errno;
+        controller.logSystemError(timer_err, "Could not set GenericTimer");
+    }
+
+    poll_fd[0].fd = timer_fd;
+    poll_fd[0].events = POLLIN;
+
+    if(!init_done){
+        init_done=true;
+        std::thread t1(&GenericTimer::listen, this);                  //1.Arg: function type that will be called, 2.Arg: pointer to object (this)
+        t1.detach();
+        //qDebug("Timer Thread created");
+    }
+}
+
+void GenericTimer::start(){
+    timeout.it_value.tv_sec = sec;
+    timeout.it_value.tv_nsec = usec*1000;
+    timeout.it_interval.tv_sec = sec;
+    timeout.it_interval.tv_nsec = usec*1000;
+
+    timer_err = timerfd_settime(timer_fd, 0, &timeout, nullptr);
+    if (timer_err<0){
+        timer_err = errno;
+        controller->logSystemError(timer_err, "Could not set GenericTimer");
+    }
+    //qDebug("ARMED");
+}
+
 void GenericTimer::stop(){
-    active = false;
-    close(timer_fd);
+    timeout.it_value.tv_sec = 0;
+    timeout.it_value.tv_nsec = 0;
+    timeout.it_interval.tv_sec = 0;
+    timeout.it_interval.tv_nsec = 0;
+
+    timer_err = timerfd_settime(timer_fd, 0, &timeout, nullptr);
+    if (timer_err<0){
+        timer_err = errno;
+        controller->logSystemError(timer_err, "Could not set GenericTimer");
+    }
+    //qDebug("DISARMED");
+}
+
+void GenericTimer::setInterval(int interval_us){
+    sec = interval_us/(1000*1000);
+    usec = interval_us%(1000*1000);
 }
 
 
@@ -64,8 +122,16 @@ void GenericTimer::listen(){
                 timer_err = errno;
                 controller->logSystemError(timer_err, "Could not read Generic Timer");
             }
-            controller->queueEvent(command);
-            qDebug("Generic Timer Tick, command: %d",command);
+            if(command_data < 0){
+                controller->queueEvent(command);
+                //qDebug("Generic Timer Tick");
+            }
+            else{
+                controller->queueEvent(command, command_data);
+                //qDebug("Generic Timer %d Tick, command: %d",command_data,command);
+            }
+            //qDebug("Timer Tick");
         }
     }
+    //qDebug("Timer Thread died");
 }

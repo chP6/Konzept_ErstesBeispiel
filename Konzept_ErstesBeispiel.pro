@@ -48,6 +48,7 @@ SOURCES += \
     xptcontrol.cpp \
     xptinterface.cpp
 
+
 HEADERS += \
     model.h \
     controller.h \

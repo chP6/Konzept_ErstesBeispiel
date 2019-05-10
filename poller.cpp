@@ -120,13 +120,17 @@ void Poller::listener(){
 //            poll_fd[i].revents = 0;
 //    }
 
+
+    // get rid of any undeterministic events from HW init
     rotary1.readSense();
     rotary1.readButton();
     rotary2.readSense();
     rotary2.readButton();
-    joystick.processEvent(jsData);
-    joystick.processEvent(jsData);
-    joystick.processEvent(jsData);
+
+//    for (int i=0;i<10;i++) {
+//        joystick.processEvent(jsData);
+//    }
+
     for (int i=0;i<6;i++) {
         presetbus.readButton(i);
         camerabus.readButton(i);
@@ -152,7 +156,6 @@ void Poller::listener(){
         }
 
         if(poll_fd[1].revents & POLLIN) {                   // Joystick event
-            //joystickData jsData;
             poll_err = joystick.processEvent(jsData);
             if(poll_err<0){
                 poll_err = errno;
@@ -163,13 +166,22 @@ void Poller::listener(){
                 controller->queueEvent(E_AUTOFOCUS);
             }
             else{
-                data.push_back(jsData.xCoord);
-                data.push_back(jsData.yCoord);
-                controller->queueEvent(E_SET_TILT, data);
+                //reducing number of necessary events
+                if(!(jsData.xCoord == xold && jsData.yCoord == yold)){
+                    data.push_back(jsData.xCoord);
+                    data.push_back(jsData.yCoord);
+                    controller->queueEvent(E_SET_TILT, data);
+                }
 
-                data.clear();
-                data.push_back(jsData.zCoord);
-                controller->queueEvent(E_SET_ZOOM, data);
+                if(!(jsData.zCoord == zold)){
+                    data.clear();
+                    data.push_back(jsData.zCoord);
+                    controller->queueEvent(E_SET_ZOOM, data);
+                }
+
+                xold=jsData.xCoord;
+                yold=jsData.yCoord;
+                zold=jsData.zCoord;
             }
         }
 

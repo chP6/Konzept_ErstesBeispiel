@@ -22,6 +22,7 @@ private:
     int poll_err;
     int sense_val;
     signed char rotary_val;
+    int xold,yold,zold;
     Controller* controller;
     ServerWatchdog srvWatchdog;    uint8_t buf[10];            //für antwort vom server. hier behalten?
     BBMJoystick joystick;
