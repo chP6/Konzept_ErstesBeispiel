@@ -103,8 +103,6 @@ Poller::Poller(Controller& controller)
         poll_fd[i+14].fd = camerabus.button[i];
         poll_fd[i+14].events = POLLPRI;
     }
-    poll_fd[20].fd = xptWatchdog.timer_fd;
-    poll_fd[20].events = POLLIN;
 
 }
 
@@ -139,7 +137,7 @@ void Poller::listener(){
     while(1){
 
         data.clear();
-        poll_err = poll(poll_fd,21,-1);                      //poll. Blocks until event occurs -> SIZE setzen! current = 15; -1 = infinite timeout
+        poll_err = poll(poll_fd,20,-1);                      //poll. Blocks until event occurs -> SIZE setzen! current = 15; -1 = infinite timeout
 
         if(poll_err<0){
             poll_err = errno;
@@ -481,14 +479,6 @@ void Poller::listener(){
             }
         }
 
-        if(poll_fd[20].revents & POLLIN){
-            poll_err = xptWatchdog.processEvent();
-            if(poll_err<0){
-                poll_err = errno;
-                controller->logSystemError(poll_err, "Could not read Xpt Watchdog Timer");
-            }
-            controller->queueEvent(E_XPT_WATCHDOG);
-        }
     }
 }
 

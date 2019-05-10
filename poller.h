@@ -18,7 +18,7 @@ public:
     void startListener();
 private:
     void listener();
-    struct pollfd poll_fd[21];
+    struct pollfd poll_fd[20];
     int poll_err;
     int sense_val;
     signed char rotary_val;

@@ -66,6 +66,11 @@ void View::on_xptConnectionStatusChanged(bool connected)
     ui->xptControl->xptStatusChanged(connected);
 }
 
+void View::on_xptEnableStatusChanged(bool connected)
+{
+    ui->xptControl->xptEnableChanged(connected);
+}
+
 
 void View::on_loadButtonCleared()
 {

@@ -32,6 +32,8 @@ int main(int argc, char *argv[])
                      &view, &View::on_cameraConnectionStatusChanged);
     QObject::connect(&model, &Model::updateXptConnectionStatus,
                      &view, &View::on_xptConnectionStatusChanged);
+    QObject::connect(&model, &Model::updateXptEnableStatus,
+                     &view, &View::on_xptEnableStatusChanged);
 
     Controller controller(model);
     //start queue was here

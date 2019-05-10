@@ -31,6 +31,7 @@ signals:
     void updateServerConnectionStatus(bool connected);
     void updateCameraConnectionStatus(bool connected);
     void updateXptConnectionStatus(bool connected);
+    void updateXptEnableStatus(bool connected);
 
 public:
     Model();

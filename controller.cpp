@@ -49,6 +49,9 @@ Controller::Controller(Model& model)// : poller(*this)    //poller Konstruktor a
     blinkTimer.init(E_BOUNCE_BLINK,*this);
     blinkTimer.setInterval(500*1000);
 
+    xptWatchdog.init(E_XPT_WATCHDOG,*this);
+    xptWatchdog.setInterval(2000*1000);
+
     //init sppTimers
     for (int i=0;i<NUMBER_OF_SLOTS;i++) {
         sppTimer[i].init(E_SPP_WAIT_DONE,i,*this);
@@ -319,14 +322,14 @@ void Controller::processQeue(){
          case E_SET_ZOOM:
             int z;
             z=loadedEvent.data[0];
-            if(model->getCamFlag(F_Z_INVERT)){z=254-z;}
-            txSocket.send(model->getValue(ABS,V_HEADNR),ZOOM_FOCUS_SET, z);
+            if(model->getCamFlag(F_Z_INVERT)){z = 254 - z;}
+
 
             //creep prevention
-            if(loadedEvent.data[0]==127){
+            if(z==127){
                 usleep(CREEP_T);
             }
-            txSocket.send(model->getValue(ABS,V_HEADNR),ZOOM_FOCUS_SET, loadedEvent.data[0]);
+            txSocket.send(model->getValue(ABS,V_HEADNR),ZOOM_FOCUS_SET, z);
 
             //debug
 //            int z;
@@ -440,7 +443,7 @@ void Controller::processQeue(){
                 presetbus.setLed(PRESET_COLOR,model->getActivePreset());
             }
 
-            if(model->getXptEnabled()){
+            if(model->getXptEnabled() && model->getXptConnected()){
                 contr_err = xptSocket.sendChange(model->getXptSlotSource(model->getActiveCameraSlot()),model->getXptDestination());
                 if (contr_err < 0) {
                     contr_err = errno;  //zwischenspeichern (muss)
@@ -588,9 +591,11 @@ void Controller::processQeue(){
                 if(contr_err < 0){
                     contr_err = errno;
                     logSystemError(contr_err, "Could not connect to Xpt");
+                    model->updateXptEnableStatus(false); //initial connection failed
                     model->setXptConnected(false);
                 }else {
                     model->setXptConnected(true);
+                    xptWatchdog.start();
                     }
                 if(contr_err){
                     model->setXptNumberOfInputs(xptSocket.getNumberOfInputs());
@@ -605,6 +610,7 @@ void Controller::processQeue(){
                 logSystemError(contr_err, "Could not disconnect xpt");
             }
                 model->setXptConnected(false);
+                xptWatchdog.stop();
             }
             break;
 

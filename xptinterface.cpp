@@ -36,7 +36,7 @@ int XptInterface::connectToXpt()
             return -1;
         }
 
-   recv_err=recv(sockfd, rxbuffer, MAXDATASIZE, 0);     //receive xpt dump
+   recv_err=recv(sockfd, rxbuffer, 2048, 0);     //receive xpt dump
         if (recv_err < 0) {
             return -2;
             }
@@ -165,7 +165,7 @@ int XptInterface::sendChange(int source, int destination)
 int XptInterface::checkConnection()
 {
     memset(txBuffer,0,sizeof(txBuffer));
-    memset(rxbuffer,0,sizeof(txBuffer));
+    memset(rxbuffer,0,sizeof(rxbuffer));
     sprintf(txBuffer,"PING:\n\n");
     send_err = send(sockfd,txBuffer,10,MSG_NOSIGNAL);
     if (send_err < 0) {

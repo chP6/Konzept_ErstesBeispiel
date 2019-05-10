@@ -46,7 +46,7 @@ private:
     int send_err;
     int recv_err;
     int connect_err;
-    char rxbuffer[MAXDATASIZE];
+    char rxbuffer[2048];
     char txBuffer[35];
     int numberOfInputs;
     int numberOfOutputs;

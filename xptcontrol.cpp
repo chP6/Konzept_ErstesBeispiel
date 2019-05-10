@@ -46,6 +46,27 @@ void XptControl::xptStatusChanged(bool connected)
 
 }
 
+void XptControl::xptEnableChanged(bool connected)
+{
+    ui->btConnect->setChecked(connected);
+    model->setXptEnabled(connected);
+    if(!connected){
+        ui->btConnect->setText("Connect");
+        ui->btXPTIp_1->setEnabled(true);
+        ui->btXPTIp_2->setEnabled(true);
+        ui->btXPTIp_3->setEnabled(true);
+        ui->btXPTIp_4->setEnabled(true);
+
+    }
+    else{
+        ui->btConnect->setText("Disconnect");
+        ui->btXPTIp_1->setEnabled(false);
+        ui->btXPTIp_2->setEnabled(false);
+        ui->btXPTIp_3->setEnabled(false);
+        ui->btXPTIp_4->setEnabled(false);
+    }
+}
+
 void XptControl::setModelController(Model *model, Controller *controller)
 {
     this->model = model;
@@ -90,7 +111,7 @@ void XptControl::on_btSource6_clicked()
 
 void XptControl::on_btDestination_clicked()
 {
-    model->setRotaryField(I_XPT_SOURCE,INTERNAL);
+    model->setRotaryField(I_XPT_DESTINATION,INTERNAL);
 }
 
 void XptControl::on_btXPTIp_1_clicked()

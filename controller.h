@@ -44,7 +44,8 @@ private:
     Tastenfeld presetbus;
     Tastenfeld camerabus;
     XptInterface xptSocket;
-    GenericTimer blinkTimer, sppTimer[NUMBER_OF_SLOTS];
+    GenericTimer blinkTimer, sppTimer[NUMBER_OF_SLOTS], xptWatchdog;
+
 
     void processQeue();
     void increment(int inc);

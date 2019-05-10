@@ -20,6 +20,7 @@ public:
      void stackChanged();
      void updateUi();
      void xptStatusChanged(bool connected);
+     void xptEnableChanged(bool connected);
     ~XptControl();
 
 private slots:
