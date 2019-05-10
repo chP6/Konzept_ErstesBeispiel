@@ -292,17 +292,16 @@ void Controller::processQeue(){
             x = loadedEvent.data[0];
             if(model->getCamFlag(F_X_INVERT)){x=10000-x;}
             y = loadedEvent.data[1];
-<<<<<<< HEAD
+
             if(model->getCamFlag(F_Y_INVERT)){y=10000-y;}
 
-=======
             setAxis(x,y);
 
             //creep prevention
             if(x==5000 && y==5000){
                 usleep(CREEP_T);
             }
->>>>>>> b2b734acd76e2349fa32d67fde3538926e8c5c09
+
             txSocket.send(model->getValue(ABS,V_HEADNR), TILT_PAN, x, y);
 
             if(model->getCamFlag(F_BOUNCING)){
@@ -318,12 +317,11 @@ void Controller::processQeue(){
             break;
 
          case E_SET_ZOOM:
-<<<<<<< HEAD
             int z;
             z=loadedEvent.data[0];
             if(model->getCamFlag(F_Z_INVERT)){z=254-z;}
             txSocket.send(model->getValue(ABS,V_HEADNR),ZOOM_FOCUS_SET, z);
-=======
+
             //creep prevention
             if(loadedEvent.data[0]==127){
                 usleep(CREEP_T);
@@ -334,7 +332,7 @@ void Controller::processQeue(){
 //            int z;
 //            z=loadedEvent.data[0];
 //            qDebug("Zoom: %d",z);
->>>>>>> b2b734acd76e2349fa32d67fde3538926e8c5c09
+
             break;
         case E_FOCUS_CHANGE:
             int focus;
@@ -438,7 +436,10 @@ void Controller::processQeue(){
             else if(model->getCamFlag(F_BOUNCING)){
                 presetbus.setLed(CAMERA_COLOR,model->getActivePreset());
             }
-<<<<<<< HEAD
+            else{
+                presetbus.setLed(PRESET_COLOR,model->getActivePreset());
+            }
+
             if(model->getXptEnabled()){
                 contr_err = xptSocket.sendChange(model->getXptSlotSource(model->getActiveCameraSlot()),model->getXptDestination());
                 if (contr_err < 0) {
@@ -448,11 +449,9 @@ void Controller::processQeue(){
                 }
             }
 
-=======
-            else{
-                presetbus.setLed(PRESET_COLOR,model->getActivePreset());
-            }
->>>>>>> b2b734acd76e2349fa32d67fde3538926e8c5c09
+
+
+
             break;
         case E_RX_CAMERA_WATCHDOG:
             from = loadedEvent.data[0];
