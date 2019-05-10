@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include "config.h"
+#include <QtDebug>
 
 
 BBMJoystick::BBMJoystick()
@@ -12,12 +13,17 @@ BBMJoystick::BBMJoystick()
 }
 
 int BBMJoystick::init(){
+    axis[0] = 0;
+    axis[1] = 0;
+    axis[2] = 0;
+
     val_x = 5000;
     val_x_old = 5000;
     val_y = 5000;
 
+
     memset(axis,0,sizeof(axis));
-    joystick_fd=open("/dev/input/js0",O_RDONLY);                //Pfad noch anpassen
+    joystick_fd=open("/dev/input/js0",O_RDONLY);                //Pfad noch anpassen in config file. Nonblock, damit beim aufstarten joystick ohne block x-mal abgefragt werden kann
     if(joystick_fd<0){
         //error(joystick_fd,errno,"couldn't open device");
         return -1;
@@ -34,7 +40,7 @@ int BBMJoystick::processEvent(joystickData& jsData){
     jsData.buttonVal = 0;
     readErr=read(joystick_fd, &js, sizeof(struct js_event));
     if(readErr<0){
-        //error(readErr,errno,"failed at reading device");
+        qDebug("Could not process Joystick Event, %d, %d",readErr, errno);
         return -1;
     }
 

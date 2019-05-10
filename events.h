@@ -1,7 +1,7 @@
 #ifndef EVENTS_H
 #define EVENTS_H
 
-
+#define E_NULLEVENT             0
 #define E_INCREASE              1
 #define E_CLEAR                 2
 #define E_SET_TILT              3

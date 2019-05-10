@@ -28,6 +28,11 @@ void Others::updateUi()
     ui->btMirror->setText(model->getTextValue(V_MIRROR));
 }
 
+void Others::clearLoadButton(){
+    ui->btLoad->setEnabled(true);
+    //ui->btLoad->setChecked(false);
+}
+
 void Others::setModelController(Model *model, Controller *controller)
 {
     this->model = model;
@@ -93,12 +98,13 @@ void Others::on_btRequest_clicked()
 
 void Others::on_btSave_clicked()
 {
-    controller->writeSavefile();
+    controller->queueEvent(E_WRITE_SAVEFILE);
 }
 
 void Others::on_btLoad_clicked()
 {
-    controller->loadSavefile();
+    controller->queueEvent(E_LOAD_SAVEFILE);
+    ui->btLoad->setEnabled(false);
 }
 
 void Others::on_btErrorWindow_clicked()

@@ -1,5 +1,6 @@
 #include "networkinterface.h"
 #include "config.h"
+#include <QtDebug>
 
 // Konstruktor
 Networkinterface::Networkinterface(){
@@ -113,9 +114,9 @@ int Networkinterface::receive(uint8_t* rec_buffer){
 
 int Networkinterface::lowLevelSend(){
     send_err=sendto(socket_fd, (char*)&buffer , 10 , 0 ,(struct sockaddr *)&addr_dst, sizeof(addr_dst));
-    //if(send_err<0){
-        //error(send_err,errno, "failed at sending");
-    //}
+    if(send_err<0){
+        qDebug("failed at sending, %d %d", send_err, errno);
+    }
     return send_err;
 }
 

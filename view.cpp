@@ -58,6 +58,11 @@ void View::on_cameraConnectionStatusChanged(bool connected)
     ui->home->cameraConnectionChanged(connected);
 }
 
+void View::on_loadButtonCleared()
+{
+    ui->others->clearLoadButton();
+}
+
 
 
 

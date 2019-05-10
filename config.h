@@ -42,7 +42,8 @@
 
 /*Debounce Time in us*/
 #define DEBOUNCE_T 20 //in us
-#define CREEP_T    1000
+#define CREEP_T    100000
+#define TX_T       150000
 
 /*others*/
 #define TRUE 1

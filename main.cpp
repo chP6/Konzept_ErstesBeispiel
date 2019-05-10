@@ -31,9 +31,12 @@ int main(int argc, char *argv[])
     QObject::connect(&model, &Model::updateCameraConnectionStatus,
                      &view, &View::on_cameraConnectionStatusChanged);
 
-
     Controller controller(model);
-    controller.startQueueProcessThread();
+    //start queue was here
+
+    QObject::connect(&controller, &Controller::clearLoadButon,
+                     &view, &View::on_loadButtonCleared);
+
 
     view.setModelController(model, controller);
     view.show();
@@ -42,6 +45,8 @@ int main(int argc, char *argv[])
     UdpListener udpListener(controller);
     poller.startListener();
     udpListener.startListener();
+
+    controller.startQueueProcessThread();
 
     return a.exec();
 }

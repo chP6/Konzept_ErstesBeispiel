@@ -11,8 +11,12 @@
 
 class Model;        //forward declaration
 
-class Controller
+class Controller : public QObject
 {
+    Q_OBJECT        //qmake vor erstem kompilieren laufen lassen!
+
+signals:
+    void clearLoadButon();
 public:
     Controller(Model& model);
     void setModel(Model& model);

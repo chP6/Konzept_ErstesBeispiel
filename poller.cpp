@@ -28,8 +28,6 @@ Poller::Poller(Controller& controller)
         controller.logSystemError(poll_err, "Could not initialize Watchdog Timer");
     }
 
-    jsTiltStill=true;
-    jsZoomStill=true;
     poll_err = joystick.init();
     if(poll_err < 0){
         poll_err = errno;
@@ -113,13 +111,17 @@ void Poller::listener(){
 //            poll_fd[i].revents = 0;
 //    }
 
+
+    // get rid of any undeterministic events from HW init
     rotary1.readSense();
     rotary1.readButton();
     rotary2.readSense();
     rotary2.readButton();
-    joystick.processEvent(jsData);
-    joystick.processEvent(jsData);
-    joystick.processEvent(jsData);
+
+//    for (int i=0;i<10;i++) {
+//        joystick.processEvent(jsData);
+//    }
+
     for (int i=0;i<6;i++) {
         presetbus.readButton(i);
         camerabus.readButton(i);
@@ -145,7 +147,6 @@ void Poller::listener(){
         }
 
         if(poll_fd[1].revents & POLLIN) {                   // Joystick event
-            //joystickData jsData;
             poll_err = joystick.processEvent(jsData);
             if(poll_err<0){
                 poll_err = errno;
@@ -163,24 +164,11 @@ void Poller::listener(){
                     controller->queueEvent(E_SET_TILT, data);
                 }
 
-
                 if(!(jsData.zCoord == zold)){
                     data.clear();
                     data.push_back(jsData.zCoord);
                     controller->queueEvent(E_SET_ZOOM, data);
                 }
-
-
-
-                if(jsData.zCoord == zold)
-                    jsZoomStill=true;
-                else
-                    jsZoomStill=false;
-
-                if(jsData.xCoord==xold && jsData.yCoord == yold)
-                    jsTiltStill=true;
-                else
-                    jsTiltStill=false;
 
                 xold=jsData.xCoord;
                 yold=jsData.yCoord;

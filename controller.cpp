@@ -86,7 +86,7 @@ void Controller::clearErrors(){
 int Controller::writeSavefile(){
     QSettings savefile(SAVEFILE_PATH, QSettings::NativeFormat);
     savefile.clear();
-    int currSlot = model->getActiveCameraSlot();
+    //int currSlot = model->getActiveCameraSlot();
 
     for (int i=0;i<NUMBER_OF_SLOTS;i++) {
         savefile.beginGroup("slot_"+QString::number(i));
@@ -104,14 +104,14 @@ int Controller::writeSavefile(){
     }
     savefile.sync();
 
-    model->setActiveCameraSlot(currSlot);
+    //model->setActiveCameraSlot(currSlot);
     return savefile.status();
 }
 
 
 int Controller::loadSavefile(){
     QSettings savefile(SAVEFILE_PATH, QSettings::NativeFormat);
-    int currSlot = model->getActiveCameraSlot();
+    //int currSlot = model->getActiveCameraSlot();
 
     for (int i=0;i<NUMBER_OF_SLOTS;i++) {
         savefile.beginGroup("slot_"+QString::number(i));
@@ -130,16 +130,22 @@ int Controller::loadSavefile(){
         for (int j=0;j<ROW_ENTRIES;j++) {
             model->setValue(i, ABS, j, savefile.value("value_"+QString::number(j)).toInt());
 
-            //send value to camera
+            //send value to cameras
             if(model->getTxCommand(j) > 0){  //there could be values without commandtypes
-               txSocket.send(model->getValue(i,ABS,V_HEADNR), model->getTxCommand(j),model->getValue(ABS,j));
+
+                //Head Arduino seems to need pause to process certain commands
+                if(j==V_RAMP || j==V_PT_SPEED || j==V_SHUTTER || j==V_GAIN){
+                    usleep(TX_T);
+                }
+                txSocket.send(model->getValue(i,ABS,V_HEADNR), model->getTxCommand(j),model->getValue(ABS,j));
             }
         }
         savefile.endGroup();
     }
 
-    model->setActiveCameraSlot(currSlot);
+    //model->setActiveCameraSlot(currSlot);
     presetbus.setLed(PRESET_COLOR, model->getActivePreset());
+    emit clearLoadButon();
     return savefile.status();
 }
 
@@ -202,6 +208,8 @@ void Controller::queueEvent(int evt, bool sta){
 
 
 void Controller::startQueueProcessThread(){
+    usleep(800000);
+    eventQueue.initCleanup();
     std::thread t1(&Controller::processQeue, this);       //1.Arg: function type that will be called, 2.Arg: pointer to object (this)
     t1.detach();
 }
@@ -258,9 +266,7 @@ void Controller::processQeue(){
             }
 
             //debug
-//            char str[100];
-//            sprintf(str,"%d/%d",x,y);
-//            qDebug() << "Axis: " << str;
+            qDebug("Axis: %d/%d",x,y);
             break;
 
          case E_SET_ZOOM:
@@ -273,9 +279,7 @@ void Controller::processQeue(){
             //debug
 //            int z;
 //            z=loadedEvent.data[0];
-//            char str2[100];
-//            sprintf(str2,"%d",z);
-//            qDebug() << "Axis: " << str2;
+//            qDebug("Zoom: %d",z);
             break;
         case E_FOCUS_CHANGE:
             model->setValue(INC, V_FOCUS, loadedEvent.data[0]);
@@ -284,6 +288,8 @@ void Controller::processQeue(){
             break;
         case E_AUTOFOCUS:
             txSocket.send(model->getValue(ABS,V_HEADNR), SET_FOCUS_PUSH);
+            //debug
+            //txSocket.request(1,ZOOM_FOCUS_SET);
             qDebug("AUTOFOCUS!");
             break;
         case E_AUTOFOCUS_ANSWER:
@@ -470,7 +476,7 @@ void Controller::processQeue(){
                     if(model->getValueFromBBMCommand(command) > 0){  //there could be commandtypes without values
                        model->setValue(i, ABS, model->getValueFromBBMCommand(command), data);
                     }
-                    //qDebug("ANSWER | command: %d, value: %d", command, data);
+                    qDebug("ANSWER | command: %d, value: %d", command, data);
                 }
             }
             break;
@@ -478,6 +484,7 @@ void Controller::processQeue(){
             //send init values to head
             for (int i=0;i<NUMBER_OF_SLOTS;i++) {
                 txSocket.send(model->getValue(i,ABS,V_HEADNR), RAMP, model->getValue(i,ABS,V_RAMP));
+                usleep(TX_T);
                 txSocket.send(model->getValue(i,ABS,V_HEADNR), PAN_TILT_SPEED, model->getValue(i,ABS,V_PT_SPEED));
             }
             qDebug("HEAD init done");
@@ -496,10 +503,10 @@ void Controller::processQeue(){
         case E_BOUNCE_BLINK:
             if(model->getCamFlag(F_BOUNCING)){
                 if(model->toggleBlink()){
-                    presetbus.setLed(PRESET_COLOR, model->getActiveCameraSlot());
+                    presetbus.setLed(PRESET_COLOR, model->getActivePreset());
                 }
                 else{
-                    presetbus.setLed(0,0,0,model->getActiveCameraSlot());
+                    presetbus.setLed(0,0,0,model->getActivePreset());
                 }
             }
             break;

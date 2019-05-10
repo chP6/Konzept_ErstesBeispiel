@@ -1,5 +1,6 @@
 #include "eventqueue.h"
 #include "config.h"
+#include "events.h"
 #include "QDebug"
 #include <sys/time.h>
 
@@ -64,4 +65,14 @@ void EventQueue::pullEvent(event_s& entry){
 //    qDebug("Pull: %f seconds",
 //         (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
 //         (double) (tv2.tv_sec - tv1.tv_sec));
+}
+
+void EventQueue::initCleanup(){
+    //clear queue from any pan/tilt/zoom events (unwanted from init)
+    for (int i=0;i<queue.size();i++) {
+        if(queue[i].evt == E_SET_TILT || queue[i].evt == E_SET_ZOOM){
+            queue[i].evt = E_NULLEVENT;
+            qDebug("Cleared one");
+        }
+    }
 }
