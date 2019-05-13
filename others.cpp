@@ -14,6 +14,7 @@ Others::Others(QWidget *parent) :
 {
     ui->setupUi(this);
     errorWindow=new ErrorWindow(this);
+    errorWindow->close();
 }
 
 Others::~Others()
@@ -26,6 +27,10 @@ void Others::updateUi()
     errorWindow->updateUi();
     ui->btHeadPower->setText(model->getTextValue(V_HEAD_POWER));
     ui->btMirror->setText(model->getTextValue(V_MIRROR));
+    ui->btPanInvert->setChecked(model->getCamFlag(F_X_INVERT));
+    ui->btTiltInvert->setChecked(model->getCamFlag(F_Y_INVERT));
+    ui->btZoomInvert->setChecked(model->getCamFlag(F_Z_INVERT));
+    ui->btFocusInvert->setChecked(model->getCamFlag(F_FOCUSINVERT));
 }
 
 void Others::clearLoadButton(){

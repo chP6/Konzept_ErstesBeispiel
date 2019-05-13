@@ -20,6 +20,7 @@ public:
     BBMJoystick();
     int init();
     int processEvent(joystickData& jsData);
+    void initRead();
     int joystick_fd;
 private:
     struct js_event js;

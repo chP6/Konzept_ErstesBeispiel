@@ -16,6 +16,7 @@ class Poller
 public:
     Poller(Controller& controller);
     void startListener();
+    BBMJoystick joystick;               //for init debug joystick
 private:
     void listener();
     struct pollfd poll_fd[20];
@@ -25,7 +26,7 @@ private:
     int xold,yold,zold;
     Controller* controller;
     ServerWatchdog srvWatchdog;    uint8_t buf[10];            //für antwort vom server. hier behalten?
-    BBMJoystick joystick;
+
     Rotary rotary1, rotary2;
     Tastenfeld presetbus;
     Tastenfeld camerabus;

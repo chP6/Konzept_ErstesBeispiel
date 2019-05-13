@@ -46,6 +46,7 @@ int main(int argc, char *argv[])
     view.show();
 
     Poller poller(controller);
+    controller.setPoller(poller);
     UdpListener udpListener(controller);
     poller.startListener();
     udpListener.startListener();

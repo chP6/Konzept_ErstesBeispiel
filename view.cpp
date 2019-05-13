@@ -32,7 +32,6 @@ void View::setModelController(Model& model, Controller& controller){
 
 void View::on_modelUpdate()
 {
-
     ui->home->updateUi();
     ui->cameraView->updateUi();
     ui->others->updateUi();
@@ -83,6 +82,7 @@ void View::on_loadButtonCleared()
 
 void View::on_btHome_clicked()
 {
+
     ui->stackedWidget->setCurrentIndex(0);
     ui->home->stackChanged();
 

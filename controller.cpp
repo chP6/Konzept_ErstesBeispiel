@@ -1,5 +1,6 @@
 #include "controller.h"
 #include "model.h"
+#include "poller.h"
 #include <unistd.h>
 #include <thread>
 #include "events.h"
@@ -61,6 +62,10 @@ Controller::Controller(Model& model)// : poller(*this)    //poller Konstruktor a
 
 void Controller::setModel(Model &model){
     this->model = &model;
+}
+
+void Controller::setPoller(Poller &poller){
+    this->poller = &poller;
 }
 
 void Controller::increment(int inc){
@@ -179,6 +184,18 @@ void Controller::requestCameraSettings(){
 }
 
 
+// change value on other camera slots too, if they have same headNr as current
+void Controller::alignSlots(int value){
+    for (int i=0;i<NUMBER_OF_SLOTS;i++) {
+        if(i != model->getActiveCameraSlot()){
+            if(model->getValue(ABS,V_HEADNR) == model->getValue(i, ABS,V_HEADNR)){
+                model->setValue(i,ABS,value,model->getValue(ABS,value));
+            }
+        }
+    }
+}
+
+
 
 void Controller::queueEvent(int evt){
     eventQueue.qeueEvent(evt);
@@ -219,6 +236,7 @@ void Controller::queueEvent(int evt, bool sta){
 void Controller::startQueueProcessThread(){
     usleep(800000);
     eventQueue.initCleanup();
+    //poller->joystick.initRead();
     std::thread t1(&Controller::processQeue, this);       //1.Arg: function type that will be called, 2.Arg: pointer to object (this)
     t1.detach();
 }
@@ -248,6 +266,8 @@ void Controller::processQeue(){
 
             if (destination==SEND) {
                 model->setValue(INC,field,loadedEvent.data[0]);     //Last Element
+
+                alignSlots(field);
 
                 if(model->getTxCommand(field) > 0){  //there could be values without commandtypes
                    txSocket.send(model->getValue(ABS,V_HEADNR),model->getTxCommand(field),model->getValue(ABS,field));
@@ -479,41 +499,49 @@ void Controller::processQeue(){
             break;
         case E_IRIS_CHANGE:
             model->setValue(INC, V_IRIS, loadedEvent.data[0]);
+            alignSlots(V_IRIS);
             txSocket.send(model->getValue(ABS,V_HEADNR), IRIS_OPEN, model->getValue(ABS,V_IRIS));
             qDebug("IRIS: %d", model->getValue(ABS,V_IRIS));
             break;
         case E_PED_CHANGE:
             model->setValue(INC, V_PED, loadedEvent.data[0]);
+            alignSlots(V_PED);
             txSocket.send(model->getValue(ABS,V_HEADNR), MASTER_PED_UP, model->getValue(ABS,V_PED));
             qDebug("PED: %d", model->getValue(ABS,V_PED));
             break;
         case E_WBLUE_CHANGE:
             model->setValue(INC, V_W_BLUE, loadedEvent.data[0]);
+            alignSlots(V_W_BLUE);
             txSocket.send(model->getValue(ABS,V_HEADNR), BLUE_GAIN_ADJ_UP, model->getValue(ABS,V_W_BLUE));
             qDebug("WBLUE: %d", model->getValue(ABS,V_W_BLUE));
             break;
         case E_WRED_CHANGE:
             model->setValue(INC, V_W_RED, loadedEvent.data[0]);
+            alignSlots(V_W_RED);
             txSocket.send(model->getValue(ABS,V_HEADNR), RED_GAIN_ADJ_UP, model->getValue(ABS,V_W_RED));
             qDebug("WRED: %d", model->getValue(ABS,V_W_RED));
             break;
         case E_BBLUE_CHANGE:
             model->setValue(INC, V_B_BLUE, loadedEvent.data[0]);
+            alignSlots(V_B_BLUE);
             txSocket.send(model->getValue(ABS,V_HEADNR), BLUE_PED_UP, model->getValue(ABS,V_B_BLUE));
             qDebug("BBLUE: %d", model->getValue(ABS,V_B_BLUE));
             break;
         case E_BRED_CHANGE:
             model->setValue(INC, V_B_RED, loadedEvent.data[0]);
+            alignSlots(V_B_RED);
             txSocket.send(model->getValue(ABS,V_HEADNR), RED_PED_UP, model->getValue(ABS,V_B_RED));
             qDebug("BRED: %d", model->getValue(ABS,V_B_RED));
             break;
         case E_GAIN_CHANGE:
             model->setValue(INC, V_GAIN, loadedEvent.data[0]);
+            alignSlots(V_GAIN);
             txSocket.send(model->getValue(ABS,V_HEADNR), CAMERA_GAIN_UP, model->getValue(ABS,V_GAIN));
             qDebug("GAIN: %d", model->getValue(ABS,V_GAIN));
             break;
         case E_SHUTTER_CHANGE:
             model->setValue(INC, V_SHUTTER, loadedEvent.data[0]);
+            alignSlots(V_SHUTTER);
             txSocket.send(model->getValue(ABS,V_HEADNR), SHUTTER_UP, model->getValue(ABS,V_SHUTTER));
             qDebug("SHUTTER: %d, MIN: %d, MAX: %d", model->getValue(ABS,V_SHUTTER), model->getMin(V_SHUTTER),model->getMax(V_SHUTTER));
             break;

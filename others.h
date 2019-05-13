@@ -52,6 +52,8 @@ private slots:
 
     void on_btClearLimit_clicked();
 
+    void on_btPanInvert_clicked();
+
 private:
     Ui::Others *ui;
     Model* model;

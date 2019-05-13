@@ -12,6 +12,7 @@
 #define SAVEFILE_PATH   "/opt/savefile"
 
 class Model;        //forward declaration
+class Poller;        //forward declaration
 
 class Controller : public QObject
 {
@@ -22,6 +23,7 @@ signals:
 public:
     Controller(Model& model);
     void setModel(Model& model);
+    void setPoller(Poller& poller);
     void startQueueProcessThread();
     void queueEvent(int evt);
     void queueEvent(int evt, int dataA);
@@ -35,10 +37,12 @@ public:
     int writeSavefile();
     int loadSavefile();
     void requestCameraSettings();
+    void alignSlots(int value);
 
 
 private:
     Model* model;
+    Poller* poller;
     EventQueue eventQueue;
     Networkinterface txSocket;
     Tastenfeld presetbus;
