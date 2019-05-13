@@ -29,6 +29,7 @@ private:
     Rotary rotary1, rotary2;
     Tastenfeld presetbus;
     Tastenfeld camerabus;
+    ServerWatchdog xptWatchdog;
     OCP ocp;
 };
 

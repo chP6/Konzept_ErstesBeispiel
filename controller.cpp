@@ -23,6 +23,12 @@ Controller::Controller(Model& model)// : poller(*this)    //poller Konstruktor a
         logSystemError(contr_err, "Could not initialize udp-interface");
     }
 
+    contr_err = xptSocket.init(9990,"192.168.0.30");
+    if(contr_err<0){
+        contr_err = errno;  //zwischenspeichern (muss)
+        logSystemError(contr_err, "Could not initialize xpt-interface");
+    }
+
     presetbus.setRow(UPPER_ROW);
     contr_err=presetbus.initSpi();
     if(contr_err<0){
@@ -42,6 +48,9 @@ Controller::Controller(Model& model)// : poller(*this)    //poller Konstruktor a
 
     blinkTimer.init(E_BOUNCE_BLINK,*this);
     blinkTimer.setInterval(500*1000);
+
+    xptWatchdog.init(E_XPT_WATCHDOG,*this);
+    xptWatchdog.setInterval(2000*1000);
 
     //init sppTimers
     for (int i=0;i<NUMBER_OF_SLOTS;i++) {
@@ -233,28 +242,69 @@ void Controller::processQeue(){
             break;
         case E_INCREASE:
             int field;
+            int destination;
             field=model->getRotaryField();
-            model->setValue(INC,field,loadedEvent.data[0]);     //Last Element
+            destination=model->getRotaryDestination();
 
-            if(model->getTxCommand(field) > 0){  //there could be values without commandtypes
-               txSocket.send(model->getValue(ABS,V_HEADNR),model->getTxCommand(field),model->getValue(ABS,field));
+            if (destination==SEND) {
+                model->setValue(INC,field,loadedEvent.data[0]);     //Last Element
+
+                if(model->getTxCommand(field) > 0){  //there could be values without commandtypes
+                   txSocket.send(model->getValue(ABS,V_HEADNR),model->getTxCommand(field),model->getValue(ABS,field));
+                }
+                if(field==V_HEADNR){
+                    model->setCamFlag(F_KNOWN, false);
+                    qDebug("KNOWN Flag cleared!");
+                }
             }
-            if(field==V_HEADNR){
-                model->setCamFlag(F_KNOWN, false);
-                qDebug("KNOWN Flag cleared!");
+           else{
+                switch (field) {
+                case I_XPT_SOURCE:
+                         model->setXptSlotSource(loadedEvent.data[0]);
+                    break;
+                case I_XPT_DESTINATION:
+                    model->setXptDestination(loadedEvent.data[0]);
+                    break;
+                case I_XPT_IP_FIELD_1:
+                    model->setXptIpField(0,loadedEvent.data[0]);
+
+                    break;
+                case I_XPT_IP_FIELD_2:
+                    model->setXptIpField(1,loadedEvent.data[0]);
+
+                    break;
+                case I_XPT_IP_FIELD_3:
+                    model->setXptIpField(2,loadedEvent.data[0]);
+
+                    break;
+                case I_XPT_IP_FIELD_4:
+                    model->setXptIpField(3,loadedEvent.data[0]);
+
+                    break;
+                default:
+                    break;
+
+                }
+
+
             }
 
             break;
         case E_SET_TILT:
             int x,y;
             x = loadedEvent.data[0];
+            if(model->getCamFlag(F_X_INVERT)){x=10000-x;}
             y = loadedEvent.data[1];
+
+            if(model->getCamFlag(F_Y_INVERT)){y=10000-y;}
+
             setAxis(x,y);
 
             //creep prevention
             if(x==5000 && y==5000){
                 usleep(CREEP_T);
             }
+
             txSocket.send(model->getValue(ABS,V_HEADNR), TILT_PAN, x, y);
 
             if(model->getCamFlag(F_BOUNCING)){
@@ -270,19 +320,28 @@ void Controller::processQeue(){
             break;
 
          case E_SET_ZOOM:
+            int z;
+            z=loadedEvent.data[0];
+            if(model->getCamFlag(F_Z_INVERT)){z = 254 - z;}
+
+
             //creep prevention
-            if(loadedEvent.data[0]==127){
+            if(z==127){
                 usleep(CREEP_T);
             }
-            txSocket.send(model->getValue(ABS,V_HEADNR),ZOOM_FOCUS_SET, loadedEvent.data[0]);
+            txSocket.send(model->getValue(ABS,V_HEADNR),ZOOM_FOCUS_SET, z);
 
             //debug
 //            int z;
 //            z=loadedEvent.data[0];
 //            qDebug("Zoom: %d",z);
+
             break;
         case E_FOCUS_CHANGE:
-            model->setValue(INC, V_FOCUS, loadedEvent.data[0]);
+            int focus;
+            focus=loadedEvent.data[0];
+            if(model->getCamFlag(F_FOCUSINVERT)){focus=(-focus);}
+            model->setValue(INC, V_FOCUS, focus);
             txSocket.send(model->getValue(ABS,V_HEADNR), FOCUS_SET_ABSOLUTE, model->getValue(ABS, V_FOCUS));
             qDebug("FOCUS: %d", model->getValue(ABS,V_FOCUS));
             break;
@@ -383,6 +442,19 @@ void Controller::processQeue(){
             else{
                 presetbus.setLed(PRESET_COLOR,model->getActivePreset());
             }
+
+            if(model->getXptEnabled() && model->getXptConnected()){
+                contr_err = xptSocket.sendChange(model->getXptSlotSource(model->getActiveCameraSlot()),model->getXptDestination());
+                if (contr_err < 0) {
+                    contr_err = errno;  //zwischenspeichern (muss)
+                    logSystemError(contr_err, "Could not send to Xpt");
+                    model->setXptConnected(false);
+                }
+            }
+
+
+
+
             break;
         case E_RX_CAMERA_WATCHDOG:
             from = loadedEvent.data[0];
@@ -500,6 +572,7 @@ void Controller::processQeue(){
             break;
         case E_CLEAR_LIMIT:
             txSocket.send(model->getValue(ABS,V_HEADNR),TILT_CLEAR_LIMIT);
+            break;
         case E_BOUNCE_BLINK:
             if(model->getCamFlag(F_BOUNCING)){
                 if(model->toggleBlink()){
@@ -510,6 +583,57 @@ void Controller::processQeue(){
                 }
             }
             break;
+
+        case E_XPT_CONNECT:
+            if(model->getXptEnabled()){
+                xptSocket.changeIP(model->getXptIpAdress());
+                contr_err = xptSocket.connectToXpt();
+                if(contr_err < 0){
+                    contr_err = errno;
+                    logSystemError(contr_err, "Could not connect to Xpt");
+                    model->updateXptEnableStatus(false); //initial connection failed
+                    model->setXptConnected(false);
+                }else {
+                    model->setXptConnected(true);
+                    xptWatchdog.start();
+                    }
+                if(contr_err){
+                    model->setXptNumberOfInputs(xptSocket.getNumberOfInputs());
+                    model->setXptNumberOfOutputs(xptSocket.getNumberOfOutputs());
+                }
+
+            }
+           else{
+            contr_err = xptSocket.disconnect();
+            if(contr_err < 0){
+                contr_err = errno;  //zwischenspeichern (muss)
+                logSystemError(contr_err, "Could not disconnect xpt");
+            }
+                model->setXptConnected(false);
+                xptWatchdog.stop();
+            }
+            break;
+
+        case E_XPT_WATCHDOG:
+            if(model->getXptEnabled())
+            {
+                int connection;
+                connection = xptSocket.checkConnection();
+                if (connection <= 0) {
+                    if (xptSocket.connectToXpt() < 0) {
+                        model->setXptConnected(false);
+                    }
+
+                    break;
+                }
+                else if(connection == 1 && model->getXptConnected()==false) {
+                    model->setXptConnected(true);
+                    break;
+                }
+
+            }
+            break;
+
 
         case E_SPP_START:
             // only from active slot
@@ -606,7 +730,8 @@ void Controller::processQeue(){
             model->setCamFlag(from, F_SPP_ON, false);
             model->setSppState(from, S_SPP_IDLE);
             //qDebug("SPP ABORT");
-
+            break;
+        default:
             break;
         }
 //        gettimeofday(&tv2, NULL);

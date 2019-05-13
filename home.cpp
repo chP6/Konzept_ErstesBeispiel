@@ -72,24 +72,24 @@ void Home::on_btWideSet_clicked()
 
 void Home::on_btAutoZoomSpeed_clicked()
 {
-    model->setRotaryField(V_BOUNCE_ZOOM_SPEED);
+    model->setRotaryField(V_BOUNCE_ZOOM_SPEED,SEND);
 
 
 }
 
 void Home::on_btTransSpeed_clicked()
 {
-    model->setRotaryField(V_TRANS_SPEED);
+    model->setRotaryField(V_TRANS_SPEED,SEND);
 }
 
 void Home::on_btPanTiltSpeed_clicked()
 {
-    model->setRotaryField(V_PT_SPEED);
+    model->setRotaryField(V_PT_SPEED,SEND);
 }
 
 void Home::on_btRamp_clicked()
 {
-    model->setRotaryField(V_RAMP);
+    model->setRotaryField(V_RAMP,SEND);
 }
 
 void Home::on_btFasttrans_clicked(bool checked)
@@ -100,32 +100,34 @@ void Home::on_btFasttrans_clicked(bool checked)
 
 void Home::on_btSpp1_clicked()
 {
-    model->setRotaryField(V_SPP1);
+    model->setRotaryField(V_SPP1,SEND);
 }
 
 void Home::on_btSpp2_clicked()
 {
-    model->setRotaryField(V_SPP2);
+    model->setRotaryField(V_SPP2,SEND);
 }
 
 void Home::on_btSppWait_clicked()
 {
-    model->setRotaryField(V_SPP_WAIT_TIME);
+    model->setRotaryField(V_SPP_WAIT_TIME,SEND);
 }
 
 void Home::on_btSppStart_clicked(bool checked)
 {
+
     if(!checked){
         controller->queueEvent(E_SPP_ABORT);
     }
     else{
         controller->queueEvent(E_SPP_START);
     }
+
 }
 
 void Home::on_btHeadNr_clicked()
 {
-    model->setRotaryField(V_HEADNR);
+    model->setRotaryField(V_HEADNR,SEND);
 }
 
 void Home::on_btStorePreset_clicked()

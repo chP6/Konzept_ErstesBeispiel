@@ -5,6 +5,7 @@
 #include <QStringList>
 #include "config.h"
 #include "bbmcommandtypes.h"
+#include <stdio.h>
 //#include "view.h" //nix gut, circular dependency -> forward declaration.
 //class View;         //Make sure each header can be included on its own.
 
@@ -15,6 +16,7 @@ struct camera_s{
   bool flags[NUMBER_OF_FLAGS];
   int values [ROW_ENTRIES][COLUM_ENTRIES];
   QString *textTable;
+  int xptSource;
 };
 
 
@@ -28,6 +30,8 @@ signals:
     void setUpView();
     void updateServerConnectionStatus(bool connected);
     void updateCameraConnectionStatus(bool connected);
+    void updateXptConnectionStatus(bool connected);
+    void updateXptEnableStatus(bool connected);
 
 public:
     Model();
@@ -66,7 +70,8 @@ public:
     int setWatchdogWaitingflag(bool waiting);
     int setCameraWaitingflag(int slotNr, bool waiting);
     int getRotaryField();
-    void setRotaryField(int field);
+    void setRotaryField(int field, int destination);
+    int getRotaryDestination();
     int getTxCommand(int value);
     int getValueFromBBMCommand(int bbm_command);
     void setTextTable(int slotNr, int type);
@@ -74,12 +79,32 @@ public:
     void setSppState(int slotNr, int state);
     int getSppState(int slotNr);
 
+    /* XPT handling */
+    void setXptConnected(bool flag);
+    bool getXptConnected();
+    void setXptSlotSource(int source);
+    int getXptSlotSource(int slotNr);
+    void setXptDestination(int destination);
+    int getXptDestination();
+    void setXptSlot(int slot);
+    int getXptSlot();
+    void setXptIpField(int field,int value);
+    int getXptIpField(int field);
+    char* getXptIpAdress();
+    void setXptNumberOfInputs(int inputs);
+    int getXptNumberOfInputs();
+    void setXptNumberOfOutputs(int outputs);
+    int getXptNumberOfOutputs();
+    bool getXptEnabled();
+    void setXptEnabled(bool flag);
+
 
 private:
     QStringList errorList;
     int answerStack;
     int count;
     int rotaryField;
+    int rotaryDestination;
     int x = 5000;
     int y = 5000;
     bool watchdogWaitingForAnswerFlag = false;
@@ -89,6 +114,17 @@ private:
     struct camera_s cameras[NUMBER_OF_SLOTS];
     int activeCameraSlot;     // 0-5
     bool blinkToggle = false;
+    /*XPT handling */
+    bool xptConnect=false;
+    bool xptEnabled=false;
+    int xptDestination=1;
+    int xptSlot;
+    int xptNumberOfInputs;
+    int xptNumberOfOutputs;
+    char xptIpAddress[20];
+    int xptFields[4];
+
+
     // camera type 2 init values
     int c2Values[ROW_ENTRIES][COLUM_ENTRIES]=
                       {{1,0,49,NORMAL},     //headnr init_value, min_value, max_value
@@ -117,7 +153,7 @@ private:
                        {0,0,30,NORMAL},      //SPP Wait Time
                        {12,1,127,NORMAL},    //Bounce Zoom Speed
                        {0,0,2,TEXT,5},       //Head Power
-                       {0,0,3,TEXT,6}               //Mirror
+                       {0,0,3,TEXT,6}              //Mirror
                       };
 
     // camera type 1 init values
@@ -148,7 +184,7 @@ private:
                        {0,0,30,NORMAL},      //SPP Wait Time
                        {12,1,127,NORMAL},    //Bounce Zoom Speed
                        {0,0,2,TEXT,4},        //Head Power
-                       {0,0,3,TEXT,5}               //Mirror
+                       {0,0,3,TEXT,5}              //Mirror
                       };
 
     // camera type 3&4 init values
@@ -210,6 +246,7 @@ private:
                                 {"Low","Mid","High"},
                                {"Normal","H-Inverted","V-Inverted","HV-Inverted"}
                                };
+
 };
 
 #endif // MODEL_H

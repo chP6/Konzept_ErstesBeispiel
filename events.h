@@ -38,6 +38,8 @@
 #define E_SPP_ABORT             34
 #define E_SPP_WAIT_DONE         35
 #define E_PRESET_REACHED        36
+#define E_XPT_CONNECT           37
+#define E_XPT_WATCHDOG          38
 
 
 

@@ -175,7 +175,7 @@
       </property>
       <widget class="Home" name="home"/>
       <widget class="CameraView" name="cameraView"/>
-      <widget class="QWidget" name="errorWindow"/>
+      <widget class="XptControl" name="xptControl"/>
       <widget class="Others" name="others"/>
      </widget>
     </item>
@@ -200,6 +200,12 @@
    <class>Others</class>
    <extends>QWidget</extends>
    <header>others.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>XptControl</class>
+   <extends>QWidget</extends>
+   <header>xptcontrol.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

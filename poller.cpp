@@ -28,6 +28,12 @@ Poller::Poller(Controller& controller)
         controller.logSystemError(poll_err, "Could not initialize Watchdog Timer");
     }
 
+    poll_err = xptWatchdog.init();
+    if(poll_err < 0){
+        poll_err = errno;
+        controller.logSystemError(poll_err, "Could not initialize Watchdog Timer Xpt");
+    }
+
     poll_err = joystick.init();
     if(poll_err < 0){
         poll_err = errno;
@@ -97,6 +103,7 @@ Poller::Poller(Controller& controller)
         poll_fd[i+14].fd = camerabus.button[i];
         poll_fd[i+14].events = POLLPRI;
     }
+
 }
 
 
@@ -471,6 +478,7 @@ void Poller::listener(){
                 controller->queueEvent(E_CAMERA_CHANGE,(unsigned char)5);
             }
         }
+
     }
 }
 

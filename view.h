@@ -19,6 +19,8 @@ public slots:
     void on_sppUpdate(bool active);
     void on_serverConnectionStatusChanged(bool connected);
     void on_cameraConnectionStatusChanged(bool connected);
+    void on_xptConnectionStatusChanged(bool connected);
+    void on_xptEnableStatusChanged(bool connected);
     void on_loadButtonCleared();
 
 private slots:
