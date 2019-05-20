@@ -97,6 +97,10 @@ public:
     int getXptNumberOfOutputs();
     bool getXptEnabled();
     void setXptEnabled(bool flag);
+    void setXptInputLables(QList<QString> inputLables);
+    void setXptOutputLables(QList<QString> outputLables);
+    QList<QString> getXptInputLables();
+    QList<QString> getXptOutputLables();
 
 
 private:
@@ -123,6 +127,8 @@ private:
     int xptNumberOfOutputs;
     char xptIpAddress[20];
     int xptFields[4];
+    QList<QString> xptInputLabels;
+    QList<QString> xptOutputLabels;
 
 
     // camera type 2 init values
@@ -206,7 +212,7 @@ private:
                        {0,0,2,TEXT,3},    //Knee
                        {127,0,254,CENTER},    //Knee Point
                        {-1,-1,-1,NAN},       //ND Filter
-                       {0,0,7,TEXT,5},    //Shutter
+                       {0,0,6,TEXT,5},    //Shutter
                        {5,1,10,NORMAL},      //PT Speed
                        {1,1,10,NORMAL},      //Trans Speed
                        {1,1,10,NORMAL},      //Ramp
@@ -242,7 +248,7 @@ private:
                                 {"2800K","3200K","4000K","4600K","5600K"},
                                 {"Off","On","Auto"},
                                 {"Clear","1/4","1/16","1/64"},
-                                {"1/50","1/75","1/100","1/120","1/150","1/215","1/300","1/425"},
+                                {"1/50","1/75","1/100","1/120","1/150","1/215","1/300"},
                                 {"Low","Mid","High"},
                                {"Normal","H-Inverted","V-Inverted","HV-Inverted"}
                                };

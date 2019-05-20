@@ -57,6 +57,7 @@ void CameraView::setUpUi()
     switch (value) {
     default:standard[standardLength].button=ui->btbred;
             standard[standardLength].value=V_B_RED;
+            ui->btbred->setDisabled(false);
             standardLength++;
         break;
     case -2048:ui->btbred->setDisabled(true);
@@ -64,6 +65,7 @@ void CameraView::setUpUi()
         break;
     case -2049:text[textLength].button=ui->btbred;
                text[textLength].value=V_B_RED;
+               ui->btbred->setDisabled(false);
                textLength++;
 
     }
@@ -73,6 +75,7 @@ void CameraView::setUpUi()
     default:
             standard[standardLength].button=ui->btbBlue;
             standard[standardLength].value=V_B_BLUE;
+            ui->btbBlue->setDisabled(false);
             standardLength++;
         break;
     case -2048:ui->btbBlue->setDisabled(true);
@@ -81,6 +84,7 @@ void CameraView::setUpUi()
     case -2049:
                 text[textLength].button=ui->btbBlue;
                 text[textLength].value=V_B_BLUE;
+                ui->btbBlue->setDisabled(false);
                 textLength++;
 
     }
@@ -89,6 +93,7 @@ void CameraView::setUpUi()
     switch (value) {
     default:standard[standardLength].button=ui->btwBlue;
             standard[standardLength].value=V_W_BLUE;
+            ui->btwBlue->setDisabled(false);
             standardLength++;
         break;
     case -2048:ui->btwBlue->setDisabled(true);
@@ -97,6 +102,7 @@ void CameraView::setUpUi()
     case -2049:
                text[textLength].button=ui->btwBlue;
                text[textLength].value=V_W_BLUE;
+               ui->btwBlue->setDisabled(false);
                textLength++;
     }
 
@@ -104,6 +110,7 @@ void CameraView::setUpUi()
     switch (value) {
     default:standard[standardLength].button=ui->btwRed;
             standard[standardLength].value=V_W_RED;
+            ui->btbred->setDisabled(false);
             standardLength++;
         break;
     case -2048:ui->btwRed->setDisabled(true);
@@ -112,6 +119,7 @@ void CameraView::setUpUi()
     case -2049:
                text[textLength].button=ui->btwRed;
                text[textLength].value=V_W_RED;
+               ui->btwRed->setDisabled(false);
                textLength++;
     }
 
@@ -120,6 +128,7 @@ void CameraView::setUpUi()
 
     default:standard[standardLength].button=ui->btShutter;
             standard[standardLength].value=V_SHUTTER;
+            ui->btShutter->setDisabled(false);
             standardLength++;
         break;
     case -2048:ui->btShutter->setDisabled(true);
@@ -128,6 +137,7 @@ void CameraView::setUpUi()
     case -2049:
                text[textLength].button=ui->btShutter;
                text[textLength].value=V_SHUTTER;
+               ui->btShutter->setDisabled(false);
                textLength++;
     }
 
@@ -136,6 +146,7 @@ void CameraView::setUpUi()
 
     default:standard[standardLength].button=ui->btndFilter;
             standard[standardLength].value=V_ND_FILTER;
+            ui->btndFilter->setDisabled(false);
             standardLength++;
         break;
     case -2048:ui->btndFilter->setDisabled(true);
@@ -144,6 +155,7 @@ void CameraView::setUpUi()
     case -2049:
                text[textLength].button=ui->btndFilter;
                text[textLength].value=V_ND_FILTER;
+               ui->btndFilter->setDisabled(false);
                textLength++;
     }
 
@@ -152,6 +164,7 @@ void CameraView::setUpUi()
 
     default:standard[standardLength].button=ui->btGain;
             standard[standardLength].value=V_GAIN;
+            ui->btGain->setDisabled(false);
             standardLength++;
         break;
     case -2048:ui->btGain->setDisabled(true);
@@ -160,6 +173,7 @@ void CameraView::setUpUi()
     case -2049:
                text[textLength].button=ui->btGain;
                text[textLength].value=V_GAIN;
+               ui->btGain->setDisabled(false);
                textLength++;
     }
 
@@ -168,6 +182,7 @@ void CameraView::setUpUi()
 
     default:standard[standardLength].button=ui->btDetail;
             standard[standardLength].value=V_DETAIL;
+            ui->btDetail->setDisabled(false);
             standardLength++;
         break;
     case -2048:ui->btDetail->setDisabled(true);
@@ -176,6 +191,7 @@ void CameraView::setUpUi()
     case -2049:
                text[textLength].button=ui->btDetail;
                text[textLength].value=V_DETAIL;
+               ui->btDetail->setDisabled(false);
                textLength++;
     }
 
@@ -184,14 +200,17 @@ void CameraView::setUpUi()
 
     default:standard[standardLength].button=ui->btSaturation;
             standard[standardLength].value=V_COLOR;
+            ui->btSaturation->setDisabled(false);
             standardLength++;
         break;
     case -2048:ui->btSaturation->setDisabled(true);
                ui->btSaturation->setText("-");
+
         break;
     case -2049:
                text[textLength].button=ui->btSaturation;
                text[textLength].value=V_COLOR;
+               ui->btSaturation->setDisabled(false);
                textLength++;
     }
 
@@ -200,6 +219,7 @@ void CameraView::setUpUi()
 
     default:standard[standardLength].button=ui->btColorTemp;
             standard[standardLength].value=V_COL_TEMP;
+            ui->btColorTemp->setDisabled(false);
             standardLength++;
         break;
     case -2048:ui->btColorTemp->setDisabled(true);
@@ -208,6 +228,7 @@ void CameraView::setUpUi()
     case -2049:
                text[textLength].button=ui->btColorTemp;
                text[textLength].value=V_COL_TEMP;
+               ui->btColorTemp->setDisabled(false);
                textLength++;
     }
     value=model->getValue(DISP,V_KNEE);
@@ -215,6 +236,7 @@ void CameraView::setUpUi()
 
     default:standard[standardLength].button=ui->btKnee;
             standard[standardLength].value=V_KNEE;
+            ui->btKnee->setDisabled(false);
             standardLength++;
         break;
     case -2048:ui->btKnee->setDisabled(true);
@@ -223,6 +245,7 @@ void CameraView::setUpUi()
     case -2049:
                text[textLength].button=ui->btKnee;
                text[textLength].value=V_KNEE;
+               ui->btKnee->setDisabled(false);
                textLength++;
     }
 
@@ -231,6 +254,7 @@ void CameraView::setUpUi()
 
     default:standard[standardLength].button=ui->btKneePoint;
             standard[standardLength].value=V_KNEE_POINT;
+            ui->btKneePoint->setDisabled(false);
             standardLength++;
         break;
     case -2048:ui->btKneePoint->setDisabled(true);
@@ -239,6 +263,7 @@ void CameraView::setUpUi()
     case -2049:
                text[textLength].button=ui->btKneePoint;
                text[textLength].value=V_KNEE_POINT;
+               ui->btKneePoint->setDisabled(false);
                textLength++;
     }
 
@@ -248,6 +273,7 @@ void CameraView::setUpUi()
 
     default:standard[standardLength].button=ui->btGamma;
             standard[standardLength].value=V_GAMMA;
+            ui->btGamma->setDisabled(false);
             standardLength++;
         break;
     case -2048:ui->btGamma->setDisabled(true);
@@ -256,6 +282,7 @@ void CameraView::setUpUi()
     case -2049:
                text[textLength].button=ui->btGamma;
                text[textLength].value=V_GAMMA;
+               ui->btGamma->setDisabled(false);
                textLength++;
     }
 
@@ -264,6 +291,7 @@ void CameraView::setUpUi()
 
     default:standard[standardLength].button=ui->btGammaTab;
             standard[standardLength].value=V_GAMMA_TAB;
+            ui->btGammaTab->setDisabled(false);
             standardLength++;
         break;
     case -2048:ui->btGammaTab->setDisabled(true);
@@ -272,6 +300,7 @@ void CameraView::setUpUi()
     case -2049:
                text[textLength].button=ui->btGammaTab;
                text[textLength].value=V_GAMMA_TAB;
+               ui->btGammaTab->setDisabled(false);
                textLength++;
     }
 
@@ -280,6 +309,7 @@ void CameraView::setUpUi()
 
     default:standard[standardLength].button=ui->btBlackLevel;
             standard[standardLength].value=V_PED;
+            ui->btBlackLevel->setDisabled(false);
             standardLength++;
         break;
     case -2048:ui->btBlackLevel->setDisabled(true);
@@ -288,6 +318,7 @@ void CameraView::setUpUi()
     case -2049:
                text[textLength].button=ui->btBlackLevel;
                text[textLength].value=V_PED;
+               ui->btBlackLevel->setDisabled(false);
                textLength++;
     }
 
@@ -296,6 +327,7 @@ void CameraView::setUpUi()
 
     default:standard[standardLength].button=ui->btIris;
             standard[standardLength].value=V_IRIS;
+            ui->btIris->setDisabled(false);
             standardLength++;
         break;
     case -2048:ui->btIris->setDisabled(true);
@@ -304,6 +336,7 @@ void CameraView::setUpUi()
     case -2049:
                text[textLength].button=ui->btIris;
                text[textLength].value=V_IRIS;
+               ui->btIris->setDisabled(false);
                textLength++;
     }
 

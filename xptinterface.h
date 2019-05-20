@@ -11,22 +11,23 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <QList>
+#include <fcntl.h>
 
+#define MAXDATASIZE 2048
 
-#define MAXDATASIZE 512
-
-class XptInterface
+class XptInterface : public QObject
 {
+     Q_OBJECT
 public:
     enum SrvAnswer {
         Error=-2,
         NACK=-1,
         ACK=0,
         NOP,
-        DeviceType
+        DeviceType,
+        Preamble
     };
     XptInterface();
-    ~XptInterface();
     int init(int port, char* ipAdress);
     int changeIP(char* ipAdress);
     int sendChange(int source, int destination);
@@ -35,9 +36,11 @@ public:
     int disconnect();
     SrvAnswer processMessage(QList<QByteArray> &message);
     QList<QByteArray> appendInput(QByteArray &input);
+    SrvAnswer receive();
     int getNumberOfInputs();
     int getNumberOfOutputs();
-    
+    QList<QString> getOutputLabels();
+    QList<QString> getInputLabels();
 
 
 private:
@@ -46,10 +49,15 @@ private:
     int send_err;
     int recv_err;
     int connect_err;
-    char rxbuffer[2048];
+    char rxbuffer[MAXDATASIZE];
     char txBuffer[35];
     int numberOfInputs;
     int numberOfOutputs;
+    QList<QString> inputLabels;
+    QList<QString> outputLabels;
+
+signals:
+    void inputLabelsChanged();
 
 
 };

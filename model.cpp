@@ -22,14 +22,17 @@ Model::Model()
     }
     for (int i=0;i<NUMBER_OF_SLOTS;i++) { //every camera a different HeadNr
         cameras[i].values[V_HEADNR][0]=i+1;
+        cameras[i].values[V_HEADNR][1]=1;
+        cameras[i].values[V_HEADNR][2]=49;
+        cameras[i].values[V_HEADNR][3]=NORMAL;
         cameras[i].xptSource=i+1;
     }
 
     activeCameraSlot=0;
     xptFields[0]=192;
     xptFields[1]=168;
-    xptFields[2]=0;
-    xptFields[3]=30;
+    xptFields[2]=1;
+    xptFields[3]=241;
 
 }
 
@@ -137,35 +140,39 @@ QStringList* Model::getErrorList(){
 }
 
 void Model::setCamType(int slotNr, int type){
-    cameras[slotNr].camType=type;
+    if(cameras[slotNr].camType != type){
+        cameras[slotNr].camType=type;
+        setCamTypeWithDefValues(slotNr,type);
+    }
+
 }
 
 void Model::setCamTypeWithDefValues(int slotNr, int type)
 {
     switch (type) {
     case 1:
-        for(int i= 0;i<ROW_ENTRIES;i++){
+        for(int i= 1;i<ROW_ENTRIES;i++){
             for(int j=0;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=c1Values[i][j];}
         }
         cameras[slotNr].camType=type;
         cameras[slotNr].textTable=&c1TextTable[0][0];
         break;
     case 2:
-        for(int i= 0;i<ROW_ENTRIES;i++){
+        for(int i= 1;i<ROW_ENTRIES;i++){
             for(int j=0;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=c2Values[i][j];}
         }
         cameras[slotNr].camType=type;
         cameras[slotNr].textTable=&c2TextTable[0][0];
         break;
     case 5:
-        for(int i= 0;i<ROW_ENTRIES;i++){
+        for(int i= 1;i<ROW_ENTRIES;i++){
             for(int j=0;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=rValues[i][j];}
         }
         cameras[slotNr].camType=type;
         cameras[slotNr].textTable=&rTextTable[0][0];
         break;
     case 6:
-        for(int i= 0;i<ROW_ENTRIES;i++){
+        for(int i= 1;i<ROW_ENTRIES;i++){
             for(int j=0;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=rValues[i][j];}
         }
         cameras[slotNr].values[V_ND_FILTER][0]=0;
@@ -561,6 +568,30 @@ void Model::setXptEnabled(bool flag)
     if(xptEnabled != flag){
         xptEnabled = flag;
     }
+}
+
+void Model::setXptInputLables(QList<QString> inputLables)
+{
+    if(!inputLables.empty()){
+        xptInputLabels=inputLables;
+    }
+}
+
+void Model::setXptOutputLables(QList<QString> outputLables)
+{
+    if(!outputLables.empty()){
+        xptOutputLabels=outputLables;
+    }
+}
+
+QList<QString> Model::getXptInputLables()
+{
+    return xptInputLabels;
+}
+
+QList<QString> Model::getXptOutputLables()
+{
+    return xptOutputLabels;
 }
 
 void Model::setSppState(int slotNr, int state){

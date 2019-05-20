@@ -9,6 +9,7 @@
 #include "config.h"
 
 
+
 #define SAVEFILE_PATH   "/opt/savefile"
 
 class Model;        //forward declaration
@@ -20,6 +21,8 @@ class Controller : public QObject
 
 signals:
     void clearLoadButon();
+public slots:
+    void onXptLableChanged();
 public:
     Controller(Model& model);
     void setModel(Model& model);

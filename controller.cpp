@@ -15,8 +15,18 @@
 
 
 
+void Controller::onXptLableChanged()
+{
+    model->setXptNumberOfInputs(xptSocket.getNumberOfInputs());
+    model->setXptNumberOfOutputs(xptSocket.getNumberOfOutputs());
+    model->setXptInputLables(xptSocket.getInputLabels());
+    model->setXptOutputLables(xptSocket.getOutputLabels());
+    model->updateView();
+}
+
 Controller::Controller(Model& model)// : poller(*this)    //poller Konstruktor aufrufen -> erwartet Objekt (as reference) darum this dereferenzieren
 {
+
     setModel(model);
     contr_err = txSocket.init(9000);
     if(contr_err<0){
@@ -58,6 +68,8 @@ Controller::Controller(Model& model)// : poller(*this)    //poller Konstruktor a
         sppTimer[i].init(E_SPP_WAIT_DONE,i,*this);
     }
     queueEvent(E_SETUP_HEAD);
+   QObject::connect(&xptSocket, SIGNAL(inputLabelsChanged()),            // model signal mit view slot verbinden
+                     this, SLOT(onXptLableChanged()));
 }
 
 void Controller::setModel(Model &model){
@@ -451,8 +463,14 @@ void Controller::processQeue(){
             }
             break;
         case E_CAMERA_CHANGE:
+            int previousType;
+            previousType=model->getCamtype();
             camerabus.setLed(CAMERA_COLOR,loadedEvent.data[0]);
             model->setActiveCameraSlot(loadedEvent.data[0]);
+            if(previousType!=model->getCamtype()){
+                model->setUpView();
+                model->updateView();
+            }
             if (model->getCamFlag(F_SPP_ON)){
                 presetbus.setLed(SPP_COLOR, model->getActivePreset());
             }
@@ -628,6 +646,9 @@ void Controller::processQeue(){
                 if(contr_err){
                     model->setXptNumberOfInputs(xptSocket.getNumberOfInputs());
                     model->setXptNumberOfOutputs(xptSocket.getNumberOfOutputs());
+                    model->setXptInputLables(xptSocket.getInputLabels());
+                    model->setXptOutputLables(xptSocket.getOutputLabels());
+                    model->updateView();
                 }
 
             }
@@ -651,7 +672,7 @@ void Controller::processQeue(){
                     if (xptSocket.connectToXpt() < 0) {
                         model->setXptConnected(false);
                     }
-
+                   qDebug()<<"no ACK received";
                     break;
                 }
                 else if(connection == 1 && model->getXptConnected()==false) {
