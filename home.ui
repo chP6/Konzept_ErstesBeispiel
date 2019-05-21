@@ -163,7 +163,7 @@
           <cursorShape>BlankCursor</cursorShape>
          </property>
          <property name="text">
-          <string>Ok</string>
+          <string>Not Ok</string>
          </property>
         </widget>
        </item>
@@ -173,7 +173,7 @@
           <cursorShape>BlankCursor</cursorShape>
          </property>
          <property name="text">
-          <string>Ok</string>
+          <string>Not Ok</string>
          </property>
         </widget>
        </item>

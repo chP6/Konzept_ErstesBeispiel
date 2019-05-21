@@ -53,6 +53,9 @@ Controller::Controller(Model& model)// : poller(*this)    //poller Konstruktor a
     xptWatchdog.init(E_XPT_WATCHDOG,*this);
     xptWatchdog.setInterval(2000*1000);
 
+    reqSettingsTimer.init(E_REQ_SETTINGS_TIMER,*this);
+    reqSettingsTimer.setInterval(500*1000);
+
     //init sppTimers
     for (int i=0;i<NUMBER_OF_SLOTS;i++) {
         sppTimer[i].init(E_SPP_WAIT_DONE,i,*this);
@@ -163,24 +166,90 @@ int Controller::loadSavefile(){
     return savefile.status();
 }
 
+void Controller::checkSettingsRequest(int cmd){
+    //only check if flag set
+    if(model->getRequestSettingsFlag()){
 
-void Controller::requestCameraSettings(){
-    txSocket.request(model->getValue(ABS,V_HEADNR), CAMERA_GAIN_UP);
-    txSocket.request(model->getValue(ABS,V_HEADNR), SHUTTER_UP);
+        bool anyActive = false;
+        int headNr = model->getCurrReqHeadNr();
+        if(cmd != TIMER_OUT){
+            model->setReqPendArr(cmd,false);
+            //check if all done
+            for (int i=0;i<MAX_NUMBER_OF_CMDS;i++) {
+                if(model->getReqPendArr(i)){
+                    anyActive = true;
+                }
+            }
+            if(!anyActive){
+                model->setRequestSettingsFlag(false);
+                reqSettingsTimer.stop();
+                qDebug("All Requests recieved!");
+            }
+        }
+        else{       // timer run out
+            //resend still pending requests
+            reqSettingsTimer.stop();
+            for (int i=0;i<MAX_NUMBER_OF_CMDS;i++) {
+                if(model->getReqPendArr(i)){
+                    txSocket.request(headNr, i);
+                    qDebug("Resend request command: %d", i);
+                }
+            }
+            reqSettingsTimer.start();
+        }
+    }
+}
+
+void Controller::requestCameraSettings(int slot){
+    int headNr = model->getValue(slot,ABS,V_HEADNR);
+    model->setCurrReqHeadNr(headNr);
+
+    switch (model->getCamtype(slot)) {
+    case SONY_EVS_CODGER:
+        break;
+    case MH322:
+        break;
+    case HPX600:
+        break;
+    case URSA:
+        break;
+    case HITACHI:
+        break;
+    case HITHD33_RAVEN:
+        break;
+    default:
+        break;
+    }
     //ND_FILTER
     //DETAIL
-    txSocket.request(model->getValue(ABS,V_HEADNR), RED_GAIN_ADJ_UP);
-    txSocket.request(model->getValue(ABS,V_HEADNR), BLUE_GAIN_ADJ_UP);
     //B_RED
     //B_BLUE
-    txSocket.request(model->getValue(ABS,V_HEADNR), MASTER_PED_UP);
-    txSocket.request(model->getValue(ABS,V_HEADNR), IRIS_OPEN);
-    txSocket.request(model->getValue(ABS,V_HEADNR), COLOR_UP);
-    txSocket.request(model->getValue(ABS,V_HEADNR), WHITE_BALANCE_PRST);
     //KNEE
     //KNEE_POINT
     //GAMMA
-    txSocket.request(model->getValue(ABS,V_HEADNR), GAMMA_TABLE);
+
+    txSocket.request(headNr, CAMERA_GAIN_UP);
+    txSocket.request(headNr, SHUTTER_UP);
+    txSocket.request(headNr, RED_GAIN_ADJ_UP);
+    txSocket.request(headNr, BLUE_GAIN_ADJ_UP);
+    //txSocket.request(headNr, MASTER_PED_UP);
+    //txSocket.request(headNr, IRIS_OPEN);
+    txSocket.request(headNr, COLOR_UP);
+    txSocket.request(headNr, WHITE_BALANCE_PRST);
+    txSocket.request(headNr, GAMMA_TABLE);
+
+    model->setReqPendArr(CAMERA_GAIN_UP,true);
+    model->setReqPendArr(SHUTTER_UP,true);
+    model->setReqPendArr(RED_GAIN_ADJ_UP,true);
+    model->setReqPendArr(BLUE_GAIN_ADJ_UP,true);
+    //model->setReqPendArr(MASTER_PED_UP,true);     //todo: answer with other command code
+    //model->setReqPendArr(IRIS_OPEN,true);         //todo: answer with other command code
+    model->setReqPendArr(COLOR_UP,true);
+    model->setReqPendArr(WHITE_BALANCE_PRST,true);
+    model->setReqPendArr(GAMMA_TABLE,true);
+
+    model->setRequestSettingsFlag(true);
+    reqSettingsTimer.start();
 }
 
 
@@ -486,13 +555,16 @@ void Controller::processQeue(){
                 }
 
                 // respective camera exists in a slot & known flag is not set -> request camera settings
-                if (model->getValue(i,ABS,V_HEADNR) == from && !model->getCamFlag(i,F_KNOWN)) {    //if headnumber == from
+                if (model->getValue(i,ABS,V_HEADNR) == from && !model->getCamFlag(i,F_KNOWN)) {
+                    //load all default settings for this cam type
+                    model->setCamTypeWithDefValues(i,type);
                     model->setCamType(i, type);
-                    requestCameraSettings();
+                    //get actual settings from camera
+                    requestCameraSettings(i);
                     model->setCamFlag(i,F_KNOWN,true);
-                    model->setUpView();     //grays out ui buttons for not supported camera settings
+
+                    //model->setUpView();     //grays out ui buttons for not supported camera settings -> new done with every update
                     //qDebug("KNOWN Flag Set, requested camera settings");
-                    model->setUpView();
                 }
             }
             //qDebug("RX WATCHDOG");
@@ -575,8 +647,25 @@ void Controller::processQeue(){
 
                     if(model->getValueFromBBMCommand(command) > 0){  //there could be commandtypes without values
                        model->setValue(i, ABS, model->getValueFromBBMCommand(command), data);
+                       checkSettingsRequest(command);
                     }
                     qDebug("ANSWER | command: %d, value: %d", command, data);
+                }
+            }
+            break;
+        case E_RX_ADJ_RCP_CMD:
+            from = loadedEvent.data[0];         //to which camera head the cmd was sent
+            command = loadedEvent.data[1];
+            data = loadedEvent.data[2];
+
+            //update model, if headnumber exists in slots
+            for (int i=0;i<NUMBER_OF_SLOTS;i++) {
+                if(model->getValue(i,ABS,V_HEADNR) == from){
+
+                    if(model->getValueFromBBMCommand(command) > 0){  //there could be commandtypes without values
+                       model->setValue(i, ABS, model->getValueFromBBMCommand(command), data);
+                    }
+                    qDebug("ADJ RCP | command: %d, value: %d", command, data);
                 }
             }
             break;
@@ -587,6 +676,7 @@ void Controller::processQeue(){
                 usleep(TX_T);
                 txSocket.send(model->getValue(i,ABS,V_HEADNR), PAN_TILT_SPEED, model->getValue(i,ABS,V_PT_SPEED));
             }
+            model->updateView();
             qDebug("HEAD init done");
             break;
         case E_CALIB_HEAD:
@@ -758,6 +848,13 @@ void Controller::processQeue(){
             model->setCamFlag(from, F_SPP_ON, false);
             model->setSppState(from, S_SPP_IDLE);
             //qDebug("SPP ABORT");
+            break;
+        case E_REQUEST_SETTINGS:
+            requestCameraSettings(model->getActiveCameraSlot());
+            break;
+        case E_REQ_SETTINGS_TIMER:
+            checkSettingsRequest(TIMER_OUT);
+            qDebug("Req Timer Out");
             break;
         default:
             break;

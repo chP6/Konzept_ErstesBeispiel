@@ -40,6 +40,9 @@
 #define E_PRESET_REACHED        36
 #define E_XPT_CONNECT           37
 #define E_XPT_WATCHDOG          38
+#define E_RX_ADJ_RCP_CMD        39
+#define E_REQ_SETTINGS_TIMER    40
+#define E_REQUEST_SETTINGS      41
 
 
 

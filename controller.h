@@ -36,8 +36,9 @@ public:
     void clearErrors();
     int writeSavefile();
     int loadSavefile();
-    void requestCameraSettings();
     void alignSlots(int value);
+    void requestCameraSettings(int slot);
+    void checkSettingsRequest(int cmd);
 
 
 private:
@@ -48,7 +49,7 @@ private:
     Tastenfeld presetbus;
     Tastenfeld camerabus;
     XptInterface xptSocket;
-    GenericTimer blinkTimer, sppTimer[NUMBER_OF_SLOTS], xptWatchdog;
+    GenericTimer blinkTimer, sppTimer[NUMBER_OF_SLOTS], xptWatchdog, reqSettingsTimer;
 
 
     void processQeue();

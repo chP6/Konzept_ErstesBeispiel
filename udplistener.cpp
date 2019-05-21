@@ -38,6 +38,11 @@ void UdpListener::listener(){
 
         // =========== DECIDE WHAT TO DO ==============================================
 
+        // Command from adjecent RCP
+        if(answer.type == TYPED_TO_HC && answer.command != WATCHDOG){
+            controller->queueEvent(E_RX_ADJ_RCP_CMD, answer.from, answer.command, answer.data[0]);
+        }
+
         // Preset reached answer
         if(answer.type == TYPEC_FROM_HC && answer.command == PRESET_REACHED){
             controller->queueEvent(E_PRESET_REACHED, answer.from);

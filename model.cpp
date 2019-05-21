@@ -15,6 +15,7 @@ Model::Model()
     //set all cameras to type 1 (CODGER)
     for (int i=0; i < NUMBER_OF_SLOTS; i++) {
         setCamTypeWithDefValues(i,SONY_EVS_CODGER);
+        setValue(ABS,V_HEADNR,i);   //set headNr.
         //set all flags to flase
         for (int j=0;j<NUMBER_OF_FLAGS;j++) {
             cameras[i].flags[j] = false;
@@ -25,12 +26,17 @@ Model::Model()
         cameras[i].xptSource=i+1;
     }
 
+    for (int i=0;i<MAX_NUMBER_OF_CMDS;i++) { // set all to not pending
+        reqPendingArr[i] = false;
+    }
+
     activeCameraSlot=0;
     xptFields[0]=192;
     xptFields[1]=168;
     xptFields[2]=0;
     xptFields[3]=30;
 
+    // emit updateView(); -> not possible yet, signals not routed at this point -> do in controller
 }
 
 void Model::setData(int data){
@@ -140,34 +146,40 @@ void Model::setCamType(int slotNr, int type){
     cameras[slotNr].camType=type;
 }
 
+//all values except headNr (but max min anyway)
 void Model::setCamTypeWithDefValues(int slotNr, int type)
 {
+    int start = 1;
     switch (type) {
     case 1:
-        for(int i= 0;i<ROW_ENTRIES;i++){
+        for(int i= start;i<ROW_ENTRIES;i++){
             for(int j=0;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=c1Values[i][j];}
         }
+        for(int k=1;k<COLUM_ENTRIES;k++){cameras[slotNr].values[0][k]=c1Values[0][k];}  //headNr without actual value
         cameras[slotNr].camType=type;
         cameras[slotNr].textTable=&c1TextTable[0][0];
         break;
     case 2:
-        for(int i= 0;i<ROW_ENTRIES;i++){
+        for(int i= start;i<ROW_ENTRIES;i++){
             for(int j=0;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=c2Values[i][j];}
         }
+        for(int k=1;k<COLUM_ENTRIES;k++){cameras[slotNr].values[0][k]=c2Values[0][k];}  //headNr without actual value
         cameras[slotNr].camType=type;
         cameras[slotNr].textTable=&c2TextTable[0][0];
         break;
     case 5:
-        for(int i= 0;i<ROW_ENTRIES;i++){
+        for(int i= start;i<ROW_ENTRIES;i++){
             for(int j=0;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=rValues[i][j];}
         }
+        for(int k=1;k<COLUM_ENTRIES;k++){cameras[slotNr].values[0][k]=rValues[0][k];}  //headNr without actual value
         cameras[slotNr].camType=type;
         cameras[slotNr].textTable=&rTextTable[0][0];
         break;
     case 6:
-        for(int i= 0;i<ROW_ENTRIES;i++){
+        for(int i= start;i<ROW_ENTRIES;i++){
             for(int j=0;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=rValues[i][j];}
         }
+        for(int k=1;k<COLUM_ENTRIES;k++){cameras[slotNr].values[0][k]=rValues[0][k];}  //headNr without actual value
         cameras[slotNr].values[V_ND_FILTER][0]=0;
         cameras[slotNr].values[V_ND_FILTER][1]=0;
         cameras[slotNr].values[V_ND_FILTER][2]=3;
@@ -358,7 +370,9 @@ int Model::setCameraWaitingflag(int slotNr, bool waiting){
     if(waiting){        // out ping sent -> decrement stack 1
         if (cameraWaitingForAnswerStack[slotNr]<=0) {   // empty -> signal disconnect if connection status not already disconnected
             if(cameras[slotNr].flags[F_CONNECTED]){
-                emit updateCameraConnectionStatus(false);        //signal: disconnected
+                if(slotNr == getActiveCameraSlot()){
+                    emit updateCameraConnectionStatus(false);        //signal: disconnected
+                }
                 cameras[slotNr].flags[F_CONNECTED] = false;
             }
         }
@@ -369,7 +383,9 @@ int Model::setCameraWaitingflag(int slotNr, bool waiting){
     else{   // Answer received -> fill stack, send signal if connection status was not already ok
         cameraWaitingForAnswerStack[slotNr] = 2;
         if(!cameras[slotNr].flags[F_CONNECTED]){
-            emit updateCameraConnectionStatus(true);        //signal: connected
+            if(slotNr == getActiveCameraSlot()){
+                emit updateCameraConnectionStatus(true);        //signal: connected
+            }
         }
         cameras[slotNr].flags[F_CONNECTED] = true;
         return 0;           // ok, clear flag
@@ -570,4 +586,35 @@ void Model::setSppState(int slotNr, int state){
 int Model::getSppState(int slotNr){
     return sppState[slotNr];
 
+}
+
+bool Model::getRequestSettingsFlag(){
+    return requestSettingsFlag;
+}
+
+void Model::setRequestSettingsFlag(bool value){
+    requestSettingsFlag = value;
+}
+
+void Model::setReqPendArr(int pos, bool value){
+    if(pos< MAX_NUMBER_OF_CMDS){
+        reqPendingArr[pos] = value;
+    }
+}
+
+bool Model::getReqPendArr(int pos){
+    if(pos >= MAX_NUMBER_OF_CMDS){
+        return false;
+    }
+    else{
+        return reqPendingArr[pos];
+    }
+}
+
+void Model::setCurrReqHeadNr(int headNr){
+    currReqHeadNr = headNr;
+}
+
+int Model::getCurrReqHeadNr(){
+    return currReqHeadNr;
 }

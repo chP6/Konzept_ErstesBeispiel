@@ -19,6 +19,7 @@ CameraView::~CameraView()
 
 void CameraView::updateUi()
 {
+    setUpUi();
     for(int i =0;i<standardLength;i++){
         standard[i].button->setText(QString::number(model->getValue(DISP,standard[i].value)));
 
@@ -58,6 +59,7 @@ void CameraView::setUpUi()
     default:standard[standardLength].button=ui->btbred;
             standard[standardLength].value=V_B_RED;
             standardLength++;
+            ui->btbred->setEnabled(true);
         break;
     case -2048:ui->btbred->setDisabled(true);
                ui->btbred->setText("-");
@@ -65,7 +67,7 @@ void CameraView::setUpUi()
     case -2049:text[textLength].button=ui->btbred;
                text[textLength].value=V_B_RED;
                textLength++;
-
+               ui->btbred->setEnabled(true);
     }
 
     value=model->getValue(DISP,V_B_BLUE);
@@ -74,6 +76,7 @@ void CameraView::setUpUi()
             standard[standardLength].button=ui->btbBlue;
             standard[standardLength].value=V_B_BLUE;
             standardLength++;
+            ui->btbBlue->setEnabled(true);
         break;
     case -2048:ui->btbBlue->setDisabled(true);
                ui->btbBlue->setText("-");
@@ -82,7 +85,7 @@ void CameraView::setUpUi()
                 text[textLength].button=ui->btbBlue;
                 text[textLength].value=V_B_BLUE;
                 textLength++;
-
+                ui->btbBlue->setEnabled(true);
     }
 
     value=model->getValue(DISP,V_W_BLUE);
@@ -90,6 +93,7 @@ void CameraView::setUpUi()
     default:standard[standardLength].button=ui->btwBlue;
             standard[standardLength].value=V_W_BLUE;
             standardLength++;
+            ui->btwBlue->setEnabled(true);
         break;
     case -2048:ui->btwBlue->setDisabled(true);
                ui->btwBlue->setText("-");
@@ -98,6 +102,7 @@ void CameraView::setUpUi()
                text[textLength].button=ui->btwBlue;
                text[textLength].value=V_W_BLUE;
                textLength++;
+               ui->btwBlue->setEnabled(true);
     }
 
     value=model->getValue(DISP,V_W_RED);
@@ -105,6 +110,7 @@ void CameraView::setUpUi()
     default:standard[standardLength].button=ui->btwRed;
             standard[standardLength].value=V_W_RED;
             standardLength++;
+            ui->btwRed->setEnabled(true);
         break;
     case -2048:ui->btwRed->setDisabled(true);
                ui->btwRed->setText("-");
@@ -113,6 +119,7 @@ void CameraView::setUpUi()
                text[textLength].button=ui->btwRed;
                text[textLength].value=V_W_RED;
                textLength++;
+               ui->btwRed->setEnabled(true);
     }
 
     value=model->getValue(DISP,V_SHUTTER);
@@ -121,6 +128,7 @@ void CameraView::setUpUi()
     default:standard[standardLength].button=ui->btShutter;
             standard[standardLength].value=V_SHUTTER;
             standardLength++;
+            ui->btShutter->setEnabled(true);
         break;
     case -2048:ui->btShutter->setDisabled(true);
                ui->btShutter->setText("-");
@@ -129,6 +137,7 @@ void CameraView::setUpUi()
                text[textLength].button=ui->btShutter;
                text[textLength].value=V_SHUTTER;
                textLength++;
+               ui->btShutter->setEnabled(true);
     }
 
     value=model->getValue(DISP,V_ND_FILTER);
@@ -137,6 +146,7 @@ void CameraView::setUpUi()
     default:standard[standardLength].button=ui->btndFilter;
             standard[standardLength].value=V_ND_FILTER;
             standardLength++;
+            ui->btndFilter->setEnabled(true);
         break;
     case -2048:ui->btndFilter->setDisabled(true);
                ui->btndFilter->setText("-");
@@ -145,6 +155,7 @@ void CameraView::setUpUi()
                text[textLength].button=ui->btndFilter;
                text[textLength].value=V_ND_FILTER;
                textLength++;
+               ui->btndFilter->setEnabled(true);
     }
 
     value=model->getValue(DISP,V_GAIN);
@@ -153,6 +164,7 @@ void CameraView::setUpUi()
     default:standard[standardLength].button=ui->btGain;
             standard[standardLength].value=V_GAIN;
             standardLength++;
+            ui->btGain->setEnabled(true);
         break;
     case -2048:ui->btGain->setDisabled(true);
                ui->btGain->setText("-");
@@ -161,6 +173,7 @@ void CameraView::setUpUi()
                text[textLength].button=ui->btGain;
                text[textLength].value=V_GAIN;
                textLength++;
+               ui->btGain->setEnabled(true);
     }
 
     value=model->getValue(DISP,V_DETAIL);
@@ -169,6 +182,7 @@ void CameraView::setUpUi()
     default:standard[standardLength].button=ui->btDetail;
             standard[standardLength].value=V_DETAIL;
             standardLength++;
+            ui->btDetail->setEnabled(true);
         break;
     case -2048:ui->btDetail->setDisabled(true);
                ui->btDetail->setText("-");
@@ -177,6 +191,7 @@ void CameraView::setUpUi()
                text[textLength].button=ui->btDetail;
                text[textLength].value=V_DETAIL;
                textLength++;
+               ui->btDetail->setEnabled(true);
     }
 
     value=model->getValue(DISP,V_COLOR);
@@ -185,6 +200,7 @@ void CameraView::setUpUi()
     default:standard[standardLength].button=ui->btSaturation;
             standard[standardLength].value=V_COLOR;
             standardLength++;
+            ui->btSaturation->setEnabled(true);
         break;
     case -2048:ui->btSaturation->setDisabled(true);
                ui->btSaturation->setText("-");
@@ -193,6 +209,7 @@ void CameraView::setUpUi()
                text[textLength].button=ui->btSaturation;
                text[textLength].value=V_COLOR;
                textLength++;
+               ui->btSaturation->setEnabled(true);
     }
 
     value=model->getValue(DISP,V_COL_TEMP);
@@ -201,6 +218,7 @@ void CameraView::setUpUi()
     default:standard[standardLength].button=ui->btColorTemp;
             standard[standardLength].value=V_COL_TEMP;
             standardLength++;
+            ui->btColorTemp->setEnabled(true);
         break;
     case -2048:ui->btColorTemp->setDisabled(true);
                ui->btColorTemp->setText("-");
@@ -209,6 +227,7 @@ void CameraView::setUpUi()
                text[textLength].button=ui->btColorTemp;
                text[textLength].value=V_COL_TEMP;
                textLength++;
+               ui->btColorTemp->setEnabled(true);
     }
     value=model->getValue(DISP,V_KNEE);
     switch (value) {
@@ -216,6 +235,7 @@ void CameraView::setUpUi()
     default:standard[standardLength].button=ui->btKnee;
             standard[standardLength].value=V_KNEE;
             standardLength++;
+            ui->btKnee->setEnabled(true);
         break;
     case -2048:ui->btKnee->setDisabled(true);
                ui->btKnee->setText("-");
@@ -224,6 +244,7 @@ void CameraView::setUpUi()
                text[textLength].button=ui->btKnee;
                text[textLength].value=V_KNEE;
                textLength++;
+               ui->btKnee->setEnabled(true);
     }
 
     value=model->getValue(DISP,V_KNEE_POINT);
@@ -232,6 +253,7 @@ void CameraView::setUpUi()
     default:standard[standardLength].button=ui->btKneePoint;
             standard[standardLength].value=V_KNEE_POINT;
             standardLength++;
+            ui->btKneePoint->setEnabled(true);
         break;
     case -2048:ui->btKneePoint->setDisabled(true);
                ui->btKneePoint->setText("-");
@@ -240,6 +262,7 @@ void CameraView::setUpUi()
                text[textLength].button=ui->btKneePoint;
                text[textLength].value=V_KNEE_POINT;
                textLength++;
+               ui->btKneePoint->setEnabled(true);
     }
 
 
@@ -249,6 +272,7 @@ void CameraView::setUpUi()
     default:standard[standardLength].button=ui->btGamma;
             standard[standardLength].value=V_GAMMA;
             standardLength++;
+            ui->btGamma->setEnabled(true);
         break;
     case -2048:ui->btGamma->setDisabled(true);
                ui->btGamma->setText("-");
@@ -257,6 +281,7 @@ void CameraView::setUpUi()
                text[textLength].button=ui->btGamma;
                text[textLength].value=V_GAMMA;
                textLength++;
+               ui->btGamma->setEnabled(true);
     }
 
     value=model->getValue(DISP,V_GAMMA_TAB);
@@ -265,6 +290,7 @@ void CameraView::setUpUi()
     default:standard[standardLength].button=ui->btGammaTab;
             standard[standardLength].value=V_GAMMA_TAB;
             standardLength++;
+            ui->btGammaTab->setEnabled(true);
         break;
     case -2048:ui->btGammaTab->setDisabled(true);
                ui->btGammaTab->setText("-");
@@ -273,6 +299,7 @@ void CameraView::setUpUi()
                text[textLength].button=ui->btGammaTab;
                text[textLength].value=V_GAMMA_TAB;
                textLength++;
+               ui->btGammaTab->setEnabled(true);
     }
 
     value=model->getValue(DISP,V_PED);
@@ -281,6 +308,7 @@ void CameraView::setUpUi()
     default:standard[standardLength].button=ui->btBlackLevel;
             standard[standardLength].value=V_PED;
             standardLength++;
+            ui->btBlackLevel->setEnabled(true);
         break;
     case -2048:ui->btBlackLevel->setDisabled(true);
                ui->btBlackLevel->setText("-");
@@ -289,6 +317,7 @@ void CameraView::setUpUi()
                text[textLength].button=ui->btBlackLevel;
                text[textLength].value=V_PED;
                textLength++;
+               ui->btBlackLevel->setEnabled(true);
     }
 
     value=model->getValue(DISP,V_IRIS);
@@ -297,6 +326,7 @@ void CameraView::setUpUi()
     default:standard[standardLength].button=ui->btIris;
             standard[standardLength].value=V_IRIS;
             standardLength++;
+            ui->btIris->setEnabled(true);
         break;
     case -2048:ui->btIris->setDisabled(true);
                ui->btIris->setText("-");
@@ -305,6 +335,7 @@ void CameraView::setUpUi()
                text[textLength].button=ui->btIris;
                text[textLength].value=V_IRIS;
                textLength++;
+               ui->btIris->setEnabled(true);
     }
 
 }
