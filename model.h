@@ -78,6 +78,12 @@ public:
     int toggleBlink();
     void setSppState(int slotNr, int state);
     int getSppState(int slotNr);
+    bool getRequestSettingsFlag();
+    void setRequestSettingsFlag(bool value);
+    void setReqPendArr(int pos, bool value);
+    bool getReqPendArr(int pos);
+    void setCurrReqHeadNr(int headNr);
+    int getCurrReqHeadNr();
 
     /* XPT handling */
     void setXptConnected(bool flag);
@@ -118,6 +124,10 @@ private:
     struct camera_s cameras[NUMBER_OF_SLOTS];
     int activeCameraSlot;     // 0-5
     bool blinkToggle = false;
+    bool requestSettingsFlag = false;
+    bool reqPendingArr[MAX_NUMBER_OF_CMDS];
+    int currReqHeadNr;
+
     /*XPT handling */
     bool xptConnect=false;
     bool xptEnabled=false;
@@ -132,6 +142,7 @@ private:
 
 
     // camera type 2 init values
+    //todo: not all entries have 5 values!
     int c2Values[ROW_ENTRIES][COLUM_ENTRIES]=
                       {{1,0,49,NORMAL},     //headnr init_value, min_value, max_value
                        {127,0,255,NORMAL}, //Iris

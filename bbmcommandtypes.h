@@ -1,6 +1,8 @@
 #ifndef BBMCOMMANDTYPES_H
 #define BBMCOMMANDTYPES_H
 
+#define MAX_NUMBER_OF_CMDS 250
+
 /*Command Types */
 #define TILT_PAN			0
 #define IRIS_OPEN			1

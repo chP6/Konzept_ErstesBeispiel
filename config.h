@@ -49,6 +49,7 @@
 #define TRUE 1
 #define FALSE 0
 #define NUMBER_OF_SLOTS 6
+#define TIMER_OUT 0
 
 /*property array*/
 #define VAL 0

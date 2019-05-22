@@ -98,7 +98,8 @@ void Others::on_btHeadPower_clicked()
 
 void Others::on_btRequest_clicked()
 {
-    controller->requestCameraSettings();
+    //controller->requestCameraSettings();
+    controller->queueEvent(E_REQUEST_SETTINGS);
 }
 
 void Others::on_btSave_clicked()
