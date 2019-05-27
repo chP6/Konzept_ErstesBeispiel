@@ -41,7 +41,9 @@
 #define GAMMA				71
 #define	GAMMA_TABLE			72
 #define DYN_NOISE_REDUCTION	74
+#define KNEE_POINT          75
 #define PRESET_REACHED      76
+#define ND_FILTER           77
 #define MATRIX_LIN_RG		80
 #define MATRIX_LIN_GB		81
 #define MATRIX_LIN_BR		82
@@ -64,6 +66,7 @@
 #define	TILT_UPPER_LIMIT	104
 #define	TILT_LOWER_LIMIT	105
 #define	TILT_CLEAR_LIMIT	106
+#define	BNCE_WAIT_TIME  	211
 #define	SET_FOCUS_PUSH		212
 #define	BRIGHT_SET			213
 #define	BLC_ON				214

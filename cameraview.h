@@ -20,6 +20,8 @@ public:
     explicit CameraView(QWidget *parent = nullptr);
     void setModelController(Model* model, Controller* controller);
     void stackChanged();
+    void signalRequest(int property);
+    void newRequest();
     ~CameraView();
 
 private slots:
@@ -65,6 +67,10 @@ private:
     struct s_UiValue text[16];
     int standardLength=0;
     int textLength=0;
+    QList<s_UiValue> buttons;
+    QList<s_UiValue> standardButtons;
+    QList<s_UiValue> textButtons;
+
 
 };
 

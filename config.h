@@ -88,14 +88,16 @@
 
 
 #define ROW_ENTRIES           27
-#define COLUM_ENTRIES         5
+#define COLUM_ENTRIES         6
 #define NORMAL                0
 #define CENTER                1
 #define TEXT                  2
 #define NAN                   3
 #define OFFSET                4
+#define REQUESTABLE           1
+#define ARRIVED               1
 
-#define NUMBER_OF_FLAGS       11
+#define NUMBER_OF_FLAGS       13
 /*flags*/
 #define F_PRST_IN_STORE       0
 #define F_BOUNCING            1
@@ -108,6 +110,8 @@
 #define F_Y_INVERT            8
 #define F_Z_INVERT            9
 #define F_FOCUSINVERT         10
+#define F_PRESET_MOVE         11
+#define F_RECEIVED_ALL        12
 
 /*set,get types*/
 #define ABS                 1

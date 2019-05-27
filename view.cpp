@@ -77,6 +77,16 @@ void View::on_loadButtonCleared()
 
 }
 
+void View::on_newReceive(int property)
+{
+    ui->cameraView->signalRequest(property);
+}
+
+void View::on_newRequest()
+{
+ ui->cameraView->newRequest();
+}
+
 
 
 

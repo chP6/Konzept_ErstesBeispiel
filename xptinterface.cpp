@@ -11,12 +11,34 @@ XptInterface::XptInterface()
 
 }
 
-int XptInterface::init(int port, char *ipAdress)
+int XptInterface::init(XptType type, char *ipAdress)
 {
 
+    switch (type) {
+    case XptInterface::BalckMagic:
+        xpt_adress.sin_port = htons(BMDPORT);
+        numberOfInputs = 40;
+        numberOfOutputs = 40;
+        inputLabels.clear();
+        outputLabels.clear();
+        break;
+    case XptInterface::Ross:
+        xpt_adress.sin_port = htons(ROSSPORT);
+        numberOfInputs = 24;
+        numberOfOutputs = 8;
+        inputLabels.clear();
+        for (int i = 0;i<numberOfInputs;i++) {
+            inputLabels.append(QString::number(i+1));
+        }
+
+        outputLabels.clear();
+        for (int i=0;i<numberOfOutputs;i++) {
+            outputLabels.append(QStringLiteral("Aux %1").arg(i+1));
+        }
+        break;
+    }
 
     xpt_adress.sin_family = AF_INET;
-    xpt_adress.sin_port = htons(port);
     inet_aton(ipAdress, &xpt_adress.sin_addr);
     bzero(&(xpt_adress.sin_zero), 8);
 
@@ -40,23 +62,34 @@ int XptInterface::connectToXpt()
         {
             return -1;
         }
-    XptInterface::SrvAnswer answer=receive();
-        if (answer==XptInterface::Preamble) {
-            answer=receive();
-            if (answer==XptInterface::ACK) {
-                return 1;
+
+        switch (xptType) {
+            case XptInterface::BalckMagic:
+                {
+                XptInterface::SrvAnswer answer=bmdReceive();
+                    if (answer==XptInterface::Preamble) {
+                        answer=bmdReceive();
+                        if (answer==XptInterface::ACK) {
+                            return 1;
+                                }
+                                        }
+                    else if (answer == XptInterface::ACK) {
+                        return 1;
+                        }
+                    else {
+                        return -1;
+                       }
+            break;
             }
-
-        }
-        else if (answer == XptInterface::ACK) {
-            return 1;
-        }
-        else {
-            return -1;
+            case XptInterface::Ross:
+                emit inputLabelsChanged();
+                return 1; //see what happens when connected to ross
+            break;
         }
 
+    return -1;
 }
-XptInterface::SrvAnswer XptInterface::receive()
+XptInterface::SrvAnswer XptInterface::bmdReceive()
 {
     recv_err=recv(sockfd, rxbuffer, MAXDATASIZE, 0);     //receive xpt dump
          if (recv_err < 0) {
@@ -69,7 +102,43 @@ XptInterface::SrvAnswer XptInterface::receive()
          QList<QByteArray> message = appendInput(input);
 
          if(!message.empty()){
-             XptInterface::SrvAnswer result = processMessage(message);
+             XptInterface::SrvAnswer result = processBmdMessages(message);
+             qDebug()<<"message processed";
+             return result;
+         }
+         return XptInterface::Error;
+}
+
+XptInterface::SrvAnswer XptInterface::processRossMessages(QList<QByteArray> &message)
+{
+    if (message.length() < 1) {
+        return XptInterface::Error;
+    }
+    QByteArray header;
+
+   if(!message.empty()){
+       message.clear();     //to do: see what it sends exactely
+      return XptInterface::ACK;
+   }
+   else {
+       return XptInterface::Error;
+   }
+}
+
+XptInterface::SrvAnswer XptInterface::rossReceive()
+{
+    recv_err=recv(sockfd, rxbuffer, MAXDATASIZE, 0);     //receive xpt dump
+         if (recv_err < 0) {
+             return XptInterface::Error;
+             }
+
+         QByteArray input;
+         input.append(rxbuffer);
+         qDebug()<<input;
+         QList<QByteArray> message = appendInput(input);
+
+         if(!message.empty()){
+             XptInterface::SrvAnswer result = processRossMessages(message);
              qDebug()<<"message processed";
              return result;
          }
@@ -85,7 +154,7 @@ int XptInterface::disconnect()
     return 0;
 }
 
-XptInterface::SrvAnswer XptInterface::processMessage(QList<QByteArray> &message)
+XptInterface::SrvAnswer XptInterface::processBmdMessages(QList<QByteArray> &message)
 {
     if (message.length() < 1) {
         return XptInterface::Error;
@@ -243,6 +312,13 @@ QList<QString> XptInterface::getInputLabels()
     return inputLabels;
 }
 
+void XptInterface::setXptType(XptInterface::XptType type)
+{
+    if (xptType != type) {
+        xptType = type;
+    }
+}
+
 
 int XptInterface::changeIP(char *ipAdress)
 {
@@ -257,34 +333,73 @@ int XptInterface::changeIP(char *ipAdress)
 int XptInterface::sendChange(int source, int destination)
 {
     memset(txBuffer,0,sizeof(txBuffer));
-    sprintf(txBuffer,"VIDEO OUTPUT ROUTING:\n%d %d\n\n",destination-1,source-1);
-    if(connect_err < 0){
-        return -1;
-    }
-    send_err = send(sockfd,txBuffer,strlen(txBuffer),MSG_NOSIGNAL);
-    if (send_err < 0) {
-        return -1;
-        }
 
-    return  0;
+    switch (xptType) {
+    case XptInterface::BalckMagic:
+
+            sprintf(txBuffer,"VIDEO OUTPUT ROUTING:\n%d %d\n\n",destination-1,source-1);
+            if(connect_err < 0){
+                return -1;
+                    }
+            send_err = send(sockfd,txBuffer,strlen(txBuffer),MSG_NOSIGNAL);
+            if (send_err < 0) {
+                return -1;
+                    }
+
+            return  0;
+
+    case XptInterface::Ross:
+        sprintf(txBuffer,"XPT AUX:%d:IN:%d\n",destination-1,source-1);
+        if(connect_err < 0){
+            return -1;
+                }
+        send_err = send(sockfd,txBuffer,strlen(txBuffer),MSG_NOSIGNAL);
+        if (send_err < 0) {
+            return -1;
+                }
+
+        return  0;
+    }
+
 }
 
 int XptInterface::checkConnection()
 {
     memset(txBuffer,0,sizeof(txBuffer));
     memset(rxbuffer,0,sizeof(rxbuffer));
-    sprintf(txBuffer,"PING:\n\n");
-    send_err = send(sockfd,txBuffer,strlen(txBuffer),MSG_NOSIGNAL);
-    if (send_err < 0) {
-        return -1;
-        }
 
-    XptInterface::SrvAnswer answer=receive();
-        if (answer==XptInterface::ACK) {
-            return 1;
+        switch (xptType) {
+        case XptInterface::BalckMagic:
+        {
+            sprintf(txBuffer,"PING:\n\n");
+            send_err = send(sockfd,txBuffer,strlen(txBuffer),MSG_NOSIGNAL);
+            if (send_err < 0) {
+                return -1;
+                }
+
+            XptInterface::SrvAnswer answer=bmdReceive();
+                if (answer==XptInterface::ACK) {
+                    return 1;
+                }
+                else {
+                    return -1;
+                }
         }
-        else {
-            return -1;
+        case XptInterface::Ross:
+            sprintf(txBuffer,"HELP\n");
+            send_err = send(sockfd,txBuffer,strlen(txBuffer),MSG_NOSIGNAL);
+            if (send_err < 0) {
+                return -1;
+                }
+
+            XptInterface::SrvAnswer answer=rossReceive();
+                if (answer==XptInterface::ACK) {
+                    return 1;
+                }
+                else {
+                    return -1;
+                }
+
         }
 
 

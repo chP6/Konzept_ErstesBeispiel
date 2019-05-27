@@ -39,13 +39,18 @@ void UdpListener::listener(){
         // =========== DECIDE WHAT TO DO ==============================================
 
         // Command from adjecent RCP
-        if(answer.type == TYPED_TO_HC && answer.command != WATCHDOG){
+        if(answer.type == TYPED_TO_HC && answer.command != WATCHDOG && answer.command != GOTO_PRESET){
             controller->queueEvent(E_RX_ADJ_RCP_CMD, answer.from, answer.command, answer.data[0]);
+
         }
 
         // Preset reached answer
         if(answer.type == TYPEC_FROM_HC && answer.command == PRESET_REACHED){
             controller->queueEvent(E_PRESET_REACHED, answer.from);
+        }
+        // Goto answer
+        if(answer.type == TYPED_TO_HC && answer.command == GOTO_PRESET){
+            controller->queueEvent(E_EXT_PRESET_CHANGE, answer.from, answer.data[0]);
         }
 
         // Reply from camera/head

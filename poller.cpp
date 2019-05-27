@@ -231,6 +231,7 @@ void Poller::listener(){
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Rotary2 value");
             }
+            qDebug()<<rotary_val;
             controller->queueEvent(E_FOCUS_CHANGE, rotary_val);
         }
 

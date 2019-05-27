@@ -22,6 +22,8 @@ public slots:
     void on_xptConnectionStatusChanged(bool connected);
     void on_xptEnableStatusChanged(bool connected);
     void on_loadButtonCleared();
+    void on_newReceive(int property);
+    void on_newRequest();
 
 private slots:
     void on_btHome_clicked();

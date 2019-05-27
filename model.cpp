@@ -190,7 +190,8 @@ void Model::setCamTypeWithDefValues(int slotNr, int type)
         cameras[slotNr].values[V_ND_FILTER][0]=0;
         cameras[slotNr].values[V_ND_FILTER][1]=0;
         cameras[slotNr].values[V_ND_FILTER][2]=3;
-        cameras[slotNr].values[V_ND_FILTER][3]=4;
+        cameras[slotNr].values[V_ND_FILTER][3]=TEXT;
+        cameras[slotNr].values[V_ND_FILTER][4]=4;
         cameras[slotNr].camType=type;
         cameras[slotNr].textTable=&rTextTable[0][0];
         break;
@@ -240,7 +241,15 @@ void Model::setValue(int slotNr, int type, int property, int value)
 {
     switch (type) {
     case ABS:
+        if (value > cameras[slotNr].values[property][MAX]) { //prevent buffer overflow, with garbage values
+            cameras[slotNr].values[property][VAL] = cameras[slotNr].values[property][MAX];
+        }
+         else if (value < cameras[slotNr].values[property][MIN]) {
+            cameras[slotNr].values[property][VAL] = cameras[slotNr].values[property][MIN];
+        }
+        else{
         cameras[slotNr].values[property][VAL]=value;
+        }
         emit updateView();
         break;
     case INC:
@@ -610,6 +619,19 @@ QList<QString> Model::getXptOutputLables()
     return xptOutputLabels;
 }
 
+void Model::setXptType(int type)
+{
+    if (xptType != type) {
+        xptType = type;
+    }
+
+}
+
+int Model::getXptType()
+{
+    return xptType;
+}
+
 void Model::setSppState(int slotNr, int state){
     sppState[slotNr] = state;
 }
@@ -649,3 +671,42 @@ void Model::setCurrReqHeadNr(int headNr){
 int Model::getCurrReqHeadNr(){
     return currReqHeadNr;
 }
+
+int Model::getRequestCommand(int slotNr, int property)
+{
+
+    if(cameras[slotNr].values[property][5]==REQUESTABLE){
+        cameras[slotNr].remainingTelegrams.append(property);
+        return commandtype[property];
+    }
+    else {
+        return -1;
+    }
+}
+
+void Model::setRequestReceived(int slotNr, int property)
+{
+    if (!cameras[slotNr].remainingTelegrams.empty()) {
+        int index = cameras[slotNr].remainingTelegrams.indexOf(property);
+        if(index > 0){
+        cameras[slotNr].remainingTelegrams.removeAt(index);
+        if(activeCameraSlot == slotNr){
+            emit newSiganalReceived(property);
+        }
+    }
+    }else {
+        setCamFlag(slotNr,F_RECEIVED_ALL);
+        }
+
+}
+
+int Model::getRequestReceived( int property)
+{
+}
+
+QList<int> Model::getRemainingTelegrams()
+{
+    return cameras[activeCameraSlot].remainingTelegrams;
+}
+
+

@@ -9,7 +9,77 @@ CameraView::CameraView(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::CameraView)
 {
-    ui->setupUi(this);
+     ui->setupUi(this);
+    s_UiValue button;
+    buttons.clear();
+    button.button=ui->btbred;
+    button.value=V_B_RED;
+    buttons.append(button);
+
+    button.button = ui->btbBlue;
+    button.value = V_B_BLUE;
+    buttons.append(button);
+
+    button.button = ui->btwRed;
+    button.value = V_W_RED;
+    buttons.append(button);
+
+    button.button = ui->btwBlue;
+    button.value = V_W_BLUE;
+    buttons.append(button);
+
+    button.button = ui->btShutter;
+    button.value = V_SHUTTER;
+    buttons.append(button);
+
+    button.button = ui->btGain;
+    button.value = V_GAIN;
+    buttons.append(button);
+
+    button.button = ui->btndFilter;
+    button.value = V_ND_FILTER;
+    buttons.append(button);
+
+    button.button = ui->btDetail;
+    button.value = V_DETAIL;
+    buttons.append(button);
+
+    button.button = ui->btSaturation;
+    button.value = V_COLOR;
+    buttons.append(button);
+
+    button.button = ui->btColorTemp;
+    button.value = V_COL_TEMP;
+    buttons.append(button);
+
+    button.button = ui->btKnee;
+    button.value = V_KNEE;
+    buttons.append(button);
+
+    button.button = ui->btKneePoint;
+    button.value = V_KNEE_POINT;
+    buttons.append(button);
+
+    button.button = ui->btGamma;
+    button.value = V_GAMMA;
+    buttons.append(button);
+
+    button.button = ui->btGammaTab;
+    button.value = V_GAMMA_TAB;
+    buttons.append(button);
+
+    button.button = ui->btIris;
+    button.value = V_IRIS;
+    buttons.append(button);
+
+    button.button = ui->btBlackLevel;
+    button.value = V_PED;
+    buttons.append(button);
+/*
+    for (int i = 0; i < buttons.size(); ++i) {
+        buttons[i].button->setStyleSheet("color: yellow");
+    }
+*/
 }
 
 CameraView::~CameraView()
@@ -20,13 +90,25 @@ CameraView::~CameraView()
 void CameraView::updateUi()
 {
     setUpUi();
-    for(int i =0;i<standardLength;i++){
-        standard[i].button->setText(QString::number(model->getValue(DISP,standard[i].value)));
+    if(!(model->getCamFlag(F_RECEIVED_ALL))){
+        QList<int> remainingTelegram = model->getRemainingTelegrams();
+    }
+
+    for(int i =0;i<standardButtons.size();i++){
+        standardButtons[i].button->setText(QString::number(model->getValue(DISP,standardButtons[i].value)));
+    }
+    for(int i =0;i<textButtons.size();i++){
+        textButtons[i].button->setText(model->getTextValue(textButtons[i].value));
+    }
+
+    /*
+    for(int i =0;i<standardButtons.size();i++){
+        standardButtons[i].button->setText(QString::number(model->getValue(DISP,standardButtons[i].value)));
 
     }
-    for(int i =0;i<textLength;i++){
-        text[i].button->setText(model->getTextValue(text[i].value));
-    }
+    for(int i =0;i<textButtons.size();i++){
+        textButtons[i].button->setText(model->getTextValue(textButtons[i].value));
+    }*/
 
     /*
  ui->btbred->setText(QString::number(model->getValue(DISP,V_B_RED)));
@@ -48,11 +130,92 @@ void CameraView::updateUi()
 
 void CameraView::setUpUi()
 {
+    int value;
+    int requested;
+
+    //textButtons.clear();
+    //standardButtons.clear();
+    if(!(standardButtons.empty())){
+    for (int i = 0; i < buttons.size(); i++) {
+
+        value = model->getValue(DISP,buttons[i].value);
+        requested = model->getRequestReceived(buttons[i].value);
+
+        if(requested){
+           // buttons[i].button->setStyleSheet("color: white"); //takes too much time
+            }
+        else {
+           // buttons[i].button->setStyleSheet("color: yellow");
+            }
+
+        switch (value) {
+            default:
+            if(standardButtons.first().button != buttons[i].button){
+                buttons[i].button->setDisabled(false);
+                buttons[i].button->setEnabled(true);
+                //standardButtons.append(buttons[i]);
+                standardButtons.replace(0,buttons[i]);
+                standardButtons.move(0,standardButtons.size()-1);
+            }
+            break;
+        case -2048:
+                buttons[i].button->setStyleSheet("color: white");
+                buttons[i].button->setDisabled(true);
+                buttons[i].button->setText("-");
+            break;
+        case -2049:
+                if(textButtons.first().button != buttons[i].button){
+                buttons[i].button->setDisabled(false);
+                buttons[i].button->setEnabled(true);
+                textButtons.replace(0,buttons[i]);
+                textButtons.move(0,textButtons.size()-1);
+        break;
+        }
+
+    }
+}}else {
+for (int i = 0; i < buttons.size(); i++) {
+
+    value = model->getValue(DISP,buttons[i].value);
+    requested = model->getRequestReceived(buttons[i].value);
+
+    if(requested){
+        buttons[i].button->setStyleSheet("color: white");
+        }
+    else {
+        buttons[i].button->setStyleSheet("color: yellow");
+        }
+
+    switch (value) {
+        default:
+            buttons[i].button->setDisabled(false);
+            buttons[i].button->setEnabled(true);
+            standardButtons.append(buttons[i]);
+        break;
+    case -2048:
+            buttons[i].button->setStyleSheet("color: white");
+            buttons[i].button->setDisabled(true);
+            buttons[i].button->setText("-");
+        break;
+    case -2049:
+            buttons[i].button->setDisabled(false);
+            buttons[i].button->setEnabled(true);
+            textButtons.append(buttons[i]);
+    break;
+    }
+
+}
+}
+
+
+    /*
     for (int i=0;i<16;i++) {
         text[i].button=ui->btGamma;
     }
-    int value;
+    //int value;
+    //int requested;
     value=model->getValue(DISP,V_B_RED);
+    requested=model->getRequestReceived(V_B_RED);
     standardLength=0;
     textLength=0;
     switch (value) {
@@ -70,6 +233,9 @@ void CameraView::setUpUi()
                ui->btbred->setDisabled(false);
                textLength++;
                ui->btbred->setEnabled(true);
+    }
+    if(requested){
+        ui->btbred->setText("HALLOO");
     }
 
     value=model->getValue(DISP,V_B_BLUE);
@@ -93,6 +259,7 @@ void CameraView::setUpUi()
     }
 
     value=model->getValue(DISP,V_W_BLUE);
+
     switch (value) {
     default:standard[standardLength].button=ui->btwBlue;
             standard[standardLength].value=V_W_BLUE;
@@ -112,6 +279,7 @@ void CameraView::setUpUi()
     }
 
     value=model->getValue(DISP,V_W_RED);
+    requested=model->getRequestReceived(V_W_RED);
     switch (value) {
     default:standard[standardLength].button=ui->btwRed;
             standard[standardLength].value=V_W_RED;
@@ -129,6 +297,10 @@ void CameraView::setUpUi()
                textLength++;
                ui->btwRed->setEnabled(true);
     }
+    if(!requested){
+        ui->btwRed->setText("HALLOO");
+    }
+
 
     value=model->getValue(DISP,V_SHUTTER);
     switch (value) {
@@ -369,7 +541,40 @@ void CameraView::setUpUi()
                ui->btIris->setDisabled(false);
                textLength++;
                ui->btIris->setEnabled(true);
-    }
+    }*/
+    /*
+    standardLength=0;
+    textLength=0;
+    for (int i=0;i<buttons.size();i++) {
+        value=model->getValue(DISP,buttons[i].value);
+        requested = model->getRequestReceived(buttons[i].value);
+
+        if(requested){
+            //buttons[i].button->setFocus();
+            }
+        else {
+            //buttons[i].button->setStyleSheet("border-color: yellow");
+            }
+        switch (value) {
+
+        default:standard[standardLength].button=buttons[i].button;
+                standard[standardLength].value=buttons[i].value;
+                buttons[i].button->setDisabled(false);
+                standardLength++;
+                buttons[i].button->setEnabled(true);
+            break;
+        case -2048:buttons[i].button->setDisabled(true);
+                    //buttons[i].button->setStyleSheet("color: white");
+                   buttons[i].button->setText("-");
+            break;
+        case -2049:
+                   text[textLength].button=buttons[i].button;
+                   text[textLength].value=buttons[i].value;
+                   buttons[i].button->setDisabled(false);
+                   textLength++;
+                   buttons[i].button->setEnabled(true);
+        }
+    }*/
 
 }
 
@@ -476,4 +681,34 @@ void CameraView::stackChanged()
 
     }
     button->click();
+}
+
+void CameraView::signalRequest(int property)
+{
+    for (int i = 0;i < textButtons.size(); i++) {
+        if(textButtons[i].value == property){
+            textButtons[i].button->setStyleSheet("color: white");
+        }
+    }
+
+    for (int i = 0;i < standardButtons.size(); i++) {
+        if(standardButtons[i].value == property){
+            standardButtons[i].button->setStyleSheet("color: white");
+        }
+    }
+}
+
+void CameraView::newRequest()
+{
+    for (int i = 0;i < textButtons.size(); i++) {
+
+            textButtons[i].button->setStyleSheet("color: yellow");
+
+    }
+
+    for (int i = 0;i < standardButtons.size(); i++) {
+
+            standardButtons[i].button->setStyleSheet("color: yellow");
+
+    }
 }

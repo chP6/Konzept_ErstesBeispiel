@@ -43,6 +43,7 @@
 #define E_RX_ADJ_RCP_CMD        39
 #define E_REQ_SETTINGS_TIMER    40
 #define E_REQUEST_SETTINGS      41
+#define E_EXT_PRESET_CHANGE     42
 
 
 

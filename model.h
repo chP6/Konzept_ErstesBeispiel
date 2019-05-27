@@ -17,6 +17,7 @@ struct camera_s{
   int values [ROW_ENTRIES][COLUM_ENTRIES];
   QString *textTable;
   int xptSource;
+  QList<int> remainingTelegrams;
 };
 
 
@@ -32,6 +33,8 @@ signals:
     void updateCameraConnectionStatus(bool connected);
     void updateXptConnectionStatus(bool connected);
     void updateXptEnableStatus(bool connected);
+    void newSiganalReceived(int property);
+    void receiveAllNew();
 
 public:
     Model();
@@ -84,6 +87,10 @@ public:
     bool getReqPendArr(int pos);
     void setCurrReqHeadNr(int headNr);
     int getCurrReqHeadNr();
+    int getRequestCommand(int slotNr, int property);
+    void setRequestReceived(int slotNr, int property);
+    int getRequestReceived(int property);
+    QList<int> getRemainingTelegrams();
 
     /* XPT handling */
     void setXptConnected(bool flag);
@@ -107,6 +114,8 @@ public:
     void setXptOutputLables(QList<QString> outputLables);
     QList<QString> getXptInputLables();
     QList<QString> getXptOutputLables();
+    void setXptType(int type);
+    int getXptType();
 
 
 private:
@@ -139,29 +148,30 @@ private:
     int xptFields[4];
     QList<QString> xptInputLabels;
     QList<QString> xptOutputLabels;
+    int xptType;
 
 
     // camera type 2 init values
     //todo: not all entries have 5 values!
     int c2Values[ROW_ENTRIES][COLUM_ENTRIES]=
-                      {{1,0,49,NORMAL},     //headnr init_value, min_value, max_value
-                       {127,0,255,NORMAL}, //Iris
-                       {64,0,128,CENTER},  //Pedestal
-                       {0,0,8000,NORMAL},  //Focus
-                       {127,0,255,CENTER}, //w_Red
-                       {127,0,255,CENTER}, //w_Blue
-                       {100,0,200,CENTER}, //b_Red
-                       {100,0,200,CENTER}, //b_Blue
-                       {0,0,14,TEXT,0},    //Gain
-                       {255,0,512,CENTER},   //Gamma
-                       {0,0,2,TEXT,1},      //Gamma-Table
-                       {128,1,254,CENTER},  //Detail
-                       {127,1,255,CENTER},  //Color
-                       {0,0,5,TEXT,2},      //Color Temp
+                      {{1,1,49,NORMAL},     //headnr init_value, min_value, max_value
+                       {127,0,255,NORMAL,0,REQUESTABLE}, //Iris
+                       {64,0,128,CENTER,0,REQUESTABLE},  //Pedestal
+                       {0,0,8000,NORMAL,0,REQUESTABLE},  //Focus
+                       {127,0,255,CENTER,0,REQUESTABLE}, //w_Red
+                       {127,0,255,CENTER,0,REQUESTABLE}, //w_Blue
+                       {100,0,200,CENTER,0,REQUESTABLE}, //b_Red
+                       {100,0,200,CENTER,0,REQUESTABLE}, //b_Blue
+                       {0,0,14,TEXT,0,REQUESTABLE},    //Gain
+                       {255,0,512,CENTER,0,REQUESTABLE},   //Gamma
+                       {0,0,2,TEXT,1,REQUESTABLE},      //Gamma-Table
+                       {128,1,254,CENTER,0,REQUESTABLE},  //Detail
+                       {127,1,255,CENTER,0,REQUESTABLE},  //Color
+                       {0,0,5,TEXT,2,REQUESTABLE},      //Color Temp
                        {-1,-1,-1,NAN},    //Knee
                        {-1,-1,-1,NAN},    //Knee Point
-                       {0,0,3,TEXT,3},       //ND Filter
-                       {17,17,32,TEXT,4},    //Shutter
+                       {0,0,3,TEXT,3,REQUESTABLE},       //ND Filter
+                       {17,17,32,TEXT,4,REQUESTABLE},    //Shutter
                        {5,1,10,NORMAL},      //PT Speed
                        {1,1,10,NORMAL},      //Trans Speed
                        {1,1,10,NORMAL},      //Ramp
@@ -175,55 +185,55 @@ private:
 
     // camera type 1 init values
     int c1Values[ROW_ENTRIES][COLUM_ENTRIES]=
-                      {{1,1,49,NORMAL},     //headnr init_value, min_value, max_value
-                       {127,0,255,NORMAL}, //Iris
-                       {64,0,127,CENTER},  //Pedestal
-                       {0,0,8000,NORMAL},  //Focus
-                       {127,0,255,CENTER}, //w_Red
-                       {127,0,255,CENTER}, //w_Blue
-                       {100,0,200,CENTER}, //b_Red
-                       {100,0,200,CENTER}, //b_Blue
-                       {0,0,14,TEXT,0},    //Gain
+                      {{1,1,49,NORMAL,0,0},     //headnr init_value, min_value, max_value
+                       {127,0,255,NORMAL,0,REQUESTABLE}, //Iris
+                       {64,0,127,CENTER,0,REQUESTABLE},  //Pedestal
+                       {0,0,8000,NORMAL,0,REQUESTABLE},  //Focus
+                       {127,0,255,CENTER,0,REQUESTABLE}, //w_Red
+                       {127,0,255,CENTER,0,REQUESTABLE}, //w_Blue
+                       {100,0,200,CENTER,0,REQUESTABLE}, //b_Red
+                       {100,0,200,CENTER,0,REQUESTABLE}, //b_Blue
+                       {0,0,14,TEXT,0,REQUESTABLE},    //Gain
                        {-1,-1,-1,NAN},   //Gamma
-                       {0,0,1,TEXT,1},      //Gamma-Table
-                       {128,0,254,CENTER},  //Detail
-                       {127,1,255,CENTER},  //Color
-                       {0,0,5,TEXT,2},      //Color Temp
+                       {0,0,1,TEXT,1,REQUESTABLE},      //Gamma-Table
+                       {128,0,254,CENTER,0,REQUESTABLE},  //Detail
+                       {127,1,255,CENTER,0,REQUESTABLE},  //Color
+                       {0,0,5,TEXT,2,REQUESTABLE},      //Color Temp
                        {-1,-1,-1,NAN},    //Knee
                        {-1,-1,-1,NAN},    //Knee Point
                        {-1,-1,-1,NAN},       //ND Filter
-                       {6,6,20,TEXT,3},    //Shutter
+                       {6,6,20,TEXT,3,REQUESTABLE},    //Shutter
                        {1,1,10,NORMAL},      //PT Speed
                        {1,1,10,NORMAL},      //Trans Speed
                        {1,1,10,NORMAL},      //Ramp
                        {0,0,5,OFFSET},       //SPP1
                        {1,0,5,OFFSET},       //SPP2
                        {0,0,30,NORMAL},      //SPP Wait Time
-                       {12,1,127,NORMAL},    //Bounce Zoom Speed
+                       {2,0,7,NORMAL},    //Bounce Zoom Speed
                        {0,0,2,TEXT,4},        //Head Power
                        {0,0,3,TEXT,5}              //Mirror
                       };
 
     // camera type 3&4 init values
     int rValues[ROW_ENTRIES][COLUM_ENTRIES]=
-                      {{1,1,49,NORMAL},     //headnr init_value, min_value, max_value
-                       {2000,0,4000,NORMAL}, //Iris
-                       {127,0,255,CENTER},  //Pedestal
-                       {1000,1000,3250,NORMAL},  //Focus
-                       {127,0,255,CENTER}, //w_Red
-                       {127,0,255,CENTER}, //w_Blue
-                       {127,0,255,CENTER}, //b_Red
-                       {127,0,255,CENTER}, //b_Blue
-                       {0,0,9,TEXT,0},    //Gain
-                       {127,0,255,CENTER},   //Gamma
-                       {0,0,2,TEXT,1},      //Gamma-Table
-                       {127,0,255,CENTER},  //Detail
-                       {64,0,127,CENTER},  //Color
-                       {0,0,4,TEXT,2},      //Color Temp
-                       {0,0,2,TEXT,3},    //Knee
-                       {127,0,254,CENTER},    //Knee Point
+                      {{1,1,49,NORMAL,0,0},     //headnr init_value, min_value, max_value
+                       {2000,0,4000,NORMAL,0,REQUESTABLE}, //Iris
+                       {127,0,255,CENTER,0,REQUESTABLE},  //Pedestal
+                       {1000,1000,3250,NORMAL,0,REQUESTABLE},  //Focus
+                       {127,0,255,CENTER,0,REQUESTABLE}, //w_Red
+                       {127,0,255,CENTER,0,REQUESTABLE}, //w_Blue
+                       {127,0,255,CENTER,0,REQUESTABLE}, //b_Red
+                       {127,0,255,CENTER,0,REQUESTABLE}, //b_Blue
+                       {0,0,9,TEXT,0,REQUESTABLE},    //Gain
+                       {127,0,255,CENTER,0,REQUESTABLE},   //Gamma
+                       {0,0,2,TEXT,1,REQUESTABLE},      //Gamma-Table
+                       {127,0,255,CENTER,0,REQUESTABLE},  //Detail
+                       {64,0,127,CENTER,0,REQUESTABLE},  //Color
+                       {0,0,4,TEXT,2,REQUESTABLE},    //Color Temp
+                       {0,0,2,TEXT,3,REQUESTABLE},    //Knee
+                       {127,0,254,CENTER,0,REQUESTABLE},    //Knee Point
                        {-1,-1,-1,NAN},       //ND Filter
-                       {0,0,6,TEXT,5},    //Shutter
+                       {0,0,6,TEXT,5,REQUESTABLE},    //Shutter
                        {5,1,10,NORMAL},      //PT Speed
                        {1,1,10,NORMAL},      //Trans Speed
                        {1,1,10,NORMAL},      //Ramp
@@ -236,8 +246,8 @@ private:
                       };
     int commandtype[ROW_ENTRIES]{-1,IRIS_OPEN,MASTER_PED_UP,FOCUS_SET_ABSOLUTE,
     RED_GAIN_ADJ_UP,BLUE_GAIN_ADJ_UP,RED_PED_UP,BLUE_PED_UP,CAMERA_GAIN_UP,GAMMA,
-    GAMMA_TABLE,DETAIL_LEVEL_ADJ,COLOR_UP,WHITE_BALANCE_PRST,KNEE_POINT_AUTO,-1,-1,
-    SHUTTER_UP,PAN_TILT_SPEED,-1,RAMP,-1,-1,-1,-1,HEAD_POWER,MIRROR_H_V};
+    GAMMA_TABLE,DETAIL_LEVEL_ADJ,COLOR_UP,WHITE_BALANCE_PRST,KNEE_POINT_AUTO,KNEE_POINT,ND_FILTER,
+    SHUTTER_UP,PAN_TILT_SPEED,-1,RAMP,-1,-1,BNCE_WAIT_TIME,-1,HEAD_POWER,MIRROR_H_V};
 
     QString c1TextTable[6][15]={{"-10.5dB","-9dB","-7.5dB","-6dB","-4.5dB","-3dB","-1.5dB","0dB","1.5dB","3dB","4.5dB","6dB","7.5dB","9dB","10.5dB"},
                                {"High","Low"},
