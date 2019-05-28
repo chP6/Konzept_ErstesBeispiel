@@ -173,6 +173,9 @@
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
+      <property name="cursor">
+       <cursorShape>BlankCursor</cursorShape>
+      </property>
       <widget class="Home" name="home"/>
       <widget class="CameraView" name="cameraView"/>
       <widget class="XptControl" name="xptControl"/>

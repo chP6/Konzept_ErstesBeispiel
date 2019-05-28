@@ -95,7 +95,6 @@ void Home::on_btRamp_clicked()
 void Home::on_btFasttrans_clicked(bool checked)
 {
     model->setCamFlag(F_FASTTRANS,checked);
-    controller->queueEvent(E_FAST_TRANS);
 }
 
 void Home::on_btSpp1_clicked()

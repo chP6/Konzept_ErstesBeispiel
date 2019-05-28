@@ -94,7 +94,7 @@ void Telegrambuilder::encode(bool request, int bbm_dev_no, int bbm_command, std:
             break;
         case KNEE_POINT_AUTO:
             datagram[5] = 1;
-            datagram[6] = (uint8_t)data[0];
+            datagram[8] = (uint8_t)data[0];
             break;
         case CALIBRATE_HEAD:
             // all zeros
@@ -103,6 +103,7 @@ void Telegrambuilder::encode(bool request, int bbm_dev_no, int bbm_command, std:
             datagram[8] = (uint8_t)data[0];
             break;
         case GOTO_PRESET:
+            datagram[5] = uint8_t(data[1]);
             datagram[8] = (uint8_t)data[0];
             break;
         case RED_GAIN_ADJ_UP:
@@ -134,8 +135,8 @@ void Telegrambuilder::encode(bool request, int bbm_dev_no, int bbm_command, std:
             datagram[8] = (uint8_t)data[0];
             break;
         case GAMMA:
-            datagram[5] = (uint8_t)(data[0]>>8);
-            datagram[6] = (uint8_t)data[0];
+            datagram[7] = (uint8_t)(data[0]>>8);
+            datagram[8] = (uint8_t)data[0];
             break;
         case GAMMA_TABLE:
             datagram[7] = 1;
@@ -164,7 +165,8 @@ void Telegrambuilder::encode(bool request, int bbm_dev_no, int bbm_command, std:
             datagram[5] = 1;
             break;
         case BNCE_ZOOM_START:
-            datagram[5] = 1;
+            datagram[8] = uint8_t(data[0]);
+
             break;
         case BNT_TEMPERATURE:
             datagram[7] = (uint8_t)(data[0]>>8);
@@ -179,10 +181,16 @@ void Telegrambuilder::encode(bool request, int bbm_dev_no, int bbm_command, std:
         case DETAIL_LEVEL_ADJ:
             //datagram[7] = (uint8_t)(data[0]>>8);
 
-            datagram[5] = (uint8_t)data[0];
-            datagram[6] = (uint8_t)data[0];
-            datagram[7] = (uint8_t)data[0];
             datagram[8] = (uint8_t)data[0];
+            break;
+        case ND_FILTER:
+            datagram[8] = (uint8_t)data[0];
+            break;
+        case BNCE_WAIT_TIME:
+            datagram[8] = uint8_t(data[0]);
+            break;
+        case KNEE_POINT:
+            datagram[8] = uint8_t(data[0]);
             break;
         default:
             break;
@@ -210,12 +218,19 @@ void Telegrambuilder::decode(uint8_t* telegram, struct answer_s& answer){
     else{ //watchdog answer from camera/head
         switch (answer.command) {
         case TILT_PAN:
+
             break;
         case IRIS_OPEN:
             temp = ( (telegram[7]<<8) | (telegram[8]) );    // [0]iris value
             answer.data.push_back(temp);
             break;
+        case PAN_TILT_SPEED:
+            temp = telegram[8];
+            answer.data.push_back(temp);
+            break;
         case RAMP:
+            temp = telegram[8];
+            answer.data.push_back(temp);
             break;
         case ZOOM_SET_ABSOLUTE:
             break;
@@ -241,13 +256,30 @@ void Telegrambuilder::decode(uint8_t* telegram, struct answer_s& answer){
             answer.data.push_back(temp);
             break;
         case MIRROR_H_V:
+            temp = (telegram[8]) ;
+            answer.data.push_back(temp);
+            break;
+        case ND_FILTER:
+            temp = (telegram[8]) ;
+            answer.data.push_back(temp);
+            break;
         case SHUTTER_UP:
             temp = ( (telegram[7]<<8) | (telegram[8]) );    // [0]shutter value
             answer.data.push_back(temp);
             break;
         case KNEE_POINT_AUTO:
+            temp = telegram[8];
+            answer.data.push_back(temp);
+            break;
+        case KNEE_POINT:
+            temp = telegram[8];
+            answer.data.push_back(temp);
+            break;
         case STORE_PRESET:
         case GOTO_PRESET:
+            temp = telegram[8];
+            answer.data.push_back(temp);
+            break;
         case RED_GAIN_ADJ_UP:
             temp = ( (telegram[7]<<8) | (telegram[8]) );    // [0]w_red value
             answer.data.push_back(temp);
@@ -265,16 +297,31 @@ void Telegrambuilder::decode(uint8_t* telegram, struct answer_s& answer){
             break;
         case BARS:
         case RED_PED_UP:
+            temp = ( (telegram[7]<<8) | (telegram[8]) );
+            answer.data.push_back(temp);
+            break;
         case GREEN_PED_UP:
         case BLUE_PED_UP:
+            temp = ( (telegram[7]<<8) | (telegram[8]) );
+            answer.data.push_back(temp);
+            break;
         case GAMMA:
+            temp = ( (telegram[7]<<8) | (telegram[8]) );
+            answer.data.push_back(temp);
+            break;
         case GAMMA_TABLE:
             answer.data.push_back(telegram[8]);             // [0]gamma table on/off
             break;
         case HEAD_POWER:
+            temp = telegram[8];
+            answer.data.push_back(temp);
+            break;
         case BNT_TEMPERATURE:
         case HEAD_STARTUP:
         case DETAIL_LEVEL_ADJ:
+            temp = telegram[8];
+            answer.data.push_back(temp);
+            break;
         default:
             break;
         }

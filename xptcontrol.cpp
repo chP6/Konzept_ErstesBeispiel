@@ -19,14 +19,30 @@ XptControl::~XptControl()
 
 void XptControl::updateUi()
 {
-
+    QList<QString> inputLabels = model->getXptInputLables();
+    QList<QString> outputLabels = model->getXptOutputLables();
+    if(inputLabels.empty()){
     ui->btSource1->setText(QString::number(model->getXptSlotSource(0)));
     ui->btSource2->setText(QString::number(model->getXptSlotSource(1)));
     ui->btSource3->setText(QString::number(model->getXptSlotSource(2)));
     ui->btSource4->setText(QString::number(model->getXptSlotSource(3)));
     ui->btSource5->setText(QString::number(model->getXptSlotSource(4)));
     ui->btSource6->setText(QString::number(model->getXptSlotSource(5)));
-    ui->btDestination->setText(QString::number(model->getXptDestination()));
+    }
+    else {
+        ui->btSource1->setText(inputLabels[model->getXptSlotSource(0)-1]);
+        ui->btSource2->setText(inputLabels[model->getXptSlotSource(1)-1]);
+        ui->btSource3->setText(inputLabels[model->getXptSlotSource(2)-1]);
+        ui->btSource4->setText(inputLabels[model->getXptSlotSource(3)-1]);
+        ui->btSource5->setText(inputLabels[model->getXptSlotSource(4)-1]);
+        ui->btSource6->setText(inputLabels[model->getXptSlotSource(5)-1]);
+    }
+    if(outputLabels.empty()){
+        ui->btDestination->setText(QString::number(model->getXptDestination()));
+    }
+    else {
+        ui->btDestination->setText(outputLabels[model->getXptDestination()-1]);
+    }
     ui->btXPTIp_1->setText(QString::number(model->getXptIpField(0)));
     ui->btXPTIp_2->setText(QString::number(model->getXptIpField(1)));
     ui->btXPTIp_3->setText(QString::number(model->getXptIpField(2)));

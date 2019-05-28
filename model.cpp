@@ -23,18 +23,26 @@ Model::Model()
     }
     for (int i=0;i<NUMBER_OF_SLOTS;i++) { //every camera a different HeadNr
         cameras[i].values[V_HEADNR][0]=i+1;
+        cameras[i].values[V_HEADNR][1]=1;
+        cameras[i].values[V_HEADNR][2]=49;
+        cameras[i].values[V_HEADNR][3]=NORMAL;
         cameras[i].xptSource=i+1;
     }
+/*
+   for (int i=0;i<NUMBER_OF_SLOTS;i++) { // set all to not pending
+        for (int j=0;j<ROW_ENTRIES;j++) {
+            if(cameras[i].values[j][5]==REQUESTABLE){
+                cameras[i].remainingTelegrams.push_back(j);
+            }
+        }
+    }*/
 
-    for (int i=0;i<MAX_NUMBER_OF_CMDS;i++) { // set all to not pending
-        reqPendingArr[i] = false;
-    }
-
+    //cameras[0].remainingTelegrams.push_back(10);
     activeCameraSlot=0;
     xptFields[0]=192;
     xptFields[1]=168;
-    xptFields[2]=0;
-    xptFields[3]=30;
+    xptFields[2]=1;
+    xptFields[3]=241;
 
     // emit updateView(); -> not possible yet, signals not routed at this point -> do in controller
 }
@@ -143,7 +151,11 @@ QStringList* Model::getErrorList(){
 }
 
 void Model::setCamType(int slotNr, int type){
-    cameras[slotNr].camType=type;
+    if(cameras[slotNr].camType != type){
+        cameras[slotNr].camType=type;
+        setCamTypeWithDefValues(slotNr,type);
+    }
+
 }
 
 //all values except headNr (but max min anyway)
@@ -183,7 +195,8 @@ void Model::setCamTypeWithDefValues(int slotNr, int type)
         cameras[slotNr].values[V_ND_FILTER][0]=0;
         cameras[slotNr].values[V_ND_FILTER][1]=0;
         cameras[slotNr].values[V_ND_FILTER][2]=3;
-        cameras[slotNr].values[V_ND_FILTER][3]=4;
+        cameras[slotNr].values[V_ND_FILTER][3]=TEXT;
+        cameras[slotNr].values[V_ND_FILTER][4]=4;
         cameras[slotNr].camType=type;
         cameras[slotNr].textTable=&rTextTable[0][0];
         break;
@@ -233,7 +246,15 @@ void Model::setValue(int slotNr, int type, int property, int value)
 {
     switch (type) {
     case ABS:
+        if (value > cameras[slotNr].values[property][MAX]) { //prevent buffer overflow, with garbage values
+            cameras[slotNr].values[property][VAL] = cameras[slotNr].values[property][MAX];
+        }
+         else if (value < cameras[slotNr].values[property][MIN]) {
+            cameras[slotNr].values[property][VAL] = cameras[slotNr].values[property][MIN];
+        }
+        else{
         cameras[slotNr].values[property][VAL]=value;
+        }
         emit updateView();
         break;
     case INC:
@@ -579,6 +600,43 @@ void Model::setXptEnabled(bool flag)
     }
 }
 
+void Model::setXptInputLables(QList<QString> inputLables)
+{
+    if(!inputLables.empty()){
+        xptInputLabels=inputLables;
+    }
+}
+
+void Model::setXptOutputLables(QList<QString> outputLables)
+{
+    if(!outputLables.empty()){
+        xptOutputLabels=outputLables;
+    }
+}
+
+QList<QString> Model::getXptInputLables()
+{
+    return xptInputLabels;
+}
+
+QList<QString> Model::getXptOutputLables()
+{
+    return xptOutputLabels;
+}
+
+void Model::setXptType(int type)
+{
+    if (xptType != type) {
+        xptType = type;
+    }
+
+}
+
+int Model::getXptType()
+{
+    return xptType;
+}
+
 void Model::setSppState(int slotNr, int state){
     sppState[slotNr] = state;
 }
@@ -618,3 +676,56 @@ void Model::setCurrReqHeadNr(int headNr){
 int Model::getCurrReqHeadNr(){
     return currReqHeadNr;
 }
+
+int Model::getRequestCommand(int slotNr, int property)
+{
+    //cameras[slotNr].remainingTelegrams.clear();
+    if(cameras[slotNr].values[property][5]==REQUESTABLE){
+        cameras[slotNr].remainingTelegrams.push_back(property);
+        return commandtype[property];
+    }
+    else {
+        return -1;
+    }
+}
+
+void Model::setRequestReceived(int slotNr, int property)
+{
+    if (!cameras[slotNr].remainingTelegrams.empty()) {
+        std::vector<int>::iterator iterator = std::find(cameras[slotNr].remainingTelegrams.begin(),cameras[slotNr].remainingTelegrams.end(),property);
+        if(iterator != cameras[slotNr].remainingTelegrams.end()){
+        cameras[slotNr].remainingTelegrams.erase(iterator);
+        if(activeCameraSlot == slotNr){
+            emit newSiganalReceived(property);
+        }
+    }
+    }else {
+        setCamFlag(slotNr,F_RECEIVED_ALL);
+        }
+
+}
+
+int Model::getRequestReceived( int property)
+{
+}
+
+std::vector<int> Model::getRemainingTelegrams()
+{
+
+    return cameras[activeCameraSlot].remainingTelegrams;
+
+
+
+}
+
+std::vector<int> Model::getRemainingTelegrams(int slotNr)
+{
+    return cameras[slotNr].remainingTelegrams;
+}
+
+void Model::clearRemainingTelegrams(int slotNr)
+{
+   cameras[slotNr].remainingTelegrams.clear();
+}
+
+
