@@ -285,7 +285,8 @@ int Model::getValue(int type, int property)
         case NORMAL:
             return cameras[activeCameraSlot].values[property][VAL];
         case CENTER:
-            return cameras[activeCameraSlot].values[property][VAL]-(cameras[activeCameraSlot].values[property][MAX]-cameras[activeCameraSlot].values[property][MIN])/2;
+            return cameras[activeCameraSlot].values[property][VAL]-(cameras[activeCameraSlot].values[property][MAX] \
+                                                                    -cameras[activeCameraSlot].values[property][MIN])/2;
         case NAN:
             return -2048;
         case TEXT:
@@ -326,7 +327,8 @@ int Model::getValue(int slotNr, int type, int property)
 
 QString Model::getTextValue(int property)
 {
-    return *(cameras[activeCameraSlot].textTable+(cameras[activeCameraSlot].values[property][4]*15)+(cameras[activeCameraSlot].values[property][0]-cameras[activeCameraSlot].values[property][1]));
+    return *(cameras[activeCameraSlot].textTable+(cameras[activeCameraSlot].values[property][4]*15)+ \
+            (cameras[activeCameraSlot].values[property][0]-cameras[activeCameraSlot].values[property][1]));
 }
 
 
@@ -694,12 +696,13 @@ void Model::setRequestReceived(int slotNr, int property)
     if (!cameras[slotNr].remainingTelegrams.empty()) {
         std::vector<int>::iterator iterator = std::find(cameras[slotNr].remainingTelegrams.begin(),cameras[slotNr].remainingTelegrams.end(),property);
         if(iterator != cameras[slotNr].remainingTelegrams.end()){
-        cameras[slotNr].remainingTelegrams.erase(iterator);
-        if(activeCameraSlot == slotNr){
-            emit newSiganalReceived(property);
-        }
+            cameras[slotNr].remainingTelegrams.erase(iterator);
+            if(activeCameraSlot == slotNr){
+                emit newSiganalReceived(property);
+                }
+             }
     }
-    }else {
+    else {
         setCamFlag(slotNr,F_RECEIVED_ALL);
         }
 

@@ -21,6 +21,7 @@ XptControl::XptControl(QWidget *parent) :
 
     menu = new QMenu(this);
     menu->addAction(blackMagic);
+    menu->addSeparator();
     menu->addAction(ross);
     ui->setupUi(this);
 
@@ -94,6 +95,7 @@ void XptControl::xptEnableChanged(bool connected)
         ui->btXPTIp_2->setEnabled(true);
         ui->btXPTIp_3->setEnabled(true);
         ui->btXPTIp_4->setEnabled(true);
+        ui->toolButton->setEnabled(true);
 
     }
     else{
@@ -102,6 +104,7 @@ void XptControl::xptEnableChanged(bool connected)
         ui->btXPTIp_2->setEnabled(false);
         ui->btXPTIp_3->setEnabled(false);
         ui->btXPTIp_4->setEnabled(false);
+        ui->toolButton->setEnabled(false);
     }
 }
 
