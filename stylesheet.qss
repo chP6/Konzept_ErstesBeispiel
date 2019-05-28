@@ -125,6 +125,7 @@ QMenu::item {
         padding-top:4px;
         padding-bottom:4px;
         padding-right:10px;
+        height: 40px
 }
 QMenu{
         background-color:rgb(78,78,78);

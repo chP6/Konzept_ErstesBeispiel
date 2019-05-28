@@ -340,7 +340,7 @@ void Controller::startQueueProcessThread(){
 
 void Controller::processQeue(){
     event_s loadedEvent;
-    int from, type, command, data, headNr, sppPreset, time;
+    int from, type, command, data, headNr, sppPreset = 0, time;
     //struct timeval  tv1, tv2;
     model->setUpView();
 
@@ -581,8 +581,6 @@ void Controller::processQeue(){
 
         }
         case E_CAMERA_CHANGE:
-            int previousType;
-            previousType=model->getCamtype();
             camerabus.setLed(CAMERA_COLOR,loadedEvent.data[0]);
             model->setActiveCameraSlot(loadedEvent.data[0]);
             model->setUpView();

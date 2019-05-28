@@ -128,6 +128,8 @@
 #define I_XPT_IP_FIELD_3      3
 #define I_XPT_IP_FIELD_4      4
 #define I_XPT_SOURCE          5
+#define I_XPT_TYPE_BLACKMAGIC 0
+#define I_XPT_TYPE_ROSS       1
 
 
 

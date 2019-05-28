@@ -84,7 +84,7 @@ int Rotary::readSense(){
 }
 
 int Rotary::readRotary(int8_t& res){
-    rotary_val = (int8_t)i2c_smbus_read_byte_data(fd_ic2 ,0x00);
+    rotary_val = int8_t(i2c_smbus_read_byte_data(fd_ic2 ,0x00));
     if (rot_err < 0) {
       return rot_err;
     }
@@ -106,5 +106,4 @@ int Rotary::readButton(){
     else{
       return 0;
     }
-    return -1;
 }

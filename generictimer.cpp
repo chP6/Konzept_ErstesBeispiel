@@ -40,6 +40,7 @@ int GenericTimer::init(int command, Controller& controller){
         t1.detach();
         //qDebug("Timer Thread created");
     }
+    return 0;
 }
 
 int GenericTimer::init(int command, int command_data, Controller& controller){
@@ -70,6 +71,7 @@ int GenericTimer::init(int command, int command_data, Controller& controller){
         t1.detach();
         //qDebug("Timer Thread created");
     }
+     return 0;
 }
 
 void GenericTimer::start(){
@@ -83,6 +85,7 @@ void GenericTimer::start(){
         timer_err = errno;
         controller->logSystemError(timer_err, "Could not set GenericTimer");
     }
+
     //qDebug("ARMED");
 }
 

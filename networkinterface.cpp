@@ -13,7 +13,7 @@ Networkinterface::~Networkinterface (){
 }
 
 
-int Networkinterface::init(int port){
+int Networkinterface::init(uint16_t port){
     int aton_err, bind_err;
 
     memset((char*) &addr_dst, 0, sizeof(addr_dst));
@@ -50,6 +50,7 @@ int Networkinterface::request(int bbm_dev_no, int bbm_command){
     data.clear();
     builder.encode(true, bbm_dev_no, bbm_command, data, buffer);
     lowLevelSend();
+    return 0;
 }
 
 //no data, is empty

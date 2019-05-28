@@ -55,7 +55,7 @@ private:
     GenericTimer blinkTimer, sppTimer[NUMBER_OF_SLOTS], xptWatchdog, reqSettingsTimer;
 
 
-    void processQeue();
+    [[noreturn]]void processQeue();
     void increment(int inc);
     void clear();
     void setAxis(int x, int y);

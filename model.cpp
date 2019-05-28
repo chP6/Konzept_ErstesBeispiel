@@ -205,13 +205,13 @@ void Model::setCamTypeWithDefValues(int slotNr, int type)
 
 
 // for active camera
-unsigned char Model::getCamtype()
+int Model::getCamtype()
 {
     return cameras[activeCameraSlot].camType;
 }
 
 // overload for specific camera
-unsigned char Model::getCamtype(int slotNr)
+int Model::getCamtype(int slotNr)
 {
     return cameras[slotNr].camType;
 }
@@ -292,7 +292,6 @@ int Model::getValue(int type, int property)
             return -2049;
         case OFFSET:
             return cameras[activeCameraSlot].values[property][VAL]+1;
-            break;
         default:
             return -1;
         }
@@ -411,6 +410,7 @@ int Model::setCameraWaitingflag(int slotNr, bool waiting){
         cameras[slotNr].flags[F_CONNECTED] = true;
         return 0;           // ok, clear flag
     }
+    return 0;
     //qDebug("stack: %d",cameraWaitingForAnswerStack[slotNr]);
 }
 
@@ -705,9 +705,6 @@ void Model::setRequestReceived(int slotNr, int property)
 
 }
 
-int Model::getRequestReceived( int property)
-{
-}
 
 std::vector<int> Model::getRemainingTelegrams()
 {

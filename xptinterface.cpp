@@ -84,7 +84,6 @@ int XptInterface::connectToXpt()
             case XptInterface::Ross:
                 emit inputLabelsChanged();
                 return 1; //see what happens when connected to ross
-            break;
         }
 
     return -1;

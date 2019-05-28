@@ -69,7 +69,7 @@ void EventQueue::pullEvent(event_s& entry){
 
 void EventQueue::initCleanup(){
     //clear queue from any pan/tilt/zoom events (unwanted from init)
-    for (int i=0;i<queue.size();i++) {
+    for (unsigned int i=0;i<queue.size();i++) {
         if(queue[i].evt == E_SET_TILT || queue[i].evt == E_SET_ZOOM){
             queue[i].evt = E_NULLEVENT;
             qDebug("Cleared one");

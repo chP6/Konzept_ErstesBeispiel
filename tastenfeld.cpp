@@ -166,7 +166,7 @@ void Tastenfeld::gpioUnExport(int gpio){
 
 }
 
-void Tastenfeld::mapTx(unsigned int blue, unsigned int red, unsigned int green, unsigned char button)
+void Tastenfeld::mapTx(unsigned int blue, unsigned int red, unsigned int green, int button)
 {
     static char button_map[]= {0,4,0,13,0,22};
         if(button % 2 == 0){				//Buttonnumber gerade
@@ -189,7 +189,7 @@ void Tastenfeld::mapTx(unsigned int blue, unsigned int red, unsigned int green, 
         }
 }
 
-int Tastenfeld::setLed(unsigned int blue, unsigned int red, unsigned int green, unsigned char button)
+int Tastenfeld::setLed(unsigned int blue, unsigned int red, unsigned int green, int button)
 {
     memset(tx,0,sizeof(tx));
     mapTx(blue,red,green,button);
@@ -198,7 +198,7 @@ int Tastenfeld::setLed(unsigned int blue, unsigned int red, unsigned int green, 
     return 0;
 }
 
-int Tastenfeld::setLed(unsigned int color, unsigned char button)
+int Tastenfeld::setLed(unsigned int color, int button)
 {
     memset(tx,0,sizeof(tx));
     unsigned int red=((color&0xff0000)>>12)|0x00f;
@@ -214,7 +214,7 @@ int Tastenfeld::setLed(unsigned int color, unsigned char button)
 int Tastenfeld::showStored(int usedPresets, int activePreset)
 {
     memset(tx,0,sizeof (tx));
-    mapTx(0xfff,0xfff,0xfff,(unsigned char)activePreset);
+    mapTx(0xfff,0xfff,0xfff,activePreset);
     if(!usedPresets){
         for(unsigned char i=0;i<6;i++){
             if(i!=activePreset){
@@ -238,11 +238,6 @@ int Tastenfeld::showStored(int usedPresets, int activePreset)
             return 0;
 }
 
-void Tastenfeld::blink(char button)
-{
-
-
-}
 
 int Tastenfeld::readButton(int buttonNr){
     char buffer[2];

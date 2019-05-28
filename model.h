@@ -58,8 +58,8 @@ public:
     QStringList* getErrorList();
     void setCamType(int slotNr, int type);
     void setCamTypeWithDefValues(int slotNr, int type);
-    unsigned char getCamtype();
-    unsigned char getCamtype(int slotNr);
+    int getCamtype();
+    int getCamtype(int slotNr);
     void setValue(int type, int property, int value);
     void setValue(int slotNr, int type, int property, int value);
     int getValue(int type, int property);
@@ -90,7 +90,6 @@ public:
     int getCurrReqHeadNr();
     int getRequestCommand(int slotNr, int property);
     void setRequestReceived(int slotNr, int property);
-    int getRequestReceived(int property);
     std::vector<int> getRemainingTelegrams();
     std::vector<int> getRemainingTelegrams(int slotNr);
     void clearRemainingTelegrams(int slotNr);

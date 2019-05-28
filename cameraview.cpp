@@ -140,6 +140,15 @@ void CameraView::setUpUi()
 
         value = model->getValue(DISP,buttons[i].value);
 
+        if(!requested.empty()){
+            std::vector<int>::iterator iterator = std::find(requested.begin(),requested.end(),buttons[i].value);
+
+           if(iterator != requested.end() )
+            buttons[i].button->setStyleSheet("color: yellow");
+            }
+        else {
+           buttons[i].button->setStyleSheet("color: white");
+            }
 
         switch (value) {
             default:
@@ -148,8 +157,8 @@ void CameraView::setUpUi()
                 buttons[i].button->setEnabled(true);
                 //standardButtons.append(buttons[i]);
                 standardButtons.replace(0,buttons[i]);
-                standardButtons.move(0,standardButtons.size()-1);
             }
+            standardButtons.move(0,standardButtons.size()-1);
             break;
         case -2048:
                 buttons[i].button->setStyleSheet("color: white");
@@ -161,9 +170,11 @@ void CameraView::setUpUi()
                 buttons[i].button->setDisabled(false);
                 buttons[i].button->setEnabled(true);
                 textButtons.replace(0,buttons[i]);
-                textButtons.move(0,textButtons.size()-1);
-        break;
         }
+                textButtons.move(0,textButtons.size()-1);
+            break;
+
+
 
     }
 }}else {
@@ -172,15 +183,6 @@ for (int i = 0; i < buttons.size(); i++) {
     value = model->getValue(DISP,buttons[i].value);
 
 
-    if(!requested.empty()){
-        std::vector<int>::iterator iterator = std::find(requested.begin(),requested.end(),buttons[i].value);
-
-       if(iterator != requested.end() )
-        buttons[i].button->setStyleSheet("color: yellow");
-        }
-    else {
-       buttons[i].button->setStyleSheet("color: white");
-        }
 
     switch (value) {
         default:

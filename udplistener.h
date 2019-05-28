@@ -19,7 +19,7 @@ private:
     Telegrambuilder telegramBuilder;
     uint8_t buffer[10];
     int rx_err;
-    void listener();
+    [[noreturn]]void listener();
 };
 
 #endif // UDPLISTENER_H

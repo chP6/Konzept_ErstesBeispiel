@@ -23,7 +23,6 @@ void UdpListener::startListener(){
 }
 
 void UdpListener::listener(){
-    char buf[100];
     answer_s answer;
 
     while(1){

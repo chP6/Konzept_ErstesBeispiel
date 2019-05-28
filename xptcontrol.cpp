@@ -9,7 +9,29 @@ XptControl::XptControl(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::XptControl)
 {
+    blackMagic =new QAction(this);
+    blackMagic->setText("Blackmagic");
+    ross = new QAction(this);
+    ross->setText("Ross");
+    blackMagic->setCheckable(true);
+    blackMagic->setChecked(true);
+    ross->setCheckable(true);
+    ross->setChecked(false);
+
+
+    menu = new QMenu(this);
+    menu->addAction(blackMagic);
+    menu->addAction(ross);
     ui->setupUi(this);
+
+
+    ui->toolButton->setMenu(menu);
+    ui->toolButton->setText(blackMagic->text());
+    connect(blackMagic,SIGNAL(triggered()),this,SLOT(on_blackMagic_triggered()));
+    connect(ross,SIGNAL(triggered()),this,SLOT(on_ross_triggered()));
+
+
+
 }
 
 XptControl::~XptControl()
@@ -161,6 +183,7 @@ void XptControl::on_btConnect_clicked(bool checked)
         ui->btXPTIp_2->setEnabled(true);
         ui->btXPTIp_3->setEnabled(true);
         ui->btXPTIp_4->setEnabled(true);
+        ui->toolButton->setEnabled(true);
         controller->queueEvent(E_XPT_CONNECT);
 
     }
@@ -170,8 +193,25 @@ void XptControl::on_btConnect_clicked(bool checked)
         ui->btXPTIp_2->setEnabled(false);
         ui->btXPTIp_3->setEnabled(false);
         ui->btXPTIp_4->setEnabled(false);
+        ui->toolButton->setEnabled(false);
         controller->queueEvent(E_XPT_CONNECT);
     }
+}
+
+void XptControl::on_blackMagic_triggered()
+{
+    blackMagic->setChecked(true);
+    ross->setChecked(false);
+    ui->toolButton->setText(blackMagic->text());;
+    model->setXptType(I_XPT_TYPE_BLACKMAGIC);
+}
+
+void XptControl::on_ross_triggered()
+{
+    blackMagic->setChecked(false);
+    ross->setChecked(true);
+    ui->toolButton->setText(ross->text());
+    model->setXptType(I_XPT_TYPE_ROSS);
 }
 
 void XptControl::stackChanged()
