@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
                      &view, &View::on_xptConnectionStatusChanged);
     QObject::connect(&model, &Model::updateXptEnableStatus,
                      &view, &View::on_xptEnableStatusChanged);
-    QObject::connect(&model, &Model::newSiganalReceived,
+    QObject::connect(&model, &Model::newSignalReceived,
                      &view, &View::on_newReceive);
     QObject::connect(&model, &Model::receiveAllNew,
                      &view, &View::on_newRequest);

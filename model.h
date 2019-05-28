@@ -7,6 +7,7 @@
 #include "bbmcommandtypes.h"
 #include <stdio.h>
 #include <QVector>
+#include <mutex>
 //#include "view.h" //nix gut, circular dependency -> forward declaration.
 //class View;         //Make sure each header can be included on its own.
 
@@ -19,6 +20,7 @@ struct camera_s{
   QString *textTable;
   int xptSource;
   std::vector<int> remainingTelegrams;
+  std::mutex mtx;
 };
 
 
@@ -34,7 +36,7 @@ signals:
     void updateCameraConnectionStatus(bool connected);
     void updateXptConnectionStatus(bool connected);
     void updateXptEnableStatus(bool connected);
-    void newSiganalReceived(int property);
+    void newSignalReceived(int property);
     void receiveAllNew();
 
 public:
@@ -57,7 +59,9 @@ public:
     int getActiveCameraSlot();
     QStringList* getErrorList();
     void setCamType(int slotNr, int type);
+    void setCamTypeOnly(int slot, int type);
     void setCamTypeWithDefValues(int slotNr, int type);
+    void setCamTypeWithDefBorders(int slotNr, int type);
     unsigned char getCamtype();
     unsigned char getCamtype(int slotNr);
     void setValue(int type, int property, int value);
@@ -220,8 +224,8 @@ private:
     // camera type 3&4 init values
     int rValues[ROW_ENTRIES][COLUM_ENTRIES]=
                       {{1,1,49,NORMAL,0,0},     //headnr init_value, min_value, max_value
-                       {2000,0,4000,NORMAL,0,REQUESTABLE}, //Iris
-                       {127,0,255,CENTER,0,REQUESTABLE},  //Pedestal
+                       {2000,0,4000,NORMAL,0,0}, //Iris
+                       {127,0,255,CENTER,0,0},  //Pedestal
                        {1000,1000,3250,NORMAL,0,REQUESTABLE},  //Focus
                        {127,0,255,CENTER,0,REQUESTABLE}, //w_Red
                        {127,0,255,CENTER,0,REQUESTABLE}, //w_Blue

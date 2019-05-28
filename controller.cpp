@@ -58,9 +58,11 @@ Controller::Controller(Model& model)// : poller(*this)    //poller Konstruktor a
     xptWatchdog.setInterval(2000*1000);
 
 
+    for (int i=0;i<NUMBER_OF_SLOTS;i++) {
+        reqSettingsTimer[i].init(E_REQ_SETTINGS_TIMER, i,*this);
+        reqSettingsTimer[i].setInterval(1000*1000);
+    }
 
-    reqSettingsTimer.init(E_REQ_SETTINGS_TIMER,*this);
-    reqSettingsTimer.setInterval(500*1000);
 
     //init sppTimers
     for (int i=0;i<NUMBER_OF_SLOTS;i++) {
@@ -109,11 +111,8 @@ void Controller::clearErrors(){
     model->clearErrors();
 }
 
-
-int Controller::writeSavefile(){
-    QSettings savefile(SAVEFILE_PATH, QSettings::NativeFormat);
+void Controller::settingsWrite(QSettings &savefile){
     savefile.clear();
-    //int currSlot = model->getActiveCameraSlot();
 
     for (int i=0;i<NUMBER_OF_SLOTS;i++) {
         savefile.beginGroup("slot_"+QString::number(i));
@@ -130,20 +129,13 @@ int Controller::writeSavefile(){
         savefile.endGroup();
     }
     savefile.sync();
-
-    //model->setActiveCameraSlot(currSlot);
-    return savefile.status();
 }
 
-
-int Controller::loadSavefile(){
-    QSettings savefile(SAVEFILE_PATH, QSettings::NativeFormat);
-    //int currSlot = model->getActiveCameraSlot();
-
+void Controller::settingsLoad(QSettings &savefile, bool send){
     for (int i=0;i<NUMBER_OF_SLOTS;i++) {
         savefile.beginGroup("slot_"+QString::number(i));
 
-        model->setCamType(i,savefile.value("camType").toInt());
+        model->setCamType(i,savefile.value("camType").toInt());             //get min max etc...
         model->setActivePreset(i,savefile.value("activePreset").toInt());
         model->setUsedPreset(i,savefile.value("usedPresets").toInt());
 
@@ -157,29 +149,71 @@ int Controller::loadSavefile(){
         for (int j=0;j<ROW_ENTRIES;j++) {
             model->setValue(i, ABS, j, savefile.value("value_"+QString::number(j)).toInt());
 
-            //send value to cameras
-            if(model->getTxCommand(j) > 0){  //there could be values without commandtypes
+            if(send){
+                //send value to cameras
+                if(model->getTxCommand(j) > 0){  //there could be values without commandtypes
 
-                //Head Arduino seems to need pause to process certain commands
-                if(j==V_RAMP || j==V_PT_SPEED || j==V_SHUTTER || j==V_GAIN){
-                    usleep(TX_T);
+                    //Head Arduino seems to need pause to process certain commands
+                    if(j==V_RAMP || j==V_PT_SPEED || j==V_SHUTTER || j==V_GAIN){
+                        usleep(TX_T);
+                    }
+                    txSocket.send(model->getValue(i,ABS,V_HEADNR), model->getTxCommand(j),model->getValue(ABS,j));
                 }
-                txSocket.send(model->getValue(i,ABS,V_HEADNR), model->getTxCommand(j),model->getValue(ABS,j));
             }
         }
         savefile.endGroup();
     }
+}
 
-    //model->setActiveCameraSlot(currSlot);
+int Controller::writeSavefile(){
+    QSettings savefile(SAVEFILE_PATH, QSettings::NativeFormat);
+    settingsWrite(savefile);
+    return savefile.status();
+}
+
+
+int Controller::loadSavefile(){
+    QSettings savefile(SAVEFILE_PATH, QSettings::NativeFormat);
+    settingsLoad(savefile, true);
     presetbus.setLed(PRESET_COLOR, model->getActivePreset());
     emit clearLoadButon();
     return savefile.status();
 }
 
+int Controller::writeAutosave(){
+    QSettings savefile(AUTOSAVE_PATH, QSettings::NativeFormat);
+    settingsWrite(savefile);
+    return savefile.status();
+}
+
+int Controller::loadAutosave(){
+    QSettings savefile(AUTOSAVE_PATH, QSettings::NativeFormat);
+    settingsLoad(savefile,false);
+    presetbus.setLed(PRESET_COLOR, model->getActivePreset());
+    return savefile.status();
+}
+
+
+
 void Controller::checkSettingsRequest(int slotNr){
-    //only check if flag set
     std::vector<int> remainingRequests;
     remainingRequests = model->getRemainingTelegrams(slotNr);
+
+    if(remainingRequests.empty()){
+        reqSettingsTimer[slotNr].stop();
+        model->setCamFlag(F_RECEIVED_ALL, true);
+    }
+    // if some requests still open and KNOWN flag of according slot set, Re Request
+    else if(model->getCamFlag(slotNr, F_CONNECTED)){
+        for (size_t i=0;i<remainingRequests.size();i++){
+            int headNr = model->getValue(slotNr,ABS,V_HEADNR);
+            int command = model->getTxCommand(remainingRequests[i]);
+            txSocket.request(headNr, command);
+            qDebug("ReRequest| Command: %d", command);
+        }
+    }
+
+    //model->setRequestReceived(slotNr,)
 
 
     /*
@@ -216,66 +250,17 @@ void Controller::checkSettingsRequest(int slotNr){
 }
 
 void Controller::requestCameraSettings(int slot){
-    int headNr =model->getValue(slot,ABS,V_HEADNR);
+    int headNr = model->getValue(slot,ABS,V_HEADNR);
     int command;
     model->clearRemainingTelegrams(slot);
     if(slot == model->getActiveCameraSlot()){model->receiveAllNew();}
     for (int i=0;i<ROW_ENTRIES;i++) {
-        command =model->getRequestCommand(slot,i);
+        command = model->getRequestCommand(slot,i);     //check if requestable & push, else -1
         if(command>0){
           txSocket.request(headNr, command);
         }
     }
-
-    /*model->setCurrReqHeadNr(headNr);
-
-    switch (model->getCamtype(slot)) {
-    case SONY_EVS_CODGER:
-        break;
-    case MH322:
-        break;
-    case HPX600:
-        break;
-    case URSA:
-        break;
-    case HITACHI:
-        break;
-    case HITHD33_RAVEN:
-        break;
-    default:
-        break;
-    }
-    //ND_FILTER
-    //DETAIL
-    //B_RED
-    //B_BLUE
-    //KNEE
-    //KNEE_POINT
-    //GAMMA
-
-    txSocket.request(headNr, CAMERA_GAIN_UP);
-    txSocket.request(headNr, SHUTTER_UP);
-    txSocket.request(headNr, RED_GAIN_ADJ_UP);
-    txSocket.request(headNr, BLUE_GAIN_ADJ_UP);
-    txSocket.request(headNr, MASTER_PED_UP);
-    txSocket.request(headNr, IRIS_OPEN);
-    txSocket.request(headNr, COLOR_UP);
-    txSocket.request(headNr, WHITE_BALANCE_PRST);
-    txSocket.request(headNr, GAMMA_TABLE);
-
-    model->setReqPendArr(CAMERA_GAIN_UP,true);
-    model->setReqPendArr(SHUTTER_UP,true);
-    model->setReqPendArr(RED_GAIN_ADJ_UP,true);
-    model->setReqPendArr(BLUE_GAIN_ADJ_UP,true);
-    model->setReqPendArr(MASTER_PED_UP,true);     //todo: answer with other command code
-    model->setReqPendArr(IRIS_OPEN,true);         //todo: answer with other command code
-    model->setReqPendArr(COLOR_UP,true);
-    model->setReqPendArr(WHITE_BALANCE_PRST,true);
-    model->setReqPendArr(GAMMA_TABLE,true);
-
-    model->setRequestSettingsFlag(true);
-    reqSettingsTimer.start();
-    */
+    reqSettingsTimer[slot].start();
 }
 
 
@@ -340,7 +325,7 @@ void Controller::startQueueProcessThread(){
 
 void Controller::processQeue(){
     event_s loadedEvent;
-    int from, type, command, data, headNr, sppPreset, time;
+    int from, type, command, data, headNr, sppPreset, time, slotNr;
     //struct timeval  tv1, tv2;
     model->setUpView();
 
@@ -370,6 +355,10 @@ void Controller::processQeue(){
                 if(field==V_HEADNR){
                     model->setCamFlag(F_KNOWN, false);
                     qDebug("KNOWN Flag cleared!");
+                    model->clearRemainingTelegrams(model->getActiveCameraSlot());
+                    reqSettingsTimer[model->getActiveCameraSlot()].stop();
+                    model->setUpView();
+                    model->updateView();
                 }
             }
            else{
@@ -582,7 +571,7 @@ void Controller::processQeue(){
         }
         case E_CAMERA_CHANGE:
             int previousType;
-            previousType=model->getCamtype();
+            previousType = model->getCamtype();
             camerabus.setLed(CAMERA_COLOR,loadedEvent.data[0]);
             model->setActiveCameraSlot(loadedEvent.data[0]);
             model->setUpView();
@@ -622,14 +611,14 @@ void Controller::processQeue(){
 
                 // respective camera exists in a slot & known flag is not set -> request camera settings
                 if (model->getValue(i,ABS,V_HEADNR) == from && !model->getCamFlag(i,F_KNOWN)) {
-                    //load all default settings for this cam type
-                    model->setCamTypeWithDefValues(i,type);
+                    //load all non requestable default settings for this cam type
                     model->setCamType(i, type);
                     //get actual settings from camera
                     requestCameraSettings(i);
-                    model->setCamFlag(i,F_KNOWN,true);
 
-                    //model->setUpView();     //grays out ui buttons for not supported camera settings -> new done with every update
+                    model->setCamFlag(i,F_KNOWN,true);
+                    model->setUpView();     //grays out ui buttons for not supported camera settings, set yellow for requests
+                    model->updateView();
                     //qDebug("KNOWN Flag Set, requested camera settings");
                 }
             }
@@ -685,11 +674,20 @@ void Controller::processQeue(){
             break;
         case E_WRITE_SAVEFILE:
             writeSavefile();
+            //txSocket.request(3,MASTER_PED_UP); //debug misuse of button
             qDebug("wrote savefile");
             break;
         case E_LOAD_SAVEFILE:
             loadSavefile();
             qDebug("loaded savefile");
+            break;
+        case E_WRITE_AUTOSAVE:
+            writeAutosave();
+            qDebug("wrote autosave");
+            break;
+        case E_LOAD_AUTOSAVE:
+            loadAutosave();
+            qDebug("loaded autosave");
             break;
         case E_WIDESET:
             txSocket.send(model->getValue(ABS,V_HEADNR),BNCE_ZOOM_WIDE_SET);
@@ -706,14 +704,12 @@ void Controller::processQeue(){
                     if(model->getValueFromBBMCommand(command) > 0){  //there could be commandtypes without values
                        model->setValue(i, ABS, model->getValueFromBBMCommand(command), data);
                        model->setRequestReceived(i,model->getValueFromBBMCommand(command));
-                       if(model->getCamFlag(i,F_RECEIVED_ALL)){
-                         checkSettingsRequest(i);
-                       }
-
+//                       if(!model->getCamFlag(i,F_RECEIVED_ALL)){
+//                         checkSettingsRequest(i);
+//                       }
                     }
                     qDebug("ANSWER | command: %d, value: %d", command, data);
                 }
-
             }
             break;
         case E_RX_ADJ_RCP_CMD:
@@ -733,12 +729,15 @@ void Controller::processQeue(){
             }
             break;
         case E_SETUP_HEAD:
-            //send init values to head
-            //loadSavefile();
+            loadAutosave();       //todo: case if empty file or not exist
+
+            //send PT SPEED , RAMP values to Head, request all camera settings
             for (int i=0;i<NUMBER_OF_SLOTS;i++) {
                 txSocket.send(model->getValue(i,ABS,V_HEADNR), RAMP, model->getValue(i,ABS,V_RAMP));
                 usleep(TX_T);
                 txSocket.send(model->getValue(i,ABS,V_HEADNR), PAN_TILT_SPEED, model->getValue(i,ABS,V_PT_SPEED));
+                usleep(TX_T);
+                requestCameraSettings(i);
             }
             model->updateView();
             qDebug("HEAD init done");
@@ -927,7 +926,8 @@ void Controller::processQeue(){
             requestCameraSettings(model->getActiveCameraSlot());
             break;
         case E_REQ_SETTINGS_TIMER:
-            checkSettingsRequest(TIMER_OUT);
+            slotNr = loadedEvent.data[0];
+            checkSettingsRequest(slotNr);
             qDebug("Req Timer Out");
             break;
         default:

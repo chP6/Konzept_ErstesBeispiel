@@ -13,20 +13,14 @@ Model::Model()
 
     memset(cameras,0,sizeof(cameras));
     //set all cameras to type 1 (CODGER)
-    for (int i=0; i < NUMBER_OF_SLOTS; i++) {
+    for (int i=0; i<NUMBER_OF_SLOTS; i++) {
         setCamTypeWithDefValues(i,SONY_EVS_CODGER);
-        setValue(ABS,V_HEADNR,i);   //set headNr.
+
+        setValue(i, ABS,V_HEADNR,i+1);   //set headNr.
         //set all flags to flase
         for (int j=0;j<NUMBER_OF_FLAGS;j++) {
             cameras[i].flags[j] = false;
         }
-    }
-    for (int i=0;i<NUMBER_OF_SLOTS;i++) { //every camera a different HeadNr
-        cameras[i].values[V_HEADNR][0]=i+1;
-        cameras[i].values[V_HEADNR][1]=1;
-        cameras[i].values[V_HEADNR][2]=49;
-        cameras[i].values[V_HEADNR][3]=NORMAL;
-        cameras[i].xptSource=i+1;
     }
 /*
    for (int i=0;i<NUMBER_OF_SLOTS;i++) { // set all to not pending
@@ -150,25 +144,27 @@ QStringList* Model::getErrorList(){
     return &errorList;
 }
 
+void Model::setCamTypeOnly(int slotNr, int type){
+    cameras[slotNr].camType=type;
+}
+
 void Model::setCamType(int slotNr, int type){
     if(cameras[slotNr].camType != type){
         cameras[slotNr].camType=type;
-        setCamTypeWithDefValues(slotNr,type);
+        setCamTypeWithDefBorders(slotNr,type);
     }
-
 }
 
-//all values except headNr (but max min anyway)
+//all values
 void Model::setCamTypeWithDefValues(int slotNr, int type)
 {
-    int start = 1;
+    int start = 0;       //with head no
     switch (type) {
     case 1:
         for(int i= start;i<ROW_ENTRIES;i++){
             for(int j=0;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=c1Values[i][j];}
         }
         for(int k=1;k<COLUM_ENTRIES;k++){cameras[slotNr].values[0][k]=c1Values[0][k];}  //headNr without actual value
-        cameras[slotNr].camType=type;
         cameras[slotNr].textTable=&c1TextTable[0][0];
         break;
     case 2:
@@ -176,7 +172,6 @@ void Model::setCamTypeWithDefValues(int slotNr, int type)
             for(int j=0;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=c2Values[i][j];}
         }
         for(int k=1;k<COLUM_ENTRIES;k++){cameras[slotNr].values[0][k]=c2Values[0][k];}  //headNr without actual value
-        cameras[slotNr].camType=type;
         cameras[slotNr].textTable=&c2TextTable[0][0];
         break;
     case 5:
@@ -184,7 +179,6 @@ void Model::setCamTypeWithDefValues(int slotNr, int type)
             for(int j=0;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=rValues[i][j];}
         }
         for(int k=1;k<COLUM_ENTRIES;k++){cameras[slotNr].values[0][k]=rValues[0][k];}  //headNr without actual value
-        cameras[slotNr].camType=type;
         cameras[slotNr].textTable=&rTextTable[0][0];
         break;
     case 6:
@@ -197,10 +191,73 @@ void Model::setCamTypeWithDefValues(int slotNr, int type)
         cameras[slotNr].values[V_ND_FILTER][2]=3;
         cameras[slotNr].values[V_ND_FILTER][3]=TEXT;
         cameras[slotNr].values[V_ND_FILTER][4]=4;
-        cameras[slotNr].camType=type;
         cameras[slotNr].textTable=&rTextTable[0][0];
         break;
     }
+    cameras[slotNr].camType=type;
+}
+
+// only non requestable properties with actual value, borders from all
+void Model::setCamTypeWithDefBorders(int slotNr, int type)
+{
+    int start = 1;       //without head no
+    switch (type) {
+    case 1:
+        //fill in default values (min, max etc..), but not actual value
+        for(int i= start;i<ROW_ENTRIES;i++){
+            for(int j=1;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=c1Values[i][j];}
+        }
+
+        for (int i=start;i<ROW_ENTRIES;i++) {
+            //all nonrequestable values: write standard value
+            if(cameras[slotNr].values[i][5] != REQUESTABLE){
+                cameras[slotNr].values[i][VAL]=c1Values[i][VAL];
+            }
+        }
+        cameras[slotNr].textTable=&c1TextTable[0][0];
+        break;
+    case 2:
+        for(int i= start;i<ROW_ENTRIES;i++){
+            for(int j=1;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=c2Values[i][j];}
+        }
+        for (int i=start;i<ROW_ENTRIES;i++) {
+            //all nonrequestable values: write standard value
+            if(cameras[slotNr].values[i][5] != REQUESTABLE){
+                cameras[slotNr].values[i][VAL]=c2Values[i][VAL];
+            }
+        }
+        cameras[slotNr].textTable=&c2TextTable[0][0];
+        break;
+    case 5:
+        for(int i= start;i<ROW_ENTRIES;i++){
+            for(int j=1;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=rValues[i][j];}
+        }
+        for (int i=start;i<ROW_ENTRIES;i++) {
+            //all nonrequestable values: write standard value
+            if(cameras[slotNr].values[i][5] != REQUESTABLE){
+                cameras[slotNr].values[i][VAL]=rValues[i][VAL];
+            }
+        }
+        cameras[slotNr].textTable=&rTextTable[0][0];
+        break;
+    case 6:
+        for(int i= start;i<ROW_ENTRIES;i++){
+            for(int j=1;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=rValues[i][j];}
+        }
+        for (int i=start;i<ROW_ENTRIES;i++) {
+            //all nonrequestable values: write standard value
+            if(cameras[slotNr].values[i][5] != REQUESTABLE){
+                cameras[slotNr].values[i][VAL]=rValues[i][VAL];
+            }
+        }
+        cameras[slotNr].values[V_ND_FILTER][1]=0;
+        cameras[slotNr].values[V_ND_FILTER][2]=3;
+        cameras[slotNr].values[V_ND_FILTER][3]=TEXT;
+        cameras[slotNr].values[V_ND_FILTER][4]=4;
+        cameras[slotNr].textTable=&rTextTable[0][0];
+        break;
+    }
+    cameras[slotNr].camType=type;
 }
 
 
@@ -395,6 +452,7 @@ int Model::setCameraWaitingflag(int slotNr, bool waiting){
                     emit updateCameraConnectionStatus(false);        //signal: disconnected
                 }
                 cameras[slotNr].flags[F_CONNECTED] = false;
+                //cameras[slotNr].flags[F_KNOWN] = false;
             }
         }
         else {
@@ -681,6 +739,7 @@ int Model::getRequestCommand(int slotNr, int property)
 {
     //cameras[slotNr].remainingTelegrams.clear();
     if(cameras[slotNr].values[property][5]==REQUESTABLE){
+        std::unique_lock<std::mutex> lock(cameras[slotNr].mtx);     //mutex
         cameras[slotNr].remainingTelegrams.push_back(property);
         return commandtype[property];
     }
@@ -689,20 +748,24 @@ int Model::getRequestCommand(int slotNr, int property)
     }
 }
 
+// clear entry if existing
 void Model::setRequestReceived(int slotNr, int property)
 {
+    std::unique_lock<std::mutex> lock(cameras[slotNr].mtx);     //mutex
     if (!cameras[slotNr].remainingTelegrams.empty()) {
         std::vector<int>::iterator iterator = std::find(cameras[slotNr].remainingTelegrams.begin(),cameras[slotNr].remainingTelegrams.end(),property);
         if(iterator != cameras[slotNr].remainingTelegrams.end()){
-        cameras[slotNr].remainingTelegrams.erase(iterator);
-        if(activeCameraSlot == slotNr){
-            emit newSiganalReceived(property);
+            cameras[slotNr].remainingTelegrams.erase(iterator);
+            if(activeCameraSlot == slotNr){
+                //emit newSignalReceived(property);
+                emit setUpView();
+                emit updateView();
+            }
         }
     }
-    }else {
+    else {
         setCamFlag(slotNr,F_RECEIVED_ALL);
-        }
-
+    }
 }
 
 int Model::getRequestReceived( int property)
@@ -711,21 +774,20 @@ int Model::getRequestReceived( int property)
 
 std::vector<int> Model::getRemainingTelegrams()
 {
-
+    std::unique_lock<std::mutex> lock(cameras[activeCameraSlot].mtx);       //mutex because of gui thread
     return cameras[activeCameraSlot].remainingTelegrams;
-
-
-
 }
 
 std::vector<int> Model::getRemainingTelegrams(int slotNr)
 {
+    std::unique_lock<std::mutex> lock(cameras[slotNr].mtx);     // mutex
     return cameras[slotNr].remainingTelegrams;
 }
 
 void Model::clearRemainingTelegrams(int slotNr)
 {
-   cameras[slotNr].remainingTelegrams.clear();
+    std::unique_lock<std::mutex> lock(cameras[slotNr].mtx);     // mutex
+    cameras[slotNr].remainingTelegrams.clear();
 }
 
 

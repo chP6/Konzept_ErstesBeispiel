@@ -10,12 +10,11 @@ class ServerWatchdog
 public:
     ServerWatchdog();
     int processEvent();
-    int init();
+    int init(int interval_s);
     int timer_fd;
 private:
     struct itimerspec timeout;
     int timersElapsed;
-    uint8_t buf[10];            //für antwort vom server. hier behalten?
     int wdg_err;
 };
 

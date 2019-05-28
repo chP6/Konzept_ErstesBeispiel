@@ -51,6 +51,8 @@
 #define E_GOTO_PRESET               101
 #define E_WRITE_SAVEFILE            103
 #define E_LOAD_SAVEFILE             104
+#define E_WRITE_AUTOSAVE            105
+#define E_LOAD_AUTOSAVE             106
 
 //Debug
 #define E_REQ_TEST          111

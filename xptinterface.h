@@ -20,6 +20,7 @@
 class XptInterface : public QObject
 {
      Q_OBJECT
+
 public:
     enum SrvAnswer {
         Error=-2,

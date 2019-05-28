@@ -10,13 +10,13 @@ ServerWatchdog::ServerWatchdog()
 {
 }
 
-int ServerWatchdog::init(){
+int ServerWatchdog::init(int interval_s){
     timer_fd = timerfd_create(CLOCK_MONOTONIC, 0);
 
 
-    timeout.it_value.tv_sec = 1;
+    timeout.it_value.tv_sec = interval_s;
     timeout.it_value.tv_nsec = 0;
-    timeout.it_interval.tv_sec = 1;
+    timeout.it_interval.tv_sec = interval_s;
     timeout.it_interval.tv_nsec = 0;
 
     wdg_err = timerfd_settime(timer_fd, 0, &timeout, nullptr);
