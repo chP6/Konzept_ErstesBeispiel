@@ -28,11 +28,16 @@ Model::Model()
         cameras[i].values[V_HEADNR][3]=NORMAL;
         cameras[i].xptSource=i+1;
     }
+/*
+   for (int i=0;i<NUMBER_OF_SLOTS;i++) { // set all to not pending
+        for (int j=0;j<ROW_ENTRIES;j++) {
+            if(cameras[i].values[j][5]==REQUESTABLE){
+                cameras[i].remainingTelegrams.push_back(j);
+            }
+        }
+    }*/
 
-    for (int i=0;i<MAX_NUMBER_OF_CMDS;i++) { // set all to not pending
-        reqPendingArr[i] = false;
-    }
-
+    //cameras[0].remainingTelegrams.push_back(10);
     activeCameraSlot=0;
     xptFields[0]=192;
     xptFields[1]=168;
@@ -674,9 +679,9 @@ int Model::getCurrReqHeadNr(){
 
 int Model::getRequestCommand(int slotNr, int property)
 {
-
+    //cameras[slotNr].remainingTelegrams.clear();
     if(cameras[slotNr].values[property][5]==REQUESTABLE){
-        cameras[slotNr].remainingTelegrams.append(property);
+        cameras[slotNr].remainingTelegrams.push_back(property);
         return commandtype[property];
     }
     else {
@@ -687,9 +692,9 @@ int Model::getRequestCommand(int slotNr, int property)
 void Model::setRequestReceived(int slotNr, int property)
 {
     if (!cameras[slotNr].remainingTelegrams.empty()) {
-        int index = cameras[slotNr].remainingTelegrams.indexOf(property);
-        if(index > 0){
-        cameras[slotNr].remainingTelegrams.removeAt(index);
+        std::vector<int>::iterator iterator = std::find(cameras[slotNr].remainingTelegrams.begin(),cameras[slotNr].remainingTelegrams.end(),property);
+        if(iterator != cameras[slotNr].remainingTelegrams.end()){
+        cameras[slotNr].remainingTelegrams.erase(iterator);
         if(activeCameraSlot == slotNr){
             emit newSiganalReceived(property);
         }
@@ -704,9 +709,23 @@ int Model::getRequestReceived( int property)
 {
 }
 
-QList<int> Model::getRemainingTelegrams()
+std::vector<int> Model::getRemainingTelegrams()
 {
+
     return cameras[activeCameraSlot].remainingTelegrams;
+
+
+
+}
+
+std::vector<int> Model::getRemainingTelegrams(int slotNr)
+{
+    return cameras[slotNr].remainingTelegrams;
+}
+
+void Model::clearRemainingTelegrams(int slotNr)
+{
+   cameras[slotNr].remainingTelegrams.clear();
 }
 
 

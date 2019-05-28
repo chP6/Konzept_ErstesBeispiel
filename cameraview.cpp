@@ -89,9 +89,9 @@ CameraView::~CameraView()
 
 void CameraView::updateUi()
 {
-    setUpUi();
+    //setUpUi();
     if(!(model->getCamFlag(F_RECEIVED_ALL))){
-        QList<int> remainingTelegram = model->getRemainingTelegrams();
+       // QList<int> remainingTelegram = model->getRemainingTelegrams();
     }
 
     for(int i =0;i<standardButtons.size();i++){
@@ -131,22 +131,15 @@ void CameraView::updateUi()
 void CameraView::setUpUi()
 {
     int value;
-    int requested;
-
+    std::vector<int> requested;
+    requested = model->getRemainingTelegrams();
     //textButtons.clear();
     //standardButtons.clear();
     if(!(standardButtons.empty())){
     for (int i = 0; i < buttons.size(); i++) {
 
         value = model->getValue(DISP,buttons[i].value);
-        requested = model->getRequestReceived(buttons[i].value);
 
-        if(requested){
-           // buttons[i].button->setStyleSheet("color: white"); //takes too much time
-            }
-        else {
-           // buttons[i].button->setStyleSheet("color: yellow");
-            }
 
         switch (value) {
             default:
@@ -177,13 +170,16 @@ void CameraView::setUpUi()
 for (int i = 0; i < buttons.size(); i++) {
 
     value = model->getValue(DISP,buttons[i].value);
-    requested = model->getRequestReceived(buttons[i].value);
 
-    if(requested){
-        buttons[i].button->setStyleSheet("color: white");
+
+    if(!requested.empty()){
+        std::vector<int>::iterator iterator = std::find(requested.begin(),requested.end(),buttons[i].value);
+
+       if(iterator != requested.end() )
+        buttons[i].button->setStyleSheet("color: yellow");
         }
     else {
-        buttons[i].button->setStyleSheet("color: yellow");
+       buttons[i].button->setStyleSheet("color: white");
         }
 
     switch (value) {

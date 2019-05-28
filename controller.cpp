@@ -176,8 +176,13 @@ int Controller::loadSavefile(){
     return savefile.status();
 }
 
-void Controller::checkSettingsRequest(int cmd){
+void Controller::checkSettingsRequest(int slotNr){
     //only check if flag set
+    std::vector<int> remainingRequests;
+    remainingRequests = model->getRemainingTelegrams(slotNr);
+
+
+    /*
     if(model->getRequestSettingsFlag()){
 
         bool anyActive = false;
@@ -207,12 +212,13 @@ void Controller::checkSettingsRequest(int cmd){
             }
             reqSettingsTimer.start();
         }
-    }
+    }*/
 }
 
 void Controller::requestCameraSettings(int slot){
     int headNr =model->getValue(slot,ABS,V_HEADNR);
     int command;
+    model->clearRemainingTelegrams(slot);
     if(slot == model->getActiveCameraSlot()){model->receiveAllNew();}
     for (int i=0;i<ROW_ENTRIES;i++) {
         command =model->getRequestCommand(slot,i);
@@ -579,10 +585,9 @@ void Controller::processQeue(){
             previousType=model->getCamtype();
             camerabus.setLed(CAMERA_COLOR,loadedEvent.data[0]);
             model->setActiveCameraSlot(loadedEvent.data[0]);
-            if(previousType!=model->getCamtype()){
-                model->setUpView();
-                model->updateView();
-            }
+            model->setUpView();
+            model->updateView();
+
             if (model->getCamFlag(F_SPP_ON)){
                 presetbus.setLed(SPP_COLOR, model->getActivePreset());
             }
@@ -701,11 +706,14 @@ void Controller::processQeue(){
                     if(model->getValueFromBBMCommand(command) > 0){  //there could be commandtypes without values
                        model->setValue(i, ABS, model->getValueFromBBMCommand(command), data);
                        model->setRequestReceived(i,model->getValueFromBBMCommand(command));
-                       //checkSettingsRequest(command);
+                       if(model->getCamFlag(i,F_RECEIVED_ALL)){
+                         checkSettingsRequest(i);
+                       }
+
                     }
                     qDebug("ANSWER | command: %d, value: %d", command, data);
                 }
-                model->setUpView();
+
             }
             break;
         case E_RX_ADJ_RCP_CMD:
@@ -726,7 +734,7 @@ void Controller::processQeue(){
             break;
         case E_SETUP_HEAD:
             //send init values to head
-            loadSavefile();
+            //loadSavefile();
             for (int i=0;i<NUMBER_OF_SLOTS;i++) {
                 txSocket.send(model->getValue(i,ABS,V_HEADNR), RAMP, model->getValue(i,ABS,V_RAMP));
                 usleep(TX_T);

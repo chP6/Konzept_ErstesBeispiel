@@ -41,7 +41,7 @@ public:
     int loadSavefile();
     void alignSlots(int value);
     void requestCameraSettings(int slot);
-    void checkSettingsRequest(int cmd);
+    void checkSettingsRequest(int slotNr);
 
 
 private:

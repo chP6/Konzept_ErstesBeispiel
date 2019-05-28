@@ -6,6 +6,7 @@
 #include "config.h"
 #include "bbmcommandtypes.h"
 #include <stdio.h>
+#include <QVector>
 //#include "view.h" //nix gut, circular dependency -> forward declaration.
 //class View;         //Make sure each header can be included on its own.
 
@@ -17,7 +18,7 @@ struct camera_s{
   int values [ROW_ENTRIES][COLUM_ENTRIES];
   QString *textTable;
   int xptSource;
-  QList<int> remainingTelegrams;
+  std::vector<int> remainingTelegrams;
 };
 
 
@@ -90,7 +91,9 @@ public:
     int getRequestCommand(int slotNr, int property);
     void setRequestReceived(int slotNr, int property);
     int getRequestReceived(int property);
-    QList<int> getRemainingTelegrams();
+    std::vector<int> getRemainingTelegrams();
+    std::vector<int> getRemainingTelegrams(int slotNr);
+    void clearRemainingTelegrams(int slotNr);
 
     /* XPT handling */
     void setXptConnected(bool flag);
