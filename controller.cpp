@@ -522,7 +522,7 @@ void Controller::processQeue(){
             int previousPreset;
 
             if(model->getCamFlag(F_SPP_ON) == false){                   // preset change during spp -> do nothing, but abort
-                presetbus.setLed(0xfff,0xfff,0xfff,loadedEvent.data[0]);
+                presetbus.setLed(PRESET_COLOR,loadedEvent.data[0]);
                 previousPreset=model->getActivePreset();
                 model->setActivePreset(loadedEvent.data[0]);
 
