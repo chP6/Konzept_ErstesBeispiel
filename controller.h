@@ -7,10 +7,12 @@
 #include "generictimer.h"
 #include "xptinterface.h"
 #include "config.h"
+#include <QSettings>
 
 
 
 #define SAVEFILE_PATH   "/opt/savefile"
+#define AUTOSAVE_PATH   "/opt/autosave"
 
 class Model;        //forward declaration
 class Poller;        //forward declaration
@@ -37,8 +39,15 @@ public:
     void logSystemError(int err_no, std::string msg);
     void logError(std::string msg);
     void clearErrors();
+
     int writeSavefile();
     int loadSavefile();
+    int writeAutosave();
+    int loadAutosave();
+    void settingsWrite(QSettings &savefile);
+    void settingsLoad(QSettings &savefile, bool send);
+
+
     void alignSlots(int value);
     void requestCameraSettings(int slot);
     void checkSettingsRequest(int slotNr);
@@ -52,7 +61,9 @@ private:
     Tastenfeld presetbus;
     Tastenfeld camerabus;
     XptInterface xptSocket;
-    GenericTimer blinkTimer, sppTimer[NUMBER_OF_SLOTS], xptWatchdog, reqSettingsTimer;
+    GenericTimer blinkTimer, sppTimer[NUMBER_OF_SLOTS], xptWatchdog, reqSettingsTimer[NUMBER_OF_SLOTS];
+    int xptConnectionAttempts=0;
+
 
 
     [[noreturn]]void processQeue();

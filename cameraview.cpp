@@ -101,6 +101,8 @@ void CameraView::updateUi()
         textButtons[i].button->setText(model->getTextValue(textButtons[i].value));
     }
 
+
+
     /*
     for(int i =0;i<standardButtons.size();i++){
         standardButtons[i].button->setText(QString::number(model->getValue(DISP,standardButtons[i].value)));
@@ -133,77 +135,40 @@ void CameraView::setUpUi()
     int value;
     std::vector<int> requested;
     requested = model->getRemainingTelegrams();
-    //textButtons.clear();
-    //standardButtons.clear();
-    if(!(standardButtons.empty())){
-    for (int i = 0; i < buttons.size(); i++) {
+    textButtons.clear();
+    standardButtons.clear();
+        for (int i = 0; i < buttons.size(); i++) {
 
-        value = model->getValue(DISP,buttons[i].value);
+            value = model->getValue(DISP,buttons[i].value);
 
-        if(!requested.empty()){
-            std::vector<int>::iterator iterator = std::find(requested.begin(),requested.end(),buttons[i].value);
-
-           if(iterator != requested.end() )
-            buttons[i].button->setStyleSheet("color: yellow");
-            }
-        else {
-           buttons[i].button->setStyleSheet("color: white");
-            }
-
-        switch (value) {
-            default:
-            if(standardButtons.first().button != buttons[i].button){
-                buttons[i].button->setDisabled(false);
-                buttons[i].button->setEnabled(true);
-                //standardButtons.append(buttons[i]);
-                standardButtons.replace(0,buttons[i]);
-            }
-            standardButtons.move(0,standardButtons.size()-1);
-            break;
-        case -2048:
-                buttons[i].button->setStyleSheet("color: white");
-                buttons[i].button->setDisabled(true);
-                buttons[i].button->setText("-");
+            switch (value) {
+                default:
+                    buttons[i].button->setDisabled(false);
+                    buttons[i].button->setEnabled(true);
+                    standardButtons.append(buttons[i]);
+                break;
+            case -2048:
+                    buttons[i].button->setStyleSheet("color: white");
+                    buttons[i].button->setDisabled(true);
+                    buttons[i].button->setText("-");
             break;
         case -2049:
-                if(textButtons.first().button != buttons[i].button){
-                buttons[i].button->setDisabled(false);
-                buttons[i].button->setEnabled(true);
-                textButtons.replace(0,buttons[i]);
+                    buttons[i].button->setDisabled(false);
+                    buttons[i].button->setEnabled(true);
+                    textButtons.append(buttons[i]);
+        break;
+            }
+
+            if(!requested.empty()){
+                std::vector<int>::iterator iterator = std::find(requested.begin(),requested.end(),buttons[i].value);
+
+                if(iterator != requested.end() )
+                   buttons[i].button->setStyleSheet("color: rgb(247,231,116)");
+            }
+            else {
+                buttons[i].button->setStyleSheet("color: white");
+            }
         }
-                textButtons.move(0,textButtons.size()-1);
-            break;
-
-
-
-    }
-}}else {
-for (int i = 0; i < buttons.size(); i++) {
-
-    value = model->getValue(DISP,buttons[i].value);
-
-
-
-    switch (value) {
-        default:
-            buttons[i].button->setDisabled(false);
-            buttons[i].button->setEnabled(true);
-            standardButtons.append(buttons[i]);
-        break;
-    case -2048:
-            buttons[i].button->setStyleSheet("color: white");
-            buttons[i].button->setDisabled(true);
-            buttons[i].button->setText("-");
-        break;
-    case -2049:
-            buttons[i].button->setDisabled(false);
-            buttons[i].button->setEnabled(true);
-            textButtons.append(buttons[i]);
-    break;
-    }
-
-}
-}
 
 
     /*
@@ -700,13 +665,13 @@ void CameraView::newRequest()
 {
     for (int i = 0;i < textButtons.size(); i++) {
 
-            textButtons[i].button->setStyleSheet("color: yellow");
+            textButtons[i].button->setStyleSheet("color: rgb(247,231,116)");
 
     }
 
     for (int i = 0;i < standardButtons.size(); i++) {
 
-            standardButtons[i].button->setStyleSheet("color: yellow");
+            standardButtons[i].button->setStyleSheet("color: rgb(247,231,116)");
 
     }
 }

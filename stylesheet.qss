@@ -120,7 +120,7 @@ QMenu::item:selected {
 }
 QMenu::item {
         color:rgb(223,219,210);
-        background-color:rgb(78,78,78);
+        background-color: rgba(97, 97, 97, 200);
         padding-left:20px;
         padding-top:4px;
         padding-bottom:4px;

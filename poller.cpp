@@ -22,16 +22,22 @@ Poller::Poller(Controller& controller)
     this->controller = &controller;
     poll_err = 0;
 
-    poll_err = srvWatchdog.init();
+    poll_err = srvWatchdog.init(1);
     if(poll_err < 0){
         poll_err = errno;
         controller.logSystemError(poll_err, "Could not initialize Watchdog Timer");
     }
 
-    poll_err = xptWatchdog.init();
+    poll_err = xptWatchdog.init(1);
     if(poll_err < 0){
         poll_err = errno;
         controller.logSystemError(poll_err, "Could not initialize Watchdog Timer Xpt");
+    }
+
+    poll_err = autoSaveWatchdog.init(10);
+    if(poll_err < 0){
+        poll_err = errno;
+        controller.logSystemError(poll_err, "Could not initialize Autosave Timer");
     }
 
     poll_err = joystick.init();
@@ -104,6 +110,9 @@ Poller::Poller(Controller& controller)
         poll_fd[i+14].events = POLLPRI;
     }
 
+    poll_fd[20].fd = autoSaveWatchdog.timer_fd;
+    poll_fd[20].events = POLLIN;
+
 }
 
 
@@ -137,7 +146,7 @@ void Poller::listener(){
     while(1){
 
         data.clear();
-        poll_err = poll(poll_fd,20,-1);                      //poll. Blocks until event occurs -> SIZE setzen! current = 15; -1 = infinite timeout
+        poll_err = poll(poll_fd,21,-1);                      //poll. Blocks until event occurs -> SIZE setzen! -1 = infinite timeout
 
         if(poll_err<0){
             poll_err = errno;
@@ -211,7 +220,9 @@ void Poller::listener(){
                 controller->logSystemError(poll_err, "Could not readout Rotary1 button");
             }
             if(poll_err==0){ //otherwise it was a bounce
-                controller->queueEvent(E_WRITE_SAVEFILE);
+                //controller->queueEvent(E_WRITE_SAVEFILE);       //debug
+                controller->queueEvent(E_FAST_IRIS);
+
             }
 
 
@@ -478,6 +489,15 @@ void Poller::listener(){
             if(poll_err==0){
                 controller->queueEvent(E_CAMERA_CHANGE,5);
             }
+        }
+
+        if(poll_fd[20].revents & POLLIN) {                    // Autosave watchdog event
+            poll_err = autoSaveWatchdog.processEvent();
+            if(poll_err<0){
+                poll_err = errno;
+                controller->logSystemError(poll_err, "Could not read Autosave Watchdog Timer");
+            }
+            controller->queueEvent(E_WRITE_AUTOSAVE);
         }
 
     }

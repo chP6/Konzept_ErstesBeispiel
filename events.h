@@ -44,6 +44,7 @@
 #define E_REQ_SETTINGS_TIMER    40
 #define E_REQUEST_SETTINGS      41
 #define E_EXT_PRESET_CHANGE     42
+#define E_FAST_IRIS             43
 
 
 
@@ -51,6 +52,8 @@
 #define E_GOTO_PRESET               101
 #define E_WRITE_SAVEFILE            103
 #define E_LOAD_SAVEFILE             104
+#define E_WRITE_AUTOSAVE            105
+#define E_LOAD_AUTOSAVE             106
 
 //Debug
 #define E_REQ_TEST          111

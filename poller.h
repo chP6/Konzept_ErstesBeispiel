@@ -19,18 +19,19 @@ public:
     BBMJoystick joystick;               //for init debug joystick
 private:
     [[noreturn]]void listener();
-    struct pollfd poll_fd[20];
+    struct pollfd poll_fd[21];
     int poll_err;
     int sense_val;
     signed char rotary_val;
     int xold,yold,zold;
     Controller* controller;
-    ServerWatchdog srvWatchdog;    uint8_t buf[10];            //für antwort vom server. hier behalten?
+    ServerWatchdog srvWatchdog;
 
     Rotary rotary1, rotary2;
     Tastenfeld presetbus;
     Tastenfeld camerabus;
     ServerWatchdog xptWatchdog;
+    ServerWatchdog autoSaveWatchdog;
     OCP ocp;
 };
 

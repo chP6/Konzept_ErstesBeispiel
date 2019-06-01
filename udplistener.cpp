@@ -24,7 +24,6 @@ void UdpListener::startListener(){
 
 void UdpListener::listener(){
     answer_s answer;
-
     while(1){
         rx_err = rxSocket.receive(buffer);       //blockiert bis etwas empfangen
         if(rx_err < 0){
@@ -39,7 +38,9 @@ void UdpListener::listener(){
 
         // Command from adjecent RCP
         if(answer.type == TYPED_TO_HC && answer.command != WATCHDOG && answer.command != GOTO_PRESET){
+            if(!answer.data.empty()){
             controller->queueEvent(E_RX_ADJ_RCP_CMD, answer.from, answer.command, answer.data[0]);
+            }
 
         }
 
@@ -55,7 +56,7 @@ void UdpListener::listener(){
         // Reply from camera/head
         if(answer.type == TYPEC_FROM_HC && answer.command != WATCHDOG && answer.from != SERVER){
             controller->queueEvent(E_CAMERA_ANSWER, answer.from, answer.command, answer.data[0]);
-            //qDebug("Answer: %d", answer.data[0]);
+            //qDebug("Answer: HeadNr: %d Command: %d Data: %d",answer.from,answer.command, answer.data[0]);
         }
 
         // Watchdog answer from server
@@ -66,6 +67,7 @@ void UdpListener::listener(){
         // Watchdog answer from camera/head
         if(answer.command == WATCHDOG && answer.from != SERVER){
             controller->queueEvent(E_RX_CAMERA_WATCHDOG, answer.from, answer.data[1]);
+            qDebug("Answer: HeadNr: %d Command: %d Data: %d",answer.from,answer.command, answer.data[1]);
             //qDebug()<<answer.from<<answer.data[1];
         }
 
@@ -75,7 +77,7 @@ void UdpListener::listener(){
         }
 
         //debug: show answer packages
-//        if((answer.from != SERVER) ){
+//        if((1) ){
 //            qDebug("UDP RX: %d,%d,%d,%d,%d,%d,%d,%d,%d,%d", buffer[0],buffer[1],buffer[2],buffer[3],buffer[4],buffer[5],buffer[6],buffer[7],buffer[8],buffer[9]);
 //        }
         answer.data.clear();

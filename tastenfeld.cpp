@@ -168,22 +168,23 @@ void Tastenfeld::gpioUnExport(int gpio){
 
 void Tastenfeld::mapTx(unsigned int blue, unsigned int red, unsigned int green, int button)
 {
-    static char button_map[]= {0,4,0,13,0,22};
+    static char button_map[]= {0,4,9,13,18,22,27};
+    //static char button_map[]= {0,4,9,15,20,25,30};
         if(button % 2 == 0){				//Buttonnumber gerade
             /*mapping*/
-            button=button*4.5;
-            *(tx+button)=((blue&0xFF0)>>4);
-            *(tx+button+1)=((blue&0xF)<<4)|((red&0xF00)>>8);
-            *(tx+button+2)=red&0x0FF;
-            *(tx+button+3)=((green&0xFF0)>>4);
-            *(tx+button+4)=((green&0xF)<<4);
+            //button=button*4.5;
+            *(tx+button_map[button])=((blue&0xFF0)>>4);
+            *(tx+button_map[button]+1)=(((blue&0xF)<<4)|((red&0xF00)>>8))&(0xff);
+            *(tx+button_map[button]+2)=red&0x0FF;
+            *(tx+button_map[button]+3)=((green&0xFF0)>>4);
+            *(tx+button_map[button]+4)=(((green&0x00F)<<4)|((tx[button_map[button]+4]&0x00f)))&(0xFF);
         }
         else{						//Buttonnumber ungerade
             /*mapping*/
-            *(tx+button_map[button])=((blue&0xF00)>>8);
+            *(tx+button_map[button])=((blue&0xF00)>>8)&0xff;
             *(tx+button_map[button]+1)=(blue&0xFF);
             *(tx+button_map[button]+2)=((red&0xFF0)>>4);
-            *(tx+button_map[button]+3)=((red&0x0F)<<4)|((green&0xF00)>>8);
+            *(tx+button_map[button]+3)=(((red&0x0F)<<4)|((green&0xF00)>>8))&(0xff);
             *(tx+button_map[button]+4)=(green&0xFF);
 
         }

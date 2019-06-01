@@ -16,6 +16,7 @@ int XptInterface::init(XptType type, char *ipAdress)
 
     switch (type) {
     case XptInterface::BalckMagic:
+        xptType = XptInterface::BalckMagic;
         xpt_adress.sin_port = htons(BMDPORT);
         numberOfInputs = 40;
         numberOfOutputs = 40;
@@ -23,6 +24,7 @@ int XptInterface::init(XptType type, char *ipAdress)
         outputLabels.clear();
         break;
     case XptInterface::Ross:
+        xptType = XptInterface::Ross;
         xpt_adress.sin_port = htons(ROSSPORT);
         numberOfInputs = 24;
         numberOfOutputs = 8;
@@ -49,10 +51,11 @@ int XptInterface::init(XptType type, char *ipAdress)
 int XptInterface::connectToXpt()
 {
     struct timeval tv;
-            tv.tv_usec=1;
+            tv.tv_usec=100000;
 
     sockfd=socket(AF_INET,SOCK_STREAM,0);
     setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (struct timeval *)&tv,sizeof(struct timeval));
+    setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, (struct timeval *)&tv,sizeof(struct timeval));
 
     if(sockfd<0){
         return -1;
@@ -90,7 +93,7 @@ int XptInterface::connectToXpt()
 }
 XptInterface::SrvAnswer XptInterface::bmdReceive()
 {
-    recv_err=recv(sockfd, rxbuffer, MAXDATASIZE, 0);     //receive xpt dump
+    recv_err=recv(sockfd, rxbuffer, MAXDATASIZE,0);     //receive xpt dump
          if (recv_err < 0) {
              return XptInterface::Error;
              }
@@ -115,13 +118,26 @@ XptInterface::SrvAnswer XptInterface::processRossMessages(QList<QByteArray> &mes
     }
     QByteArray header;
 
+  /*  while(!message.empty()){
+        header = message.first();
+        message.pop_front();
+        if(header.left(3) == "XPT"){
+            message.clear();
+            qDebug()<<"found Answer";
+            return XptInterface::ACK;
+        }
+     }
+    message.clear();
+    return XptInterface::Error;*/
+
    if(!message.empty()){
        message.clear();     //to do: see what it sends exactely
-      return XptInterface::ACK;
+       return XptInterface::ACK;
    }
    else {
        return XptInterface::Error;
    }
+
 }
 
 XptInterface::SrvAnswer XptInterface::rossReceive()
@@ -135,6 +151,8 @@ XptInterface::SrvAnswer XptInterface::rossReceive()
          input.append(rxbuffer);
          qDebug()<<input;
          QList<QByteArray> message = appendInput(input);
+
+
 
          if(!message.empty()){
              XptInterface::SrvAnswer result = processRossMessages(message);
@@ -336,10 +354,10 @@ int XptInterface::sendChange(int source, int destination)
     switch (xptType) {
     case XptInterface::BalckMagic:
 
-            sprintf(txBuffer,"VIDEO OUTPUT ROUTING:\n%d %d\n\n",destination-1,source-1);
-            if(connect_err < 0){
-                return -1;
-                    }
+            sprintf(txBuffer,"VIDEO OUTPUT ROUTING:\n%d %d\n\n",destination,source);
+          //  if(connect_err < 0){
+            //    return -1;
+              //      }
             send_err = send(sockfd,txBuffer,strlen(txBuffer),MSG_NOSIGNAL);
             if (send_err < 0) {
                 return -1;
@@ -348,10 +366,10 @@ int XptInterface::sendChange(int source, int destination)
             return  0;
 
     case XptInterface::Ross:
-        sprintf(txBuffer,"XPT AUX:%d:IN:%d\n",destination-1,source-1);
-        if(connect_err < 0){
-            return -1;
-                }
+        sprintf(txBuffer,"XPT AUX:%d:IN:%d\n",destination+1,source+1);
+        //if(connect_err < 0){
+          //  return -1;
+            //    }
         send_err = send(sockfd,txBuffer,strlen(txBuffer),MSG_NOSIGNAL);
         if (send_err < 0) {
             return -1;
