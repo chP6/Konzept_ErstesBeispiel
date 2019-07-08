@@ -355,7 +355,7 @@ void Poller::listener(){
                 controller->logSystemError(poll_err, "Could not readout Presetbus Button 1");
             }
             if(poll_err==0){
-                controller->queueEvent(E_PRESET_CHANGE,0);
+                controller->queueEvent(E_PRESET_CHANGE,5);
             }
         }
 
@@ -367,7 +367,7 @@ void Poller::listener(){
                 controller->logSystemError(poll_err, "Could not readout Presetbus Button 2");
             }
             if(poll_err==0){
-                controller->queueEvent(E_PRESET_CHANGE,1);
+                controller->queueEvent(E_PRESET_CHANGE,4);
             }
         }
 
@@ -379,7 +379,7 @@ void Poller::listener(){
                 controller->logSystemError(poll_err, "Could not readout Presetbus Button 3");
             }
             if(poll_err==0){
-                controller->queueEvent(E_PRESET_CHANGE,2);
+                controller->queueEvent(E_PRESET_CHANGE,3);
             }
         }
 
@@ -391,7 +391,7 @@ void Poller::listener(){
                 controller->logSystemError(poll_err, "Could not readout Presetbus Button 4");
             }
             if(poll_err==0){
-                controller->queueEvent(E_PRESET_CHANGE,3);
+                controller->queueEvent(E_PRESET_CHANGE,2);
             }
         }
 
@@ -403,7 +403,7 @@ void Poller::listener(){
                 controller->logSystemError(poll_err, "Could not readout Presetbus Button 5");
             }
             if(poll_err==0){
-                controller->queueEvent(E_PRESET_CHANGE,4);
+                controller->queueEvent(E_PRESET_CHANGE,1);
             }
         }
 
@@ -415,7 +415,7 @@ void Poller::listener(){
                 controller->logSystemError(poll_err, "Could not readout Presetbus Button 6");
             }
             if(poll_err==0){
-                controller->queueEvent(E_PRESET_CHANGE,5);
+                controller->queueEvent(E_PRESET_CHANGE,0);
             }
         }
 
@@ -427,7 +427,7 @@ void Poller::listener(){
                 controller->logSystemError(poll_err, "Could not readout Camerabus Button 1");
             }
             if(poll_err==0){
-                 controller->queueEvent(E_CAMERA_CHANGE,0);
+                 controller->queueEvent(E_CAMERA_CHANGE,5);
             }
         }
 
@@ -439,7 +439,7 @@ void Poller::listener(){
                 controller->logSystemError(poll_err, "Could not readout Camerabus Button 2");
             }
             if(poll_err==0){
-                controller->queueEvent(E_CAMERA_CHANGE,1);
+                controller->queueEvent(E_CAMERA_CHANGE,4);
             }
         }
 
@@ -451,7 +451,7 @@ void Poller::listener(){
                 controller->logSystemError(poll_err, "Could not readout Camerabus Button 3");
             }
             if(poll_err==0){
-                controller->queueEvent(E_CAMERA_CHANGE,2);
+                controller->queueEvent(E_CAMERA_CHANGE,3);
             }
         }
 
@@ -463,7 +463,7 @@ void Poller::listener(){
                 controller->logSystemError(poll_err, "Could not readout Camerabus Button 4");
             }
             if(poll_err==0){
-                controller->queueEvent(E_CAMERA_CHANGE,3);
+                controller->queueEvent(E_CAMERA_CHANGE,2);
             }
         }
 
@@ -475,7 +475,7 @@ void Poller::listener(){
                 controller->logSystemError(poll_err, "Could not readout Camerabus Button 5");
             }
             if(poll_err==0){
-                controller->queueEvent(E_CAMERA_CHANGE,4);
+                controller->queueEvent(E_CAMERA_CHANGE,1);
             }
      }
 
@@ -487,7 +487,7 @@ void Poller::listener(){
                 controller->logSystemError(poll_err, "Could not readout Camerabus Button 6");
             }
             if(poll_err==0){
-                controller->queueEvent(E_CAMERA_CHANGE,5);
+                controller->queueEvent(E_CAMERA_CHANGE,0);
             }
         }
 

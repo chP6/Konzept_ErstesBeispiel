@@ -181,14 +181,14 @@ private:
                        {-1,-1,-1,NAN},    //Knee
                        {-1,-1,-1,NAN},    //Knee Point
                        {0,0,3,TEXT,3,REQUESTABLE},       //ND Filter
-                       {17,17,32,TEXT,4,REQUESTABLE},    //Shutter
+                       {18,18,32,TEXT,4,REQUESTABLE},    //Shutter
                        {5,1,10,NORMAL},      //PT Speed
                        {1,1,10,NORMAL},      //Trans Speed
                        {1,1,10,NORMAL},      //Ramp
                        {0,0,5,OFFSET},       //SPP1
                        {1,0,5,OFFSET},       //SPP2
                        {0,0,30,NORMAL},      //SPP Wait Time
-                       {12,1,127,NORMAL},    //Bounce Zoom Speed
+                       {2,0,7,NORMAL},    //Bounce Zoom Speed
                        {0,0,2,TEXT,5},       //Head Power
                        {0,0,3,TEXT,6}              //Mirror
                       };
@@ -270,7 +270,7 @@ private:
                                {"Low","Mid","High"},
                                 {"2800K","3200K","4000K","4600K","5600K","6300K"},
                                 {"Clear","1/4","1/16","1/64"},
-                                {"1/50","1/75","1/100","1/120","1/150","1/215","1/300","1/425","1/600","1/1000","1/1250","1/1750","1/2500","1/3500","1/6000"},
+                                {"1/50","1/100","1/120","1/150","1/215","1/300","1/425","1/600","1/1000","1/1250","1/1750","1/2500","1/3500","1/6000"},
                                 {"Low","Mid","High"},
                                 {"Normal","H-Inverted","V-Inverted","HV-Inverted"}
                                };

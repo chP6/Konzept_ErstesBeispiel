@@ -26,8 +26,9 @@ int BBMJoystick::init(){
     joystick_fd=open("/dev/input/js0",O_RDONLY | O_NONBLOCK);                //Pfad noch anpassen in config file. Nonblock, damit beim aufstarten joystick ohne block x-mal abgefragt werden kann
     if(joystick_fd<0){
         usleep(1000);
-        init();
-        //error(joystick_fd,errno,"couldn't open device");
+        init();   //erst wenn scharf
+        error(joystick_fd,errno,"couldn't open device");
+        return -1;
     }
 //     for (int i=0;i<4;i++) {                                    // Joystick initial auslesen: 1x Button, 3x Axis
 //         read(joystick_fd, &js, sizeof(struct js_event));
@@ -63,8 +64,8 @@ int BBMJoystick::processEvent(joystickData& jsData){
         }                                                   //
         val_x_old = val_x;                                  //
 
-        jsData.xCoord = val_x;
-        jsData.yCoord = val_y;
+        jsData.xCoord = val_y;
+        jsData.yCoord = val_x;
         jsData.zCoord = val_z;
         break;
 

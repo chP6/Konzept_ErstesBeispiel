@@ -322,6 +322,9 @@ void Telegrambuilder::decode(uint8_t* telegram, struct answer_s& answer){
             temp = telegram[8];
             answer.data.push_back(temp);
             break;
+        case PRESET_REACHED:
+            answer.data.push_back(telegram[8]);
+            break;
         default:
             break;
         }

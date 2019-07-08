@@ -440,10 +440,6 @@ void Controller::processQeue(){
 
             txSocket.send(model->getValue(ABS,V_HEADNR), TILT_PAN, x, y);
 
-            if(model->getCamFlag(F_BOUNCING)){
-                model->setCamFlag(F_BOUNCING,false);
-                presetbus.setLed(PRESET_COLOR,model->getActivePreset());
-            }
             if(model->getCamFlag(F_SPP_ON)){
                 queueEvent(E_SPP_ABORT);
             }
@@ -463,6 +459,18 @@ void Controller::processQeue(){
                 usleep(CREEP_T);
             }
             txSocket.send(model->getValue(ABS,V_HEADNR),ZOOM_FOCUS_SET, z);
+
+            if(model->getCamFlag(F_BOUNCING) ){
+                model->setCamFlag(F_BOUNCING,false);
+                presetbus.setLed(PRESET_COLOR,model->getActivePreset());
+                txSocket.send(model->getValue(ABS,V_HEADNR),BNCE_ZOOM_START,model->getValue(ABS,V_BOUNCE_ZOOM_SPEED)); //Stop It
+            }
+            if (model->getCamFlag(F_BOUNCE_ENABLE) && !model->getCamFlag(F_BOUNCE_ENABLE)) {
+               model->setCamFlag(F_BOUNCE_ABORTED,true);
+            }
+            if(model->getCamFlag(F_SPP_ON)){
+                queueEvent(E_SPP_ABORT);
+            }
 
             //debug
 //            int z;
@@ -519,8 +527,77 @@ void Controller::processQeue(){
             // todo: presetbus.blink(1);
             break;
         case E_PRESET_CHANGE:
+        {
             int previousPreset;
+            previousPreset=model->getActivePreset();
+            model->setActivePreset(loadedEvent.data[0]);
 
+            if(model->getCamFlag(F_SPP_ON)){
+                queueEvent(E_SPP_ABORT);
+                presetbus.setLed(PRESET_COLOR,model->getActivePreset());
+                txSocket.send(model->getValue(ABS,V_HEADNR), GOTO_PRESET, loadedEvent.data[0]+1,model->getValue(ABS,V_TRANS_SPEED));
+                break;
+            }
+
+            if(model->getCamFlag(F_PRST_IN_STORE)){
+                model->setUsedPreset(model->getActivePreset());
+                model->setCamFlag(F_PRST_IN_STORE,FALSE);
+                presetbus.setLed(PRESET_COLOR,model->getActivePreset());
+                txSocket.send(model->getValue(ABS,V_HEADNR), STORE_PRESET, model->getActivePreset()+1);
+                break;
+            }
+
+            if(model->getCamFlag(F_BOUNCE_ENABLE) && !model->getCamFlag(F_BOUNCING)){
+                if(previousPreset==model->getActivePreset()){
+                    presetbus.setLed(CAMERA_COLOR,model->getActivePreset());
+                    if (model->getCamFlag(F_BOUNCE_ABORTED)) {
+                        txSocket.send(model->getValue(ABS,V_HEADNR),BNCE_ZOOM_START,model->getValue(ABS,V_BOUNCE_ZOOM_SPEED)); //Restart it
+                        model->setCamFlag(F_BOUNCE_ABORTED,false);
+                    }
+                    else {
+                        txSocket.send(model->getValue(ABS,V_HEADNR),BNCE_ZOOM_TELE_SET);    //TeleSet
+                        txSocket.send(model->getValue(ABS,V_HEADNR),BNCE_ZOOM_START,model->getValue(ABS,V_BOUNCE_ZOOM_SPEED)); //Start it
+                    }
+
+                    model->setCamFlag(F_BOUNCING,true);
+                    blinkTimer.start();
+                    break;
+                }
+
+            }
+
+            if((model->getCamFlag(F_BOUNCING))){
+                model->setCamFlag(F_BOUNCING,false);
+                bool anyBouncingActive = false;
+                    for (int i=0;i<NUMBER_OF_SLOTS;i++) {
+                        if (model->getCamFlag(i,F_BOUNCING)) {
+                            anyBouncingActive = true;
+                        }
+                       }
+                    if(!anyBouncingActive){
+                        blinkTimer.stop();
+                    }
+              if(previousPreset==model->getActivePreset()){
+                    presetbus.setLed(PRESET_COLOR,model->getActivePreset());
+                    txSocket.send(model->getValue(ABS,V_HEADNR),BNCE_ZOOM_START,model->getValue(ABS,V_BOUNCE_ZOOM_SPEED));  //Stop It
+                    model->setCamFlag(F_BOUNCE_ABORTED,false);
+              }
+
+            }
+
+            if(model->getCamFlag(F_FASTTRANS)){
+                presetbus.setLed(PRESET_COLOR,model->getActivePreset());
+                txSocket.send(model->getValue(ABS,V_HEADNR), GOTO_PRESET, loadedEvent.data[0]+1,1);
+                break;
+            }
+            presetbus.setLed(PRESET_COLOR,model->getActivePreset());
+            txSocket.send(model->getValue(ABS,V_HEADNR), GOTO_PRESET, loadedEvent.data[0]+1,model->getValue(ABS,V_TRANS_SPEED));
+            break;
+
+
+        }
+
+        /*
             if(model->getCamFlag(F_SPP_ON) == false){                   // preset change during spp -> do nothing, but abort
                 presetbus.setLed(PRESET_COLOR,loadedEvent.data[0]);
                 previousPreset=model->getActivePreset();
@@ -528,6 +605,9 @@ void Controller::processQeue(){
 
                 if(model->getCamFlag(F_PRST_IN_STORE)){
                     model->setUsedPreset(loadedEvent.data[0]);
+                    if (model->getCamFlag(F_BOUNCE_ENABLE)) {
+                        txSocket.send(model->getValue(ABS,V_HEADNR),BNCE_ZOOM_TELE_SET);
+                    }
                     model->setCamFlag(F_PRST_IN_STORE,FALSE);
                     txSocket.send(model->getValue(ABS,V_HEADNR), STORE_PRESET, loadedEvent.data[0]+1);
                 }
@@ -546,7 +626,6 @@ void Controller::processQeue(){
                 if(model->getCamFlag(F_BOUNCE_ENABLE) && !(model->getCamFlag(F_BOUNCING))){
                     if(previousPreset==model->getActivePreset()){
                         presetbus.setLed(CAMERA_COLOR,loadedEvent.data[0]);
-                        txSocket.send(model->getValue(ABS,V_HEADNR),BNCE_ZOOM_TELE_SET);
                         txSocket.send(model->getValue(ABS,V_HEADNR),BNCE_ZOOM_START,model->getValue(ABS,V_BOUNCE_ZOOM_SPEED));
                         model->setCamFlag(F_BOUNCING,true);
                         blinkTimer.start();
@@ -571,7 +650,7 @@ void Controller::processQeue(){
                 queueEvent(E_SPP_ABORT);
             }
             break;
-
+        */
         case E_EXT_PRESET_CHANGE:
         {
             from = loadedEvent.data[0];
@@ -623,11 +702,8 @@ void Controller::processQeue(){
                     model->setXptConnected(false);
                 }
             }
-
-
-
-
             break;
+
         case E_RX_CAMERA_WATCHDOG:
             from = loadedEvent.data[0];
             type = loadedEvent.data[1];
@@ -653,8 +729,14 @@ void Controller::processQeue(){
             //qDebug("RX WATCHDOG");
             break;
         case E_IRIS_CHANGE:
-            model->setValue(INC, V_IRIS, loadedEvent.data[0]);
+
             alignSlots(V_IRIS);
+            if(model->getFastIris() && model->getCamtype()==6){
+                 model->setValue(INC,V_IRIS,loadedEvent.data[0]<<3);
+            }
+            else {
+               model->setValue(INC, V_IRIS, loadedEvent.data[0]);
+            }
             txSocket.send(model->getValue(ABS,V_HEADNR), IRIS_OPEN, model->getValue(ABS,V_IRIS));
             qDebug("IRIS: %d", model->getValue(ABS,V_IRIS));
             break;
@@ -875,7 +957,7 @@ void Controller::processQeue(){
 
             // actions
             if(time==0){
-                sppTimer[model->getActiveCameraSlot()].setInterval(1*1000);
+                sppTimer[model->getActiveCameraSlot()].setInterval(1*10000);
             }
             else{
                 sppTimer[model->getActiveCameraSlot()].setInterval(time*1000*1000);
@@ -888,9 +970,10 @@ void Controller::processQeue(){
             break;
 
         case E_PRESET_REACHED:
+        {
             // from anywhere
             headNr = loadedEvent.data[0];
-
+            int presetNr = loadedEvent.data[1];
             for (int i=0;i<NUMBER_OF_SLOTS;i++) {
                 if(headNr == model->getValue(i,ABS,V_HEADNR) ){      //if sender head matches any current slot head & spp flag is set
                    model->setCamFlag(i,F_PRESET_MOVE,false);
@@ -900,10 +983,14 @@ void Controller::processQeue(){
                     //set state
                     switch (model->getSppState(i)) {
                     case S_SPP_GOTO1:
-                        model->setSppState(i, S_SPP_WAIT1);
+                        if(presetNr == model->getValue(OFFSET,V_SPP1)){
+                            model->setSppState(i, S_SPP_WAIT1);
+                        }
                         break;
                     case S_SPP_GOTO2:
-                        model->setSppState(i, S_SPP_WAIT2);
+                        if(presetNr == model->getValue(OFFSET,V_SPP2)){
+                            model->setSppState(i, S_SPP_WAIT2);
+                        }
                         break;
                     default:
                         break;
@@ -916,7 +1003,7 @@ void Controller::processQeue(){
             }
 
             break;
-
+        }
         case E_SPP_WAIT_DONE:
             //qDebug("SPP TIMER ELAPSED");
             // from anywhere
@@ -980,8 +1067,8 @@ void Controller::processQeue(){
             }
             }
             else {
-                model->clearUsedPresets();
                 if (model->getCamFlag(F_PRST_IN_STORE)) {
+                    model->clearUsedPresets();
                     presetbus.showStored(0,model->getActivePreset());
                 }
             }

@@ -168,6 +168,7 @@ void Tastenfeld::gpioUnExport(int gpio){
 
 void Tastenfeld::mapTx(unsigned int blue, unsigned int red, unsigned int green, int button)
 {
+    button=5-button;
     static char button_map[]= {0,4,9,13,18,22,27};
     //static char button_map[]= {0,4,9,15,20,25,30};
         if(button % 2 == 0){				//Buttonnumber gerade

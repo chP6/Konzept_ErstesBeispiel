@@ -17,6 +17,9 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
+   <property name="cursor">
+    <cursorShape>BlankCursor</cursorShape>
+   </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -176,10 +179,26 @@
       <property name="cursor">
        <cursorShape>BlankCursor</cursorShape>
       </property>
-      <widget class="Home" name="home"/>
-      <widget class="CameraView" name="cameraView"/>
-      <widget class="XptControl" name="xptControl"/>
-      <widget class="Others" name="others"/>
+      <widget class="Home" name="home">
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
+       </property>
+      </widget>
+      <widget class="CameraView" name="cameraView">
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
+       </property>
+      </widget>
+      <widget class="XptControl" name="xptControl">
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
+       </property>
+      </widget>
+      <widget class="Others" name="others">
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
+       </property>
+      </widget>
      </widget>
     </item>
    </layout>

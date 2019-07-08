@@ -384,6 +384,8 @@ int Model::getValue(int slotNr, int type, int property)
             return -2048;
         case TEXT:
             return -2049;
+        case OFFSET:
+            return cameras[activeCameraSlot].values[property][VAL]+1;
         default:
             return -1;
         }
@@ -808,7 +810,7 @@ void Model::setRequestReceived(int slotNr, int property)
         if(iterator != cameras[slotNr].remainingTelegrams.end()){
             cameras[slotNr].remainingTelegrams.erase(iterator);
             if(activeCameraSlot == slotNr){
-                //emit newSignalReceived(property);
+                emit newSignalReceived(property);
                 emit setUpView();
                 emit updateView();
             }

@@ -46,7 +46,10 @@ void UdpListener::listener(){
 
         // Preset reached answer
         if(answer.type == TYPEC_FROM_HC && answer.command == PRESET_REACHED){
-            controller->queueEvent(E_PRESET_REACHED, answer.from);
+            if(!answer.data.empty()){
+            controller->queueEvent(E_PRESET_REACHED, answer.from, answer.data[0]);
+            //qDebug("Answer: HeadNr: %d Command: %d Data: %d %d %d %d",answer.from,answer.command, answer.data[0],answer.data[1] ,answer.data[2] ,answer.data[3]);
+            }
         }
         // Goto answer
         if(answer.type == TYPED_TO_HC && answer.command == GOTO_PRESET){
@@ -54,7 +57,7 @@ void UdpListener::listener(){
         }
 
         // Reply from camera/head
-        if(answer.type == TYPEC_FROM_HC && answer.command != WATCHDOG && answer.from != SERVER){
+        if(answer.type == TYPEC_FROM_HC && answer.command != WATCHDOG && answer.from != SERVER && answer.command != PRESET_REACHED){
             controller->queueEvent(E_CAMERA_ANSWER, answer.from, answer.command, answer.data[0]);
             //qDebug("Answer: HeadNr: %d Command: %d Data: %d",answer.from,answer.command, answer.data[0]);
         }
