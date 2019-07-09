@@ -208,7 +208,6 @@ void Poller::listener(){
             }
 
             controller->queueEvent(E_INCREASE, rotary_val);
-            qDebug("Rot Val: %d", rotary_val);
         }
 
         if(poll_fd[3].revents & POLLPRI){                    // Rotary1 Button
@@ -242,7 +241,6 @@ void Poller::listener(){
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Rotary2 value");
             }
-            qDebug()<<rotary_val;
             controller->queueEvent(E_FOCUS_CHANGE, rotary_val);
         }
 

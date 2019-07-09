@@ -25,6 +25,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
+    logging.cpp \
         main.cpp \
     model.cpp \
     controller.cpp \
@@ -50,6 +51,7 @@ SOURCES += \
 
 
 HEADERS += \
+    logging.h \
     model.h \
     controller.h \
     poller.h \

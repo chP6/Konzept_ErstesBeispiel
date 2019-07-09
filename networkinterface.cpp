@@ -1,7 +1,7 @@
 #include "networkinterface.h"
 #include "config.h"
-#include <QtDebug>
-
+#include <QDebug>
+#include "logging.h"
 // Konstruktor
 Networkinterface::Networkinterface(){
 
@@ -50,6 +50,7 @@ int Networkinterface::request(int bbm_dev_no, int bbm_command){
     data.clear();
     builder.encode(true, bbm_dev_no, bbm_command, data, buffer);
     lowLevelSend();
+    qCDebug(txHeadIo) << "Send request to | HeadNr:" << bbm_dev_no << ", Command:" << bbm_command;
     return 0;
 }
 
@@ -58,6 +59,7 @@ int Networkinterface::send(int bbm_dev_no, int bbm_command){
     data.clear();
     builder.encode(false, bbm_dev_no, bbm_command, data, buffer);
     lowLevelSend();
+    qCDebug(txHeadIo) << "Send data to | HeadNr:" << bbm_dev_no << ", Command:" << bbm_command  << ", Data: 0";
     return send_err;
 }
 
@@ -66,6 +68,7 @@ int Networkinterface::send(int bbm_dev_no, int bbm_command, int d1){
     data.push_back(d1);
     builder.encode(false, bbm_dev_no, bbm_command, data, buffer);
     lowLevelSend();
+    qCDebug(txHeadIo) << "Send data to | HeadNr:" << bbm_dev_no << ", Command:" << bbm_command  << ", Data:" << d1;
     return send_err;
 }
 
@@ -75,6 +78,7 @@ int Networkinterface::send(int bbm_dev_no, int bbm_command, int d1, int d2){
     data.push_back(d2);
     builder.encode(false, bbm_dev_no, bbm_command, data, buffer);
     lowLevelSend();
+    qCDebug(txHeadIo) << "Send data to | HeadNr:" << bbm_dev_no << ", Command:" << bbm_command  << ", Data:" << d1 << d2;
     return send_err;
 }
 
@@ -85,6 +89,7 @@ int Networkinterface::send(int bbm_dev_no, int bbm_command, int d1, int d2, int 
     data.push_back(d3);
     builder.encode(false, bbm_dev_no, bbm_command, data, buffer);
     lowLevelSend();
+    qCDebug(txHeadIo) << "Send data to | HeadNr:" << bbm_dev_no << ", Command:" << bbm_command  << ", Data:" << d1 << d2 << d3;
     return send_err;
 }
 
@@ -96,6 +101,7 @@ int Networkinterface::send(int bbm_dev_no, int bbm_command, int d[4]){  //würg 
     data.push_back(d[3]);
     builder.encode(false, bbm_dev_no, bbm_command, data, buffer);
     lowLevelSend();
+    qCDebug(txHeadIo) << "Send data to | HeadNr:" << bbm_dev_no << ", Command:" << bbm_command  << ", Data:" << d[0] << d[1] << d[2] << d[3];
     return send_err;
 }
 
