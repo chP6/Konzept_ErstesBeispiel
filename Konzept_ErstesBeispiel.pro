@@ -8,7 +8,7 @@ QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = Konzept_ErstesBeispiel
+TARGET = ControllerApplication
 TEMPLATE = app
 
 # The following define makes your compiler emit warnings if you use
@@ -25,6 +25,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
+    logging.cpp \
         main.cpp \
     model.cpp \
     controller.cpp \
@@ -50,6 +51,7 @@ SOURCES += \
 
 
 HEADERS += \
+    logging.h \
     model.h \
     controller.h \
     poller.h \

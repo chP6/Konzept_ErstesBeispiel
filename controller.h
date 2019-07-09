@@ -62,9 +62,11 @@ private:
     Tastenfeld camerabus;
     XptInterface xptSocket;
     GenericTimer blinkTimer, sppTimer[NUMBER_OF_SLOTS], xptWatchdog, reqSettingsTimer[NUMBER_OF_SLOTS];
+    int xptConnectionAttempts=0;
 
 
-    void processQeue();
+
+    [[noreturn]]void processQeue();
     void increment(int inc);
     void clear();
     void setAxis(int x, int y);

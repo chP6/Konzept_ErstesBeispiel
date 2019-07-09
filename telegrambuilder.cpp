@@ -13,8 +13,8 @@ void Telegrambuilder::encode(bool request, int bbm_dev_no, int bbm_command, std:
     datagram[0]=SYNCHRO;
     datagram[1]=TYPED_TO_HC;
     datagram[2]=SYNCHRO;
-    datagram[3]=(uint8_t)bbm_dev_no;
-    datagram[4]=(uint8_t)bbm_command;
+    datagram[3]=uint8_t(bbm_dev_no);
+    datagram[4]=uint8_t(bbm_command);
     datagram[5]= 0;             //default, weil meist 0
     datagram[6]= 0;
     datagram[7]= 0;
@@ -27,22 +27,22 @@ void Telegrambuilder::encode(bool request, int bbm_dev_no, int bbm_command, std:
     else{
         switch (bbm_command) {
         case TILT_PAN:
-            datagram[5] = (uint8_t)data[0];
-            datagram[6] = (uint8_t)(data[0]>>8);
-            datagram[7] = (uint8_t)data[1];
-            datagram[8] = (uint8_t)(data[1]>>8);
+            datagram[5] = uint8_t(data[0]);
+            datagram[6] = uint8_t((data[0]>>8));
+            datagram[7] = uint8_t(data[1]);
+            datagram[8] = uint8_t((data[1]>>8));
             break;
         case IRIS_OPEN:
-            datagram[5] = (uint8_t)(data[0]>>8);
-            datagram[6] = (uint8_t)data[0];
-            datagram[7] = (uint8_t)(data[0]>>8);
-            datagram[8] = (uint8_t)data[0];
+            datagram[5] = uint8_t((data[0]>>8));
+            datagram[6] = uint8_t(data[0]);
+            datagram[7] = uint8_t((data[0]>>8));
+            datagram[8] = uint8_t(data[0]);
             break;
         case RAMP:
-            datagram[8] = (uint8_t)data[0];
+            datagram[8] = uint8_t(data[0]);
             break;
         case PAN_TILT_SPEED:
-            datagram[8] = (uint8_t)data[0];
+            datagram[8] = uint8_t(data[0]);
             break;
         case ZOOM_SET_ABSOLUTE:
             // only for answer?
@@ -52,13 +52,13 @@ void Telegrambuilder::encode(bool request, int bbm_dev_no, int bbm_command, std:
             // only for focus
             datagram[5] = 0;                                //(ignored) zoom value
             datagram[6] = 0;
-            datagram[7] = (uint8_t)(data[0]>>8);            //focus value
-            datagram[8] = (uint8_t)data[0];                 //focus value
+            datagram[7] = uint8_t((data[0]>>8));            //focus value
+            datagram[8] = uint8_t(data[0]);                 //focus value
             break;
         case ZOOM_FOCUS_SET:
             // only for zoom
             datagram[5] = 0;
-            datagram[6] = (uint8_t)data[0];                 //zoom value
+            datagram[6] = uint8_t(data[0]);                 //zoom value
             datagram[7] = 0;                                //(ignored) focus value
             datagram[8] = 0;                                //(ignored) focus value
             break;
@@ -70,7 +70,7 @@ void Telegrambuilder::encode(bool request, int bbm_dev_no, int bbm_command, std:
             break;
         case CAMERA_GAIN_UP:
             datagram[5] = 1;
-            datagram[8] = (uint8_t)data[0];
+            datagram[8] = uint8_t(data[0]);
             break;
         case AUTOIRIS_ON:
             datagram[5] = 1;
@@ -81,70 +81,70 @@ void Telegrambuilder::encode(bool request, int bbm_dev_no, int bbm_command, std:
             datagram[6] = 0;
             break;
         case WHITE_BALANCE_PRST:
-            datagram[7] = (uint8_t)(data[0]>>8);
-            datagram[8] = (uint8_t)data[0];
+            datagram[7] = uint8_t((data[0]>>8));
+            datagram[8] = uint8_t(data[0]);
             break;
         case MIRROR_H_V:
             datagram[5] = 1;
-            datagram[8] = (uint8_t)data[0];
+            datagram[8] = uint8_t(data[0]);
             break;
         case SHUTTER_UP:
-            datagram[7] = (uint8_t)(data[0]>>8);
-            datagram[8] = (uint8_t)data[0];
+            datagram[7] = uint8_t((data[0]>>8));
+            datagram[8] = uint8_t(data[0]);
             break;
         case KNEE_POINT_AUTO:
             datagram[5] = 1;
-            datagram[8] = (uint8_t)data[0];
+            datagram[8] = uint8_t(data[0]);
             break;
         case CALIBRATE_HEAD:
             // all zeros
             break;
         case STORE_PRESET:
-            datagram[8] = (uint8_t)data[0];
+            datagram[8] = uint8_t(data[0]);
             break;
         case GOTO_PRESET:
             datagram[5] = uint8_t(data[1]);
-            datagram[8] = (uint8_t)data[0];
+            datagram[8] = uint8_t(data[0]);
             break;
         case RED_GAIN_ADJ_UP:
-            datagram[7] = (uint8_t)(data[0]>>8);
-            datagram[8] = (uint8_t)data[0];
+            datagram[7] = uint8_t((data[0]>>8));
+            datagram[8] = uint8_t(data[0]);
             break;
         case BLUE_GAIN_ADJ_UP:
-            datagram[7] = (uint8_t)(data[0]>>8);
-            datagram[8] = (uint8_t)data[0];
+            datagram[7] = uint8_t((data[0]>>8));
+            datagram[8] = uint8_t(data[0]);
             break;
         case COLOR_UP:
             datagram[7] = 1;
-            datagram[8] = (uint8_t)data[0];
+            datagram[8] = uint8_t(data[0]);
             break;
         case MASTER_PED_UP:
-            datagram[7] = (uint8_t)data[0]>>8;
-            datagram[8] = (uint8_t)data[0];
+            datagram[7] = uint8_t(data[0]>>8);
+            datagram[8] = uint8_t(data[0]);
             break;
         case RED_PED_UP:
-            datagram[7] = (uint8_t)data[0]>>8;
-            datagram[8] = (uint8_t)data[0];
+            datagram[7] = uint8_t((data[0]>>8));
+            datagram[8] = uint8_t(data[0]);
             break;
         case GREEN_PED_UP:
-            datagram[5] = (uint8_t)(data[0]>>8);
-            datagram[6] = (uint8_t)data[0];
+            datagram[5] = uint8_t((data[0]>>8));
+            datagram[6] = uint8_t(data[0]);
             break;
         case BLUE_PED_UP:
-            datagram[7] = (uint8_t)data[0]>>8;
-            datagram[8] = (uint8_t)data[0];
+            datagram[7] = uint8_t(data[0]>>8);
+            datagram[8] = uint8_t(data[0]);
             break;
         case GAMMA:
-            datagram[7] = (uint8_t)(data[0]>>8);
-            datagram[8] = (uint8_t)data[0];
+            datagram[7] = uint8_t(data[0]>>8);
+            datagram[8] = uint8_t(data[0]);
             break;
         case GAMMA_TABLE:
             datagram[7] = 1;
-            datagram[8] = (uint8_t)data[0];
+            datagram[8] = uint8_t(data[0]);
             break;
         case HEAD_POWER:
             //datagram[5] = 1;
-            datagram[8] = (uint8_t)data[0];
+            datagram[8] = uint8_t(data[0]);
             break;
         case TILT_UPPER_LIMIT:
             // all zeros
@@ -169,8 +169,8 @@ void Telegrambuilder::encode(bool request, int bbm_dev_no, int bbm_command, std:
 
             break;
         case BNT_TEMPERATURE:
-            datagram[7] = (uint8_t)(data[0]>>8);
-            datagram[8] = (uint8_t)data[0];
+            datagram[7] = uint8_t((data[0]>>8));
+            datagram[8] = uint8_t(data[0]);
             break;
         case CAMERA_RESET:
             datagram[5] = 1;
@@ -181,10 +181,10 @@ void Telegrambuilder::encode(bool request, int bbm_dev_no, int bbm_command, std:
         case DETAIL_LEVEL_ADJ:
             //datagram[7] = (uint8_t)(data[0]>>8);
 
-            datagram[8] = (uint8_t)data[0];
+            datagram[8] = uint8_t(data[0]);
             break;
         case ND_FILTER:
-            datagram[8] = (uint8_t)data[0];
+            datagram[8] = uint8_t(data[0]);
             break;
         case BNCE_WAIT_TIME:
             datagram[8] = uint8_t(data[0]);
@@ -322,6 +322,9 @@ void Telegrambuilder::decode(uint8_t* telegram, struct answer_s& answer){
             temp = telegram[8];
             answer.data.push_back(temp);
             break;
+        case PRESET_REACHED:
+            answer.data.push_back(telegram[8]);
+            break;
         default:
             break;
         }
@@ -336,6 +339,6 @@ uint8_t Telegrambuilder::calc_chksum(){     // quersumme bytes 4-8
         {
             chkSum+=datagram[i];
         }
-    chkSum=(chkSum ^ 0b11111111);     // XOR -> 2er Komplement
+    chkSum=(chkSum ^ 0xff);     // XOR -> 2er Komplement
     return chkSum;
 }

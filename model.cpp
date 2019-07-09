@@ -10,6 +10,8 @@ Model::Model()
     count = 0;
     x = 0;
     y = 0;
+    xptNumberOfInputs = 8;
+    xptNumberOfOutputs = 8;
 
     memset(cameras,0,sizeof(cameras));
     //set all cameras to type 1 (CODGER)
@@ -32,11 +34,7 @@ Model::Model()
     }*/
 
     //cameras[0].remainingTelegrams.push_back(10);
-    activeCameraSlot=0;
-    xptFields[0]=192;
-    xptFields[1]=168;
-    xptFields[2]=1;
-    xptFields[3]=241;
+
 
     // emit updateView(); -> not possible yet, signals not routed at this point -> do in controller
 }
@@ -81,6 +79,11 @@ void Model::setUsedPreset(int presetNr)
 void Model::setUsedPreset(int slotNr, int presetNr)
 {
     cameras[slotNr].usedPresets = presetNr;
+}
+
+void Model::clearUsedPresets()
+{
+    cameras[activeCameraSlot].usedPresets = 0;
 }
 
 int Model::getUsedPreset()
@@ -211,7 +214,14 @@ void Model::setCamTypeWithDefBorders(int slotNr, int type)
         for (int i=start;i<ROW_ENTRIES;i++) {
             //all nonrequestable values: write standard value
             if(cameras[slotNr].values[i][5] != REQUESTABLE){
-                cameras[slotNr].values[i][VAL]=c1Values[i][VAL];
+                if (cameras[slotNr].values[i][VAL] > cameras[slotNr].values[i][MAX] ) {
+                    cameras[slotNr].values[i][VAL]=c1Values[i][MAX];
+                }
+                if (cameras[slotNr].values[i][VAL] < cameras[slotNr].values[i][MIN] ) {
+                    cameras[slotNr].values[i][VAL]=c1Values[i][MIN];
+                }
+
+                //cameras[slotNr].values[i][VAL]=c1Values[i][VAL];
             }
         }
         cameras[slotNr].textTable=&c1TextTable[0][0];
@@ -262,13 +272,13 @@ void Model::setCamTypeWithDefBorders(int slotNr, int type)
 
 
 // for active camera
-unsigned char Model::getCamtype()
+int Model::getCamtype()
 {
     return cameras[activeCameraSlot].camType;
 }
 
 // overload for specific camera
-unsigned char Model::getCamtype(int slotNr)
+int Model::getCamtype(int slotNr)
 {
     return cameras[slotNr].camType;
 }
@@ -342,14 +352,14 @@ int Model::getValue(int type, int property)
         case NORMAL:
             return cameras[activeCameraSlot].values[property][VAL];
         case CENTER:
-            return cameras[activeCameraSlot].values[property][VAL]-(cameras[activeCameraSlot].values[property][MAX]-cameras[activeCameraSlot].values[property][MIN])/2;
+            return cameras[activeCameraSlot].values[property][VAL]-(cameras[activeCameraSlot].values[property][MAX] \
+                                                                    -cameras[activeCameraSlot].values[property][MIN])/2;
         case NAN:
             return -2048;
         case TEXT:
             return -2049;
         case OFFSET:
             return cameras[activeCameraSlot].values[property][VAL]+1;
-            break;
         default:
             return -1;
         }
@@ -374,6 +384,8 @@ int Model::getValue(int slotNr, int type, int property)
             return -2048;
         case TEXT:
             return -2049;
+        case OFFSET:
+            return cameras[activeCameraSlot].values[property][VAL]+1;
         default:
             return -1;
         }
@@ -384,7 +396,8 @@ int Model::getValue(int slotNr, int type, int property)
 
 QString Model::getTextValue(int property)
 {
-    return *(cameras[activeCameraSlot].textTable+(cameras[activeCameraSlot].values[property][4]*15)+(cameras[activeCameraSlot].values[property][0]-cameras[activeCameraSlot].values[property][1]));
+    return *(cameras[activeCameraSlot].textTable+(cameras[activeCameraSlot].values[property][4]*15)+ \
+            (cameras[activeCameraSlot].values[property][0]-cameras[activeCameraSlot].values[property][1]));
 }
 
 
@@ -469,6 +482,7 @@ int Model::setCameraWaitingflag(int slotNr, bool waiting){
         cameras[slotNr].flags[F_CONNECTED] = true;
         return 0;           // ok, clear flag
     }
+    return 0;
     //qDebug("stack: %d",cameraWaitingForAnswerStack[slotNr]);
 }
 
@@ -542,16 +556,15 @@ bool Model::getXptConnected()
 void Model::setXptSlotSource(int source)
 {
    cameras[xptSlot].xptSource+=source;
-    emit updateView();
 
-   if(cameras[xptSlot].xptSource > xptNumberOfInputs){
-       cameras[xptSlot].xptSource = xptNumberOfInputs;
-        emit updateView();
+
+   if(cameras[xptSlot].xptSource >= xptNumberOfInputs){
+       cameras[xptSlot].xptSource = xptNumberOfInputs-1;
    }
    if(cameras[xptSlot].xptSource < 1){
-       cameras[xptSlot].xptSource = 1;
-        emit updateView();
+       cameras[xptSlot].xptSource = 0;
    }
+       emit updateView();
 
 }
 
@@ -563,15 +576,14 @@ int Model::getXptSlotSource(int slotNr)
 void Model::setXptDestination(int destination)
 {
     xptDestination+=destination;
-    emit updateView();
-    if(xptDestination > xptNumberOfOutputs){
-        xptDestination = xptNumberOfOutputs;
-         emit updateView();
+
+    if(xptDestination >= xptNumberOfOutputs){
+        xptDestination = xptNumberOfOutputs-1;
     }
     if(xptDestination < 1){
-        xptDestination = 1;
-         emit updateView();
+        xptDestination = 0;
     }
+     emit updateView();
 
 }
 
@@ -590,21 +602,49 @@ int Model::getXptSlot()
     return xptSlot;
 }
 
-void Model::setXptIpField(int field, int value)
+void Model::setXptIpField(int type,int field, int value)
 {
-    xptFields[field]+=value;
-    emit updateView();
-    if(xptFields[3] < 2){
-        xptFields[3] = 2;
-         emit updateView();
-    }
-    if(xptFields[field] > 254){
-        xptFields[field] = 254;
-         emit updateView();
-    }
-    if(xptFields[field] < 0){
-        xptFields[field] = 0;
-         emit updateView();
+    switch (type) {
+    case INC:
+        xptFields[field]+=value;
+
+
+        if(xptFields[3] < 2){
+            xptFields[3] = 2;
+
+        }
+        if(xptFields[field] > 254){
+            xptFields[field] = 254;
+
+        }
+        if(xptFields[field] < 0){
+            xptFields[field] = 0;
+
+        }
+        emit updateView();
+    break;
+
+    case ABS:
+        xptFields[field]=value;
+
+
+        if(xptFields[3] < 2){
+            xptFields[3] = 2;
+
+        }
+        if(xptFields[field] > 254){
+            xptFields[field] = 254;
+
+        }
+        if(xptFields[field] < 0){
+            xptFields[field] = 0;
+
+        }
+        emit updateView();
+    break;
+    default:
+        break;
+
     }
 
 
@@ -695,6 +735,19 @@ int Model::getXptType()
     return xptType;
 }
 
+bool Model::getFastIris()
+{
+    return fastIris;
+}
+
+void Model::setFastIris(bool flag)
+{
+    if (fastIris != flag)
+    {
+        fastIris = flag;
+    }
+}
+
 void Model::setSppState(int slotNr, int state){
     sppState[slotNr] = state;
 }
@@ -757,7 +810,7 @@ void Model::setRequestReceived(int slotNr, int property)
         if(iterator != cameras[slotNr].remainingTelegrams.end()){
             cameras[slotNr].remainingTelegrams.erase(iterator);
             if(activeCameraSlot == slotNr){
-                //emit newSignalReceived(property);
+                emit newSignalReceived(property);
                 emit setUpView();
                 emit updateView();
             }
@@ -768,9 +821,6 @@ void Model::setRequestReceived(int slotNr, int property)
     }
 }
 
-int Model::getRequestReceived( int property)
-{
-}
 
 std::vector<int> Model::getRemainingTelegrams()
 {

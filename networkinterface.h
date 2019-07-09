@@ -20,7 +20,7 @@ class Networkinterface
 public:
     Networkinterface();
     ~Networkinterface();
-    int init(int port);
+    int init(uint16_t port);
     int request(int bbm_dev_no, int bbm_command);
     int send(int bbm_dev_no, int bbm_command);
     int send(int bbm_dev_no, int bbm_command, int d1);

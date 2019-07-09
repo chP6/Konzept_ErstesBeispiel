@@ -97,7 +97,7 @@
 #define REQUESTABLE           1
 #define ARRIVED               1
 
-#define NUMBER_OF_FLAGS       13
+#define NUMBER_OF_FLAGS       14
 /*flags*/
 #define F_PRST_IN_STORE       0
 #define F_BOUNCING            1
@@ -112,6 +112,7 @@
 #define F_FOCUSINVERT         10
 #define F_PRESET_MOVE         11
 #define F_RECEIVED_ALL        12
+#define F_BOUNCE_ABORTED      13
 
 /*set,get types*/
 #define ABS                 1
@@ -128,6 +129,8 @@
 #define I_XPT_IP_FIELD_3      3
 #define I_XPT_IP_FIELD_4      4
 #define I_XPT_SOURCE          5
+#define I_XPT_TYPE_BLACKMAGIC 0
+#define I_XPT_TYPE_ROSS       1
 
 
 

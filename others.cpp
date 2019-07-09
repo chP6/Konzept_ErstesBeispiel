@@ -24,6 +24,7 @@ Others::~Others()
 
 void Others::updateUi()
 {
+    /*update every button with the respecive value*/
     errorWindow->updateUi();
     ui->btHeadPower->setText(model->getTextValue(V_HEAD_POWER));
     ui->btMirror->setText(model->getTextValue(V_MIRROR));

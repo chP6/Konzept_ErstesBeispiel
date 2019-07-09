@@ -44,6 +44,7 @@
 #define E_REQ_SETTINGS_TIMER    40
 #define E_REQUEST_SETTINGS      41
 #define E_EXT_PRESET_CHANGE     42
+#define E_FAST_IRIS             43
 
 
 

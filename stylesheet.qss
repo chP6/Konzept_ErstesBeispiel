@@ -120,11 +120,12 @@ QMenu::item:selected {
 }
 QMenu::item {
         color:rgb(223,219,210);
-        background-color:rgb(78,78,78);
+        background-color: rgba(97, 97, 97, 200);
         padding-left:20px;
         padding-top:4px;
         padding-bottom:4px;
         padding-right:10px;
+        height: 60px
 }
 QMenu{
         background-color:rgb(78,78,78);
@@ -202,5 +203,30 @@ QDial:handle{
     background-color: yellow;
 }
 
+QToolButton {
+    border-style: outset;
+    border-width: 2px;
+    border-top-color: qlineargradient(spread:pad, x1:0.5, y1:0.6, x2:0.5, y2:0.4, stop:0 rgba(115, 115, 115, 255), stop:1 rgba(62, 62, 62, 255));
+    border-right-color: qlineargradient(spread:pad, x1:0.4, y1:0.5, x2:0.6, y2:0.5, stop:0 rgba(115, 115, 115, 255), stop:1 rgba(62, 62, 62, 255));
+    border-left-color: qlineargradient(spread:pad, x1:0.6, y1:0.5, x2:0.4, y2:0.5, stop:0 rgba(115, 115, 115, 255), stop:1 rgba(62, 62, 62, 255));
+    border-bottom-color: rgb(58, 58, 58);
+    border-bottom-width: 1px;
+    border-style: solid;
+    color: rgb(255, 255, 255);
+    padding: 2px;
+    background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(77, 77, 77, 255), stop:1 rgba(97, 97, 97, 255));
+}
 
-
+QToolButton:pressed{
+    border-style: outset;
+    border-width: 2px;
+    border-top-color: qlineargradient(spread:pad, x1:0.5, y1:0.6, x2:0.5, y2:0.4, stop:0 rgba(180, 180, 180, 255), stop:1 rgba(110, 110, 110, 255));
+    border-right-color: qlineargradient(spread:pad, x1:0.4, y1:0.5, x2:0.6, y2:0.5, stop:0 rgba(180, 180, 180, 255), stop:1 rgba(110, 110, 110, 255));
+    border-left-color: qlineargradient(spread:pad, x1:0.6, y1:0.5, x2:0.4, y2:0.5, stop:0 rgba(180, 180, 180, 255), stop:1 rgba(110, 110, 110, 255));
+    border-bottom-color: rgb(115, 115, 115);
+    border-bottom-width: 1px;
+    border-style: solid;
+    color: rgb(255, 255, 255);
+    padding: 2px;
+    background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(107, 107, 107, 255), stop:1 rgba(157, 157, 157, 255));
+}

@@ -23,9 +23,7 @@ void UdpListener::startListener(){
 }
 
 void UdpListener::listener(){
-    char buf[100];
     answer_s answer;
-
     while(1){
         rx_err = rxSocket.receive(buffer);       //blockiert bis etwas empfangen
         if(rx_err < 0){
@@ -40,13 +38,18 @@ void UdpListener::listener(){
 
         // Command from adjecent RCP
         if(answer.type == TYPED_TO_HC && answer.command != WATCHDOG && answer.command != GOTO_PRESET){
+            if(!answer.data.empty()){
             controller->queueEvent(E_RX_ADJ_RCP_CMD, answer.from, answer.command, answer.data[0]);
+            }
 
         }
 
         // Preset reached answer
         if(answer.type == TYPEC_FROM_HC && answer.command == PRESET_REACHED){
-            controller->queueEvent(E_PRESET_REACHED, answer.from);
+            if(!answer.data.empty()){
+            controller->queueEvent(E_PRESET_REACHED, answer.from, answer.data[0]);
+            //qDebug("Answer: HeadNr: %d Command: %d Data: %d %d %d %d",answer.from,answer.command, answer.data[0],answer.data[1] ,answer.data[2] ,answer.data[3]);
+            }
         }
         // Goto answer
         if(answer.type == TYPED_TO_HC && answer.command == GOTO_PRESET){
@@ -54,9 +57,9 @@ void UdpListener::listener(){
         }
 
         // Reply from camera/head
-        if(answer.type == TYPEC_FROM_HC && answer.command != WATCHDOG && answer.from != SERVER){
+        if(answer.type == TYPEC_FROM_HC && answer.command != WATCHDOG && answer.from != SERVER && answer.command != PRESET_REACHED){
             controller->queueEvent(E_CAMERA_ANSWER, answer.from, answer.command, answer.data[0]);
-            //qDebug("Answer: %d", answer.data[0]);
+            //qDebug("Answer: HeadNr: %d Command: %d Data: %d",answer.from,answer.command, answer.data[0]);
         }
 
         // Watchdog answer from server
@@ -67,6 +70,7 @@ void UdpListener::listener(){
         // Watchdog answer from camera/head
         if(answer.command == WATCHDOG && answer.from != SERVER){
             controller->queueEvent(E_RX_CAMERA_WATCHDOG, answer.from, answer.data[1]);
+            qDebug("Answer: HeadNr: %d Command: %d Data: %d",answer.from,answer.command, answer.data[1]);
             //qDebug()<<answer.from<<answer.data[1];
         }
 

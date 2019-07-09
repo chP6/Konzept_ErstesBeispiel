@@ -49,6 +49,7 @@ public:
     void clearErrors();
     void setUsedPreset(int presetNr);
     void setUsedPreset(int slotNr, int presetNr);
+    void clearUsedPresets();
     int getUsedPreset();
     int getUsedPreset(int slotNr);
     void setActivePreset(int actPreset);
@@ -62,8 +63,8 @@ public:
     void setCamTypeOnly(int slot, int type);
     void setCamTypeWithDefValues(int slotNr, int type);
     void setCamTypeWithDefBorders(int slotNr, int type);
-    unsigned char getCamtype();
-    unsigned char getCamtype(int slotNr);
+    int getCamtype();
+    int getCamtype(int slotNr);
     void setValue(int type, int property, int value);
     void setValue(int slotNr, int type, int property, int value);
     int getValue(int type, int property);
@@ -94,7 +95,6 @@ public:
     int getCurrReqHeadNr();
     int getRequestCommand(int slotNr, int property);
     void setRequestReceived(int slotNr, int property);
-    int getRequestReceived(int property);
     std::vector<int> getRemainingTelegrams();
     std::vector<int> getRemainingTelegrams(int slotNr);
     void clearRemainingTelegrams(int slotNr);
@@ -108,7 +108,7 @@ public:
     int getXptDestination();
     void setXptSlot(int slot);
     int getXptSlot();
-    void setXptIpField(int field,int value);
+    void setXptIpField(int type,int field,int value);
     int getXptIpField(int field);
     char* getXptIpAdress();
     void setXptNumberOfInputs(int inputs);
@@ -123,6 +123,8 @@ public:
     QList<QString> getXptOutputLables();
     void setXptType(int type);
     int getXptType();
+    bool getFastIris();
+    void setFastIris(bool flag);
 
 
 private:
@@ -147,7 +149,7 @@ private:
     /*XPT handling */
     bool xptConnect=false;
     bool xptEnabled=false;
-    int xptDestination=1;
+    int xptDestination=0;
     int xptSlot;
     int xptNumberOfInputs;
     int xptNumberOfOutputs;
@@ -156,6 +158,7 @@ private:
     QList<QString> xptInputLabels;
     QList<QString> xptOutputLabels;
     int xptType;
+    bool fastIris=false;
 
 
     // camera type 2 init values
@@ -178,14 +181,14 @@ private:
                        {-1,-1,-1,NAN},    //Knee
                        {-1,-1,-1,NAN},    //Knee Point
                        {0,0,3,TEXT,3,REQUESTABLE},       //ND Filter
-                       {17,17,32,TEXT,4,REQUESTABLE},    //Shutter
+                       {18,18,32,TEXT,4,REQUESTABLE},    //Shutter
                        {5,1,10,NORMAL},      //PT Speed
                        {1,1,10,NORMAL},      //Trans Speed
                        {1,1,10,NORMAL},      //Ramp
                        {0,0,5,OFFSET},       //SPP1
                        {1,0,5,OFFSET},       //SPP2
                        {0,0,30,NORMAL},      //SPP Wait Time
-                       {12,1,127,NORMAL},    //Bounce Zoom Speed
+                       {2,0,7,NORMAL},    //Bounce Zoom Speed
                        {0,0,2,TEXT,5},       //Head Power
                        {0,0,3,TEXT,6}              //Mirror
                       };
@@ -267,7 +270,7 @@ private:
                                {"Low","Mid","High"},
                                 {"2800K","3200K","4000K","4600K","5600K","6300K"},
                                 {"Clear","1/4","1/16","1/64"},
-                                {"1/50","1/75","1/100","1/120","1/150","1/215","1/300","1/425","1/600","1/1000","1/1250","1/1750","1/2500","1/3500","1/6000"},
+                                {"1/50","1/100","1/120","1/150","1/215","1/300","1/425","1/600","1/1000","1/1250","1/1750","1/2500","1/3500","1/6000"},
                                 {"Low","Mid","High"},
                                 {"Normal","H-Inverted","V-Inverted","HV-Inverted"}
                                };

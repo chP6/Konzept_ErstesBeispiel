@@ -22,6 +22,7 @@ Home::~Home()
 
 void Home::updateUi()
 {
+    /*update every button with the respecive value*/
     ui->btPanTiltSpeed->setText(QString::number(model->getValue(DISP,V_PT_SPEED)));
     ui->btTransSpeed->setText(QString::number(model->getValue(DISP,V_TRANS_SPEED)));
     ui->btRamp->setText(QString::number(model->getValue(DISP,V_RAMP)));
@@ -44,6 +45,7 @@ void Home::setModelController(Model *model, Controller *controller)
 
 void Home::serverConnectionChanged(bool connection)
 {
+    /*indicate the server connection according to the connection flag*/
     if(connection){ui->lServer->setText("OK");}
     else {
         ui->lServer->setText("Not OK");
@@ -52,29 +54,54 @@ void Home::serverConnectionChanged(bool connection)
 
 void Home::cameraConnectionChanged(bool connection)
 {
+    /*indicate the camera connection according to the connection flag*/
     if(connection){ui->lCamera->setText("OK");}
     else {
         ui->lCamera->setText("Not OK");
     }
 }
 
+/*Qt Slots for button clicks **************/
 void Home::on_btBounce_clicked(bool checked)
 {
-    ui->btWideSet->setEnabled(checked);
-    model->setCamFlag(F_BOUNCE_ENABLE,checked);
-    controller->queueEvent(E_BOUNCE);
+    ui->btWideSet->setEnabled(checked);         //ebable whideSet button only wehn Bounce mode is enabled
+    model->setCamFlag(F_BOUNCE_ENABLE,checked); //set Flag
+    controller->queueEvent(E_BOUNCE);           //add the event in the queue
 }
 
 void Home::on_btWideSet_clicked()
 {
-    controller->queueEvent(E_WIDESET);
+    controller->queueEvent(E_WIDESET);          //add the event in the queue
 }
 
+void Home::on_btFasttrans_clicked(bool checked)
+{
+    model->setCamFlag(F_FASTTRANS,checked);     //add the event in the queue
+}
+
+void Home::on_btSppStart_clicked(bool checked)
+{
+
+    if(!checked){
+        controller->queueEvent(E_SPP_ABORT);    //add the event in the queue
+    }
+    else{       //toggle
+        controller->queueEvent(E_SPP_START);    //add the event in the queue
+    }
+
+}
+void Home::on_btStorePreset_clicked()
+{
+    controller->queueEvent(E_STORE_PRESET);
+}
+
+/*point to the respective field, the rotary encoder will queue the event
+  value can be sent
+***********/
 void Home::on_btAutoZoomSpeed_clicked()
 {
+
     model->setRotaryField(V_BOUNCE_ZOOM_SPEED,SEND);
-
-
 }
 
 void Home::on_btTransSpeed_clicked()
@@ -92,11 +119,6 @@ void Home::on_btRamp_clicked()
     model->setRotaryField(V_RAMP,SEND);
 }
 
-void Home::on_btFasttrans_clicked(bool checked)
-{
-    model->setCamFlag(F_FASTTRANS,checked);
-}
-
 void Home::on_btSpp1_clicked()
 {
     model->setRotaryField(V_SPP1,SEND);
@@ -112,43 +134,29 @@ void Home::on_btSppWait_clicked()
     model->setRotaryField(V_SPP_WAIT_TIME,SEND);
 }
 
-void Home::on_btSppStart_clicked(bool checked)
-{
-
-    if(!checked){
-        controller->queueEvent(E_SPP_ABORT);
-    }
-    else{
-        controller->queueEvent(E_SPP_START);
-    }
-
-}
-
 void Home::on_btHeadNr_clicked()
 {
     model->setRotaryField(V_HEADNR,SEND);
 }
-
-void Home::on_btStorePreset_clicked()
-{
-    controller->queueEvent(E_STORE_PRESET);
-}
+/****************/
+/*******************/
 
 void Home::stackChanged()
 {
-    QPushButton *button=ui->btRamp;
-    QList<QPushButton*> allButtons=this->findChildren<QPushButton*>();
+    /*Pres the last prest button in this window again*/
+    QPushButton *button=ui->btRamp;                                     //dummy
+    QList<QPushButton*> allButtons=this->findChildren<QPushButton*>();  //find all buttons and put them in a list
     for(int i=0;i<allButtons.size();i++){
-        if(allButtons[i]->isChecked())
-        {button=allButtons[i];}
+        if(allButtons[i]->isChecked() && allButtons[i]->autoExclusive())    //find the one which was checked there are buttons which aren't autoexclusive, ignore them
+        {button=allButtons[i];}         //find the one which was checked
 
     }
-    button->click();
+    button->click();                //click it
 }
 
 void Home::sppUpdate(bool active)
 {
-    ui->btSppStart->setChecked(active);
+    ui->btSppStart->setChecked(active); //check according to active
 }
 
 

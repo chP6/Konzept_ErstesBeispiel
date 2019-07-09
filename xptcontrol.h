@@ -2,6 +2,7 @@
 #define XPTCONTROL_H
 
 #include <QWidget>
+#include <QMenu>
 
 class Model;
 class Controller;
@@ -48,10 +49,16 @@ private slots:
 
     void on_btConnect_clicked(bool checked);
 
+    void on_blackMagic_triggered();
+    void on_ross_triggered();
+
 private:
     Ui::XptControl *ui;
     Model* model;
     Controller* controller;
+    QMenu *menu;
+    QAction *blackMagic;
+    QAction *ross;
 };
 
 #endif // XPTCONTROL_H

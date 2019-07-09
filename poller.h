@@ -18,7 +18,7 @@ public:
     void startListener();
     BBMJoystick joystick;               //for init debug joystick
 private:
-    void listener();
+    [[noreturn]]void listener();
     struct pollfd poll_fd[21];
     int poll_err;
     int sense_val;
