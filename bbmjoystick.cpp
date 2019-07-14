@@ -21,6 +21,9 @@ int BBMJoystick::init(){
     val_x_old = 5000;
     val_y = 5000;
 
+    mx = (xLowerLimit - xyOffset)/INT16_MIN;
+    my = (yLowerLimit - xyOffset)/INT16_MIN;
+    mz = (zLowerLimit - zOffset)/INT16_MIN;
 
     memset(axis,0,sizeof(axis));
     joystick_fd=open("/dev/input/js0",O_RDONLY | O_NONBLOCK);                //Pfad noch anpassen in config file. Nonblock, damit beim aufstarten joystick ohne block x-mal abgefragt werden kann
@@ -52,9 +55,14 @@ int BBMJoystick::processEvent(joystickData& jsData){
 
         qDebug("X/Y/Z: %d,%d,%d",axis[0],axis[1],axis[2]);
 
-        val_x=int(((0.152587890625*axis[0])+5000));         // conversion joystick values -> camera values
-        val_y=int(((0.152587890625*axis[1])+5000));
-        val_z=int(((0.003875732422*axis[2])+127));
+
+        val_x = int(((mx*axis[1])+xyOffset));         // conversion joystick values -> camera values
+        val_y = int(((my*axis[0])+xyOffset));
+        val_z = int(((mz*axis[2])+zOffset));
+
+//        val_x=int(((0.152587890625*axis[0])+5000));         // conversion joystick values -> camera values
+//        val_y=int(((0.152587890625*axis[1])+5000));
+//        val_z=int(((0.003875732422*axis[2])+127));
 
         if (val_x_old == 9999 && val_x == 5000) {           // X-Achsen Bug Joystick Workaround
             val_x = 9999;                                   //
@@ -64,8 +72,8 @@ int BBMJoystick::processEvent(joystickData& jsData){
         }                                                   //
         val_x_old = val_x;                                  //
 
-        jsData.xCoord = val_y;
-        jsData.yCoord = val_x;
+        jsData.xCoord = val_x;
+        jsData.yCoord = val_y;
         jsData.zCoord = val_z;
         break;
 
