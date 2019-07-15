@@ -17,15 +17,19 @@ UdpListener::UdpListener(Controller& controller)
     }
 }
 
+/*Starts listener as a seperate thread*/
 void UdpListener::startListener(){
     std::thread t1(&UdpListener::listener, this);                  //1.Arg: function type that will be called, 2.Arg: pointer to object (this)
     t1.detach();
 }
 
+/*Read pending data on socket (or block), decode bbmnet telegram and push event to queue accordingly*/
 void UdpListener::listener(){
     answer_s answer;
+
+    /*Blocks until message received on socket*/
     while(1){
-        rx_err = rxSocket.receive(buffer);       //blockiert bis etwas empfangen
+        rx_err = rxSocket.receive(buffer);
         if(rx_err < 0){
             rx_err = errno;
             controller->logSystemError(rx_err, "Could not receive udp traffic");
@@ -36,48 +40,48 @@ void UdpListener::listener(){
 
         // =========== DECIDE WHAT TO DO ==============================================
 
-        // Command from adjecent RCP
+        /*Command from adjacent RCP in the network*/
         if(answer.type == TYPED_TO_HC && answer.command != WATCHDOG && answer.command != GOTO_PRESET){
             if(!answer.data.empty()){
             controller->queueEvent(E_RX_ADJ_RCP_CMD, answer.from, answer.command, answer.data[0]);
             }
-
         }
 
-        // Preset reached answer
+        /*Preset reached*/
         if(answer.type == TYPEC_FROM_HC && answer.command == PRESET_REACHED){
             if(!answer.data.empty()){
             controller->queueEvent(E_PRESET_REACHED, answer.from, answer.data[0]);
             //qDebug("Answer: HeadNr: %d Command: %d Data: %d %d %d %d",answer.from,answer.command, answer.data[0],answer.data[1] ,answer.data[2] ,answer.data[3]);
             }
         }
-        // Goto answer
+
+        /*Preset goto confirmation ??*/
         if(answer.type == TYPED_TO_HC && answer.command == GOTO_PRESET){
             controller->queueEvent(E_EXT_PRESET_CHANGE, answer.from, answer.data[0]);
         }
 
-        // Reply from camera/head
+        /*Reply from camera,head*/
         if(answer.type == TYPEC_FROM_HC && answer.command != WATCHDOG && answer.from != SERVER && answer.command != PRESET_REACHED){
             controller->queueEvent(E_CAMERA_ANSWER, answer.from, answer.command, answer.data[0]);
             //qDebug("Answer: HeadNr: %d Command: %d Data: %d",answer.from,answer.command, answer.data[0]);
         }
 
-        // Watchdog answer from server
+        /*Watchdog answer from server*/
         if(answer.command == WATCHDOG && answer.from == SERVER){
             controller->queueEvent(E_RX_SERV_WATCHDOG);
         }
 
-        // Watchdog answer from camera/head
+        /*Watchdog answer from camera,head*/
         if(answer.command == WATCHDOG && answer.from != SERVER){
             controller->queueEvent(E_RX_CAMERA_WATCHDOG, answer.from, answer.data[1]);
             qDebug("Answer: HeadNr: %d Command: %d Data: %d",answer.from,answer.command, answer.data[1]);
             //qDebug()<<answer.from<<answer.data[1];
         }
 
-        // Autofocus answer (todo: remove! double with reply from camera)
-        if(answer.type == TYPEC_FROM_HC && answer.command == FOCUS_SET_ABSOLUTE){
-            controller->queueEvent(E_AUTOFOCUS_ANSWER, answer.data[0]);
-        }
+//        /*Autofocus answer (todo: remove ?? double with reply from camera)*/
+//        if(answer.type == TYPEC_FROM_HC && answer.command == FOCUS_SET_ABSOLUTE){
+//            controller->queueEvent(E_AUTOFOCUS_ANSWER, answer.data[0]);
+//        }
 
         //debug: show answer packages
 //        if((1) ){

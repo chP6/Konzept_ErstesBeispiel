@@ -40,8 +40,8 @@
 #define BITS_PER_W 8
 #define SPI_SPEED 2500000
 
-/*Debounce Time in us*/
-#define DEBOUNCE_T 20 //in us
+/*Time in us*/
+#define DEBOUNCE_T 20
 #define CREEP_T    100000
 #define TX_T       150000
 
@@ -104,7 +104,7 @@
 #define F_SPP_ON              2
 #define F_FASTTRANS           3
 #define F_BOUNCE_ENABLE       4
-#define F_KNOWN               5
+#define F_CAMERA_KNOWN        5
 #define F_CONNECTED           6
 #define F_X_INVERT            7
 #define F_Y_INVERT            8

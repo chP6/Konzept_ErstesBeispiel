@@ -17,11 +17,11 @@
 Poller::Poller(Controller& controller)
 {
 
-    // ================ INIT HW MODULES ======================================================================
 
     this->controller = &controller;
     poll_err = 0;
 
+    /*Initialize hardware modules*/
     poll_err = srvWatchdog.init(1);
     if(poll_err < 0){
         poll_err = errno;
@@ -58,7 +58,7 @@ Poller::Poller(Controller& controller)
         controller.logSystemError(poll_err, "Could not initialize Rotary2");
     }
   
-      poll_err = ocp.initLoopbackInterface();
+    poll_err = ocp.initLoopbackInterface();
     if(poll_err < 0){
         poll_err = errno;
         controller.logSystemError(poll_err, "Could not initialize ocp loopback interface");
@@ -78,8 +78,7 @@ Poller::Poller(Controller& controller)
     }
 
 
-    // ================ INIT POLL STRUCT ======================================================================
-
+    /*Setup pollstruct*/
     poll_fd[0].fd = srvWatchdog.timer_fd;
     poll_fd[0].events = POLLIN;
     poll_fd[1].fd = joystick.joystick_fd;
@@ -95,32 +94,43 @@ Poller::Poller(Controller& controller)
     poll_fd[6].fd = ocp.loopback_socket_fd;
     poll_fd[6].events = POLLIN;
 
-    if(ocp.connect() != -1){        //try to open ocp, if already connected at startup
+    /*Try to open ocp, if already connected at startup*/
+    if(ocp.connect() != -1){
         poll_fd[7].fd = ocp.fd;
         poll_fd[7].events = POLLIN;
     }
 
+    /*Presetbus buttons*/
     for (unsigned int i = 0; i < 6; ++i) {
         poll_fd[i+8].fd = presetbus.button[i];
         poll_fd[i+8].events = POLLPRI;
     }
 
+    /*Camerabus buttons*/
     for (unsigned int i = 0; i < 6; ++i) {
         poll_fd[i+14].fd = camerabus.button[i];
         poll_fd[i+14].events = POLLPRI;
     }
 
+    /*Autosave watchdog*/
     poll_fd[20].fd = autoSaveWatchdog.timer_fd;
     poll_fd[20].events = POLLIN;
 
 }
 
+/*Starts listener function as seperate thread*/
+void Poller::startListener(){
+    std::thread t2(&Poller::listener, this);                  //1.Arg: function type that will be called, 2.Arg: pointer to object (this)
+    t2.detach();
+}
 
+/*Blocks until hardware interrupts occur*/
 void Poller::listener(){
     std::vector<int> data;
     joystickData jsData;
     data.reserve(10);
 
+// obsolete ??
 //flush all interrupts
 //    for (int i = 0;i<17;i++) {
 //        if(i!=4)
@@ -128,32 +138,33 @@ void Poller::listener(){
 //    }
 
 
-    // get rid of any undeterministic events from HW init
-    rotary1.readSense();
-    rotary1.readButton();
-    rotary2.readSense();
-    rotary2.readButton();
+    /*Get rid of any undeterministic events from HW boot-up*/
+    {
+        rotary1.readSense();
+        rotary1.readButton();
+        rotary2.readSense();
+        rotary2.readButton();
 
-//    for (int i=0;i<10;i++) {
-//        joystick.processEvent(jsData);
-//    }
-
-    for (int i=0;i<6;i++) {
-        presetbus.readButton(i);
-        camerabus.readButton(i);
+        for (int i=0;i<6;i++) {
+            presetbus.readButton(i);
+            camerabus.readButton(i);
+        }
     }
 
+    /*Endless loop*/
     while(1){
 
         data.clear();
-        poll_err = poll(poll_fd,21,-1);                      //poll. Blocks until event occurs -> SIZE setzen! -1 = infinite timeout
+        /*Blocks until event occurs. -1 = infinite timeout*/
+        poll_err = poll(poll_fd,21,-1);
 
         if(poll_err<0){
             poll_err = errno;
             controller->logSystemError(poll_err, "Could not read Poller pollstruct");
         }
 
-        if(poll_fd[0].revents & POLLIN) {                    // Server watchdog event
+        /*Server watchdog interrupt*/
+        if(poll_fd[0].revents & POLLIN) {
             poll_err = srvWatchdog.processEvent();
             if(poll_err<0){
                 poll_err = errno;
@@ -162,24 +173,27 @@ void Poller::listener(){
             controller->queueEvent(E_TX_SERV_WATCHDOG);
         }
 
-        if(poll_fd[1].revents & POLLIN) {                   // Joystick event
+        /*Joystick interrupt*/
+        if(poll_fd[1].revents & POLLIN) {
             poll_err = joystick.processEvent(jsData);
             if(poll_err<0){
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not read Joystick");
             }
 
-            if (jsData.buttonVal > 0) {                     // Joystick Pushbutton
+             /*Joystick Pushbutton actuated*/
+            if (jsData.buttonVal > 0) {
                 controller->queueEvent(E_AUTOFOCUS);
             }
             else{
-                //reducing number of necessary events
+                /*Only send event on change*/
                 if(!(jsData.xCoord == xold && jsData.yCoord == yold)){
                     data.push_back(jsData.xCoord);
                     data.push_back(jsData.yCoord);
                     controller->queueEvent(E_SET_TILT, data);
                 }
 
+                /*Only send event on change*/
                 if(!(jsData.zCoord == zold)){
                     data.clear();
                     data.push_back(jsData.zCoord);
@@ -193,7 +207,8 @@ void Poller::listener(){
         }
 
 
-        if(poll_fd[2].revents & POLLPRI){                    // Rotary1 event
+        /*Rotary 1 interrupt*/
+        if(poll_fd[2].revents & POLLPRI){
 
             poll_err = rotary1.readSense();
             if(poll_err<0){
@@ -210,7 +225,8 @@ void Poller::listener(){
             controller->queueEvent(E_INCREASE, rotary_val);
         }
 
-        if(poll_fd[3].revents & POLLPRI){                    // Rotary1 Button
+        /*Rotary 1 button actuated*/
+        if(poll_fd[3].revents & POLLPRI){
             usleep(DEBOUNCE_T);
 
             poll_err = rotary1.readButton();
@@ -219,7 +235,6 @@ void Poller::listener(){
                 controller->logSystemError(poll_err, "Could not readout Rotary1 button");
             }
             if(poll_err==0){ //otherwise it was a bounce
-                //controller->queueEvent(E_WRITE_SAVEFILE);       //debug
                 controller->queueEvent(E_FAST_IRIS);
 
             }
@@ -228,7 +243,8 @@ void Poller::listener(){
 
         }
 
-        if(poll_fd[4].revents & POLLPRI){                    // Rotary2 event
+        /*Rotary 2 interrupt*/
+        if(poll_fd[4].revents & POLLPRI){
 
             poll_err = rotary2.readSense();
             if(poll_err<0){
@@ -244,9 +260,10 @@ void Poller::listener(){
             controller->queueEvent(E_FOCUS_CHANGE, rotary_val);
         }
 
-        if(poll_fd[5].revents & POLLPRI){                    // Rotary2 Button
+        /*Rotary 2 button actuated*/
+        if(poll_fd[5].revents & POLLPRI){
 
-            //todo proper debounce
+            /*todo proper debounce ??*/
             poll_err = rotary2.readButton();
             if(poll_err<0){
                 poll_err = errno;
@@ -257,9 +274,9 @@ void Poller::listener(){
             }
         }
 
-
-        if(poll_fd[6].revents & POLLIN){                    // OCP connected event
-            ocp.closeFd();      //close current fd (if any old open)
+        /*OCP connect interrupt on local loopback interface*/
+        if(poll_fd[6].revents & POLLIN){
+            ocp.closeFd();                     //close current fd (if any old open)
 
             poll_err = ocp.receiveLoopback();
             if (poll_err < 0) {
@@ -272,13 +289,14 @@ void Poller::listener(){
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not open OCP");
             }
+            /*Add entry at pollstruct*/
             poll_fd[7].fd = ocp.fd;
             poll_fd[7].events = POLLIN;
             controller->logError("OCP Connected!");
         }
 
-
-        if(poll_fd[7].revents & POLLIN){                    // OCP event
+        /*OCP interrupt*/
+        if(poll_fd[7].revents & POLLIN){
             int ocpEvent;
             poll_err = ocp.processEvent(ocpEvent);
             if (poll_err < 0) {
@@ -345,6 +363,37 @@ void Poller::listener(){
             }
         }
 
+        for (int i=0;i<6;i++) {
+            /*Presetbus button interrupts*/
+            if(poll_fd[8+i].revents & POLLPRI){
+                usleep(DEBOUNCE_T);
+                poll_err=presetbus.readButton(i);
+                if (poll_err<0) {
+                    poll_err = errno;
+                    controller->logSystemError(poll_err, "Could not readout Presetbus Button " + std::to_string(i+1));
+                }
+                if(poll_err==0){
+                    controller->queueEvent(E_PRESET_CHANGE,5-i);
+                }
+            }
+
+            /*Camerabus button interrupts*/
+            if(poll_fd[14+i].revents & POLLPRI){
+                usleep(DEBOUNCE_T);
+                poll_err=camerabus.readButton(i);
+                if (poll_err<0) {
+                    poll_err = errno;
+                    controller->logSystemError(poll_err, "Could not readout Camerabus Button " + std::to_string(i+1));
+                }
+                if(poll_err==0){
+                     controller->queueEvent(E_CAMERA_CHANGE,5-i);
+                }
+            }
+        }
+
+
+        /*
+        //Presetbus button interrupts
         if(poll_fd[8].revents & POLLPRI){
             usleep(DEBOUNCE_T);
             poll_err=presetbus.readButton(0);
@@ -417,6 +466,7 @@ void Poller::listener(){
             }
         }
 
+        //Camerabus button interrupts
         if(poll_fd[14].revents & POLLPRI){
             usleep(DEBOUNCE_T);
             poll_err=camerabus.readButton(0);
@@ -488,8 +538,10 @@ void Poller::listener(){
                 controller->queueEvent(E_CAMERA_CHANGE,0);
             }
         }
+        */
 
-        if(poll_fd[20].revents & POLLIN) {                    // Autosave watchdog event
+        /*Autosave watchdog event*/
+        if(poll_fd[20].revents & POLLIN) {
             poll_err = autoSaveWatchdog.processEvent();
             if(poll_err<0){
                 poll_err = errno;
@@ -499,10 +551,4 @@ void Poller::listener(){
         }
 
     }
-}
-
-
-void Poller::startListener(){
-    std::thread t2(&Poller::listener, this);                  //1.Arg: function type that will be called, 2.Arg: pointer to object (this)
-    t2.detach();
 }

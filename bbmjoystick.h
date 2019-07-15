@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #define NUM_OF_AXIS 3
+#define JOYSTICK_PATH "/dev/input/js0"
 
 struct joystickData {
     int xCoord;
@@ -12,7 +13,6 @@ struct joystickData {
     int zCoord;
     int buttonVal;
 };
-
 
 class BBMJoystick
 {
