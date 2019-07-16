@@ -17,7 +17,8 @@
 
 Tastenfeld::Tastenfeld()
 {
-
+    for (size_t i = 0; i < sizeof(button)/sizeof(button[0]); i++)
+        button[i] = -1; // default fd, wird von poll() ignoriert
 }
 
 
