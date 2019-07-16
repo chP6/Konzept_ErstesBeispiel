@@ -12,6 +12,7 @@ Model::Model()
     y = 0;
     xptNumberOfInputs = 8;
     xptNumberOfOutputs = 8;
+    activeCameraSlot = 0;
 
     memset(cameras,0,sizeof(cameras));
     /*set all cameras to type 1 (CODGER)*/
