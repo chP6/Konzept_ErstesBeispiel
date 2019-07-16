@@ -9,6 +9,7 @@
 #include <poll.h>
 #include <vector>
 #include <thread>
+#include <list>
 
 class Controller;
 
@@ -24,7 +25,7 @@ public:
     bool applicationRunning=false;
 
 private:
-    struct pollfd poll_fd[21];
+    struct pollfd poll_fd[21+3];
     int poll_err;
     int sense_val;
     signed char rotary_val;
@@ -38,6 +39,8 @@ private:
     //ServerWatchdog xptWatchdog;
     ServerWatchdog autoSaveWatchdog;
     OCP ocp;
+
+    std::list<class InputDevice*> m_devices;
 };
 
 #endif // POLLER_H

@@ -26,7 +26,8 @@ CONFIG += c++11
 
 SOURCES += \
     logging.cpp \
-        main.cpp \
+    input.cpp \
+    main.cpp \
     model.cpp \
     controller.cpp \
     poller.cpp \
@@ -51,6 +52,7 @@ SOURCES += \
 
 HEADERS += \
     logging.h \
+    input.h \
     model.h \
     controller.h \
     poller.h \
