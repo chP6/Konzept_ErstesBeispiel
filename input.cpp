@@ -87,3 +87,26 @@ int Keyboard::getEvent(std::vector<int> &data) {
     }
     return E_NULLEVENT;
 }
+
+/* ------------------------------------------------------------------------- */
+
+ZoomFocusJoystick::ZoomFocusJoystick(const char* fileName)
+    : InputDevice(fileName) {}
+
+int ZoomFocusJoystick::getEvent(std::vector<int> &data) {
+    if (eventReceived()) {
+        struct input_event event;
+        if (readEvent(event)) {
+            if (event.type == EV_ABS) {
+                if (event.code == ABS_Y) {
+                    data.push_back(event.value / 256); // -127..+127
+                    return E_SET_ZOOM;
+                } else if (event.code == ABS_X) {
+                    data.push_back(event.value - INT16_MIN); // 0..65'535
+                    return E_FOCUS_CHANGE;
+                }
+            }
+        }
+    }
+    return E_NULLEVENT;
+}

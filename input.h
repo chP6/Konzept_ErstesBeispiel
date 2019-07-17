@@ -36,4 +36,10 @@ private:
     const std::map<int /* key */, std::pair<int /* event */, std::vector<int> /* data */>> m_keymap;
 };
 
+class ZoomFocusJoystick : public InputDevice {
+public:
+    ZoomFocusJoystick(const char* fileName);
+    int getEvent(std::vector<int> &data) override;
+};
+
 #endif

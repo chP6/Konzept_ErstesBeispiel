@@ -140,6 +140,8 @@ Poller::Poller(Controller& controller)
                                            { KEY_5,  { E_PRESET_CHANGE, { 4 }}},
                                            { KEY_6,  { E_PRESET_CHANGE, { 5 }}} }));
 
+    m_devices.push_back(new ZoomFocusJoystick("/dev/input/by-id/usb-Adafruit_LLC_Adafruit_ItsyBitsy_M4_HIDAC-event-if02"));
+
     int i = 21;
     for (InputDevice* d : m_devices)
         d->init(&poll_fd[i++]);

@@ -25,7 +25,7 @@ public:
     bool applicationRunning=false;
 
 private:
-    struct pollfd poll_fd[21+3];
+    struct pollfd poll_fd[21+4];
     int poll_err;
     int sense_val;
     signed char rotary_val;
