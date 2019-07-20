@@ -177,6 +177,13 @@ void Model::setCamTypeWithDefValues(int slotNr, int type)
         for(int k=1;k<COLUM_ENTRIES;k++){cameras[slotNr].values[0][k]=c2Values[0][k];}  //headNr without actual value
         cameras[slotNr].textTable=&c2TextTable[0][0];
         break;
+    case 4:
+        for(int i= start;i<ROW_ENTRIES;i++){
+            for(int j=0;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=ursaValues[i][j];}
+        }
+        for(int k=1;k<COLUM_ENTRIES;k++){cameras[slotNr].values[0][k]=ursaValues[0][k];}  //headNr without actual value
+        cameras[slotNr].textTable=&ursaTextTable[0][0];
+        break;
     case 5:
         for(int i= start;i<ROW_ENTRIES;i++){
             for(int j=0;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=rValues[i][j];}
@@ -237,6 +244,18 @@ void Model::setCamTypeWithDefBorders(int slotNr, int type)
             }
         }
         cameras[slotNr].textTable=&c2TextTable[0][0];
+        break;
+    case 4:
+        for(int i= start;i<ROW_ENTRIES;i++){
+            for(int j=1;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=ursaValues[i][j];}
+        }
+        for (int i=start;i<ROW_ENTRIES;i++) {
+            //all nonrequestable values: write standard value
+            if(cameras[slotNr].values[i][5] != REQUESTABLE){
+                cameras[slotNr].values[i][VAL]=ursaValues[i][VAL];
+            }
+        }
+        cameras[slotNr].textTable=&ursaTextTable[0][0];
         break;
     case 5:
         for(int i= start;i<ROW_ENTRIES;i++){
@@ -817,7 +836,7 @@ void Model::setRequestReceived(int slotNr, int property)
         }
     }
     else {
-        setCamFlag(slotNr,F_RECEIVED_ALL);
+        setCamFlag(slotNr,F_RECEIVED_ALL,true);
     }
 }
 
