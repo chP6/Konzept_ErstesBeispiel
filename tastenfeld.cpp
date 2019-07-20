@@ -222,9 +222,12 @@ int Tastenfeld::setLed(unsigned int color, int button)
     /*extract the color values*/
     /*PWM driver needs 12 bits per color, hex color has 8 bits per color
       therefore the lowest nibble is set to f*/
-    unsigned int red=((color&0xff0000)>>12)|0x00f;
-    unsigned int green=((color&0x00ff00)>>4)|0x00f;
-    unsigned int blue=((color&0x0000ff)<<4)|0x00f;
+//    unsigned int red=((color&0xff0000)>>12)|0x00f;
+//    unsigned int green=((color&0x00ff00)>>4)|0x00f;
+//    unsigned int blue=((color&0x0000ff)<<4)|0x00f;
+    unsigned int red=((color&0xff0000)>>12);
+    unsigned int green=((color&0x00ff00)>>4);
+    unsigned int blue=((color&0x0000ff)<<4);
     mapTx(blue,red,green,button);           //map it
     spi_err=write(spi_fd, &tx, sizeof(tx)); //write it on spi
         if(spi_err<0){return -1;}
