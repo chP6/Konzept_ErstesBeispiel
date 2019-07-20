@@ -128,3 +128,5 @@ void View::on_btOthers_clicked()
     ui->others->stackChanged();             //push last pressed button on this page again
 
 }
+
+
