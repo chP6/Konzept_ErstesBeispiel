@@ -66,7 +66,7 @@ void Home::on_btBounce_clicked(bool checked)
 {
     ui->btWideSet->setEnabled(checked);         //ebable whideSet button only wehn Bounce mode is enabled
     model->setCamFlag(F_BOUNCE_ENABLE,checked); //set Flag
-    controller->queueEvent(E_BOUNCE);           //add the event in the queue
+    //controller->queueEvent(E_BOUNCE);           //add the event in the queue
 }
 
 void Home::on_btWideSet_clicked()
