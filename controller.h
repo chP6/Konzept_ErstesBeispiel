@@ -11,8 +11,8 @@
 
 
 
-#define SAVEFILE_PATH   "/opt/savefile"
-#define AUTOSAVE_PATH   "/opt/autosave"
+#define SAVEFILE_PATH   "/mnt/userdata/autosave/savefile"
+#define AUTOSAVE_PATH   "/mnt/userdata/autosave/autosave"
 
 class Model;        //forward declaration
 class Poller;        //forward declaration

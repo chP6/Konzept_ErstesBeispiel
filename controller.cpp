@@ -182,7 +182,9 @@ void Controller::settingsLoad(QSettings &savefile, bool send){
         model->setXptSlotSource(savefile.value("xptSource").toInt());
 
         for (int k=0;k<NUMBER_OF_FLAGS;k++) {
+            if(k != F_BOUNCING){
             model->setCamFlag(i,k,savefile.value("flag_"+QString::number(k)).toBool());
+            }
         }
 
         /*Set texttable pointer according to type*/
@@ -466,13 +468,13 @@ void Controller::processQeue(){
             txSocket.send(model->getValue(ABS,V_HEADNR),ZOOM_FOCUS_SET, z); //send zoom information to the camera
 
             /*Bounce mode can be aborted with the use of the zoom*/
-            if(model->getCamFlag(F_BOUNCING) ){
-                model->setCamFlag(F_BOUNCING,false);
-                model->setCamFlag(F_BOUNCE_ABORTED,true);
-                presetbus.setLed(PRESET_COLOR,model->getActivePreset());
-                txSocket.send(model->getValue(ABS,V_HEADNR),BNCE_ZOOM_START,model->getValue(ABS,V_BOUNCE_ZOOM_SPEED)); //Stop It
-                qCDebug(logicIo)<<"Bounce stopped by Joystick";
-            }
+//            if(model->getCamFlag(F_BOUNCING) ){
+//                model->setCamFlag(F_BOUNCING,false);
+//                model->setCamFlag(F_BOUNCE_ABORTED,true);
+//                presetbus.setLed(PRESET_COLOR,model->getActivePreset());
+//                txSocket.send(model->getValue(ABS,V_HEADNR),BNCE_ZOOM_START,model->getValue(ABS,V_BOUNCE_ZOOM_SPEED)); //Stop It
+//                qCDebug(logicIo)<<"Bounce stopped by Joystick";
+//            }
 
             /*Sceduled Preset Positioning can be aborted with the move of the joystick*/
             if(model->getCamFlag(F_SPP_ON)){
@@ -554,6 +556,7 @@ void Controller::processQeue(){
                 queueEvent(E_SPP_ABORT);
                 presetbus.setLed(PRESET_COLOR,activePreset);
                 txSocket.send(headNr, GOTO_PRESET, activePreset+1,transitionSpeed);
+                model->setCamFlag(F_PRESET_MOVE,true);
                 qCDebug(logicIo) << "SPP aborted by key press|";
                 qCDebug(presetIo) << "Goto Preset | HeadNr:" << headNr<< " ,PresetNr:" << activePreset+1 << ", Transition speed:" << transitionSpeed ;
                 break;
@@ -572,20 +575,20 @@ void Controller::processQeue(){
             /*Bounce mode is enabled but not started. If same button has been pressed two consecutive times, start it and break*/
             if(model->getCamFlag(F_BOUNCE_ENABLE) && !model->getCamFlag(F_BOUNCING)){
                 if(previousPreset==activePreset){
-                    presetbus.setLed(CAMERA_COLOR,activePreset);
+                    presetbus.setLed(PRESET_COLOR,activePreset);
                     /*TeleSet seems to be obsolete, to do: ask, reimplement, test*/
-                    if (model->getCamFlag(F_BOUNCE_ABORTED)) {
+                    //if (model->getCamFlag(F_BOUNCE_ABORTED)) {
                         /*If bounce was aborted, don't do a teleset, just restart it*/
                         txSocket.send(headNr,BNCE_ZOOM_START,model->getValue(ABS,V_BOUNCE_ZOOM_SPEED)); //Restart it
-                        model->setCamFlag(F_BOUNCE_ABORTED,false);
+                        //model->setCamFlag(F_BOUNCE_ABORTED,false);
                         qCDebug(logicIo) << "Bounce restarted by key press (no TeleSet) |" << "HeadNr: " << headNr << "Zoom Speed:" << model->getValue(ABS, V_BOUNCE_ZOOM_SPEED);
-                    }
-                    else {
+                    //}
+                   // else {
                         /*teleset and restart*/
-                        txSocket.send(headNr,BNCE_ZOOM_TELE_SET);    //TeleSet
-                        txSocket.send(headNr,BNCE_ZOOM_START,model->getValue(ABS,V_BOUNCE_ZOOM_SPEED)); //Start it
-                        qCDebug(logicIo) << "Bounce started by key press (TeleSet fired) |" << "HeadNr: " << headNr << "Zoom Speed:" << model->getValue(ABS, V_BOUNCE_ZOOM_SPEED);
-                    }
+                        //txSocket.send(headNr,BNCE_ZOOM_TELE_SET);    //TeleSet
+                        //txSocket.send(headNr,BNCE_ZOOM_START,model->getValue(ABS,V_BOUNCE_ZOOM_SPEED)); //Start it
+                       // qCDebug(logicIo) << "Bounce started by key press (TeleSet fired) |" << "HeadNr: " << headNr << "Zoom Speed:" << model->getValue(ABS, V_BOUNCE_ZOOM_SPEED);
+                    //}
 
                     model->setCamFlag(F_BOUNCING,true);
                     blinkTimer.start(); //blink the led
@@ -610,8 +613,8 @@ void Controller::processQeue(){
               /*same button again stop it and recall preset, therefore no break*/
               if(previousPreset==activePreset){
                     presetbus.setLed(PRESET_COLOR,activePreset);
-                    txSocket.send(headNr,BNCE_ZOOM_START,model->getValue(ABS,V_BOUNCE_ZOOM_SPEED));  //Stop It
-                    model->setCamFlag(F_BOUNCE_ABORTED,false);
+                    //txSocket.send(headNr,BNCE_ZOOM_START,model->getValue(ABS,V_BOUNCE_ZOOM_SPEED));  //Stop It
+                    //model->setCamFlag(F_BOUNCE_ABORTED,false);
                     qCDebug(logicIo) << "Bounce stopped by key press|" << "HeadNr: " << headNr;
 
               }
@@ -622,6 +625,7 @@ void Controller::processQeue(){
             if(model->getCamFlag(F_FASTTRANS)){
                 presetbus.setLed(PRESET_COLOR,activePreset);
                 txSocket.send(headNr, GOTO_PRESET, activePreset+1,1);
+                model->setCamFlag(F_PRESET_MOVE,true);
                 qCDebug(presetIo) << "Goto Preset | HeadNr:" << headNr<< " ,PresetNr:" << activePreset+1 << ", Transition speed: (FPM)";
                 break;
             }
@@ -629,6 +633,7 @@ void Controller::processQeue(){
             /*Normal recall of a Preset*/
             presetbus.setLed(PRESET_COLOR,activePreset);
             txSocket.send(headNr, GOTO_PRESET, activePreset+1,transitionSpeed);
+            model->setCamFlag(F_PRESET_MOVE,true);
             qCDebug(presetIo) << "Goto Preset | HeadNr:" << headNr<< " ,PresetNr:" << activePreset+1 << ", Transition speed:" << transitionSpeed;
             break;
 
@@ -668,7 +673,10 @@ void Controller::processQeue(){
         }
         case E_CAMERA_CHANGE:
         {
-             /*Push of a button on the camerabus*/
+            if(!(model->getCamFlag(F_PRESET_MOVE))){
+                txSocket.send(model->getValue(ABS,V_HEADNR), TILT_PAN, 5000, 5000);
+            }
+            /*Push of a button on the camerabus*/
             camerabus.setLed(CAMERA_COLOR,loadedEvent.data[0]);
             model->setActiveCameraSlot(loadedEvent.data[0]);
             /*Update the view*/
@@ -680,7 +688,7 @@ void Controller::processQeue(){
                 presetbus.setLed(SPP_COLOR, model->getActivePreset());
             }
             else if(model->getCamFlag(F_BOUNCING)){
-                presetbus.setLed(CAMERA_COLOR,model->getActivePreset());
+                presetbus.setLed(PRESET_COLOR,model->getActivePreset());
             }
             else{
                 presetbus.setLed(PRESET_COLOR,model->getActivePreset());
