@@ -10,9 +10,9 @@ ServerWatchdog::ServerWatchdog()
 {
 }
 
+/*Initialization*/
 int ServerWatchdog::init(int interval_s){
     timer_fd = timerfd_create(CLOCK_MONOTONIC, 0);
-
 
     timeout.it_value.tv_sec = interval_s;
     timeout.it_value.tv_nsec = 0;
@@ -27,6 +27,7 @@ int ServerWatchdog::init(int interval_s){
     return 0;
 }
 
+/*Read timer*/
 int ServerWatchdog::processEvent(){
     // neue Speicherplatzallokation nicht zulässig (weil von anderem thread aufgerufen wird) -> alle Variablen in Klasse als Attribute deklarieren.
     wdg_err = read(timer_fd, &timersElapsed, 8);

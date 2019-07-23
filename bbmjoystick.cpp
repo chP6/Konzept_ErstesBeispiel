@@ -12,6 +12,7 @@ BBMJoystick::BBMJoystick()
 {
 }
 
+/*Initialization*/
 int BBMJoystick::init(){
     axis[0] = 0;
     axis[1] = 0;
@@ -26,22 +27,19 @@ int BBMJoystick::init(){
     mz = (zLowerLimit - zOffset)/INT16_MIN;
 
     memset(axis,0,sizeof(axis));
-    joystick_fd=open("/dev/input/js0",O_RDONLY | O_NONBLOCK);                //Pfad noch anpassen in config file. Nonblock, damit beim aufstarten joystick ohne block x-mal abgefragt werden kann
+    joystick_fd=open(JOYSTICK_PATH,O_RDONLY | O_NONBLOCK);        //Nonblock, damit beim aufstarten joystick ohne block x-mal abgefragt werden kann. Sinnvoll ??
     if(joystick_fd<0){
         usleep(1000);
-        init();   //erst wenn scharf
+        init();        //erst wenn scharf ??
         error(joystick_fd,errno,"couldn't open device");
         return -1;
     }
-//     for (int i=0;i<4;i++) {                                    // Joystick initial auslesen: 1x Button, 3x Axis
-//         read(joystick_fd, &js, sizeof(struct js_event));
-//     }
      return 0;
 }
 
 
+/*Read and process joystick event*/
 int BBMJoystick::processEvent(joystickData& jsData){
-
     jsData.buttonVal = 0;
     readErr=read(joystick_fd, &js, sizeof(struct js_event));
     if(readErr<0){
@@ -51,8 +49,10 @@ int BBMJoystick::processEvent(joystickData& jsData){
 
     switch(js.type & ~JS_EVENT_INIT) {
     case JS_EVENT_AXIS:
+        /*Axis actuated*/
         axis[js.number] = js.value;
 
+        /*Debug*/
         qDebug("X/Y/Z: %d,%d,%d",axis[0],axis[1],axis[2]);
 
 
@@ -60,17 +60,16 @@ int BBMJoystick::processEvent(joystickData& jsData){
         val_y = int(((my*axis[0])+xyOffset));
         val_z = int(((mz*axis[2])+zOffset));
 
-//        val_x=int(((0.152587890625*axis[0])+5000));         // conversion joystick values -> camera values
-//        val_y=int(((0.152587890625*axis[1])+5000));
-//        val_z=int(((0.003875732422*axis[2])+127));
-
-        if (val_x_old == 9999 && val_x == 5000) {           // X-Achsen Bug Joystick Workaround
-            val_x = 9999;                                   //
-        }                                                   //
-        else if (val_x_old == 0 && val_x == 5000) {         //
-            val_x = 0;                                      //
-        }                                                   //
-        val_x_old = val_x;                                  //
+        /*X-axis bug workaround*/
+        {
+            if (val_x_old == 9999 && val_x == 5000) {
+                val_x = 9999;
+            }
+            else if (val_x_old == 0 && val_x == 5000) {
+                val_x = 0;
+            }
+            val_x_old = val_x;
+        }
 
         jsData.xCoord = val_x;
         jsData.yCoord = val_y;
@@ -78,6 +77,7 @@ int BBMJoystick::processEvent(joystickData& jsData){
         break;
 
     case JS_EVENT_BUTTON:
+        /*Button actuated*/
         jsData.buttonVal = char(js.value);
         break;
     default:
@@ -86,6 +86,7 @@ int BBMJoystick::processEvent(joystickData& jsData){
     return 0;
 }
 
+/*Obsolete ??*/
 void BBMJoystick::initRead(){
     for (int i=0;i<3;i++) {
         readErr=read(joystick_fd, &js, sizeof(struct js_event));

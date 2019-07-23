@@ -248,7 +248,7 @@ void CameraView::stackChanged()
 
 void CameraView::signalRequest(int property)
 {
-    /*Signal has been received after a second more  attemt*/
+    /*Signal has been received after a second more attempt*/
     /*find the button to the corresponding value and make it white*/
     for (int i = 0;i < textButtons.size(); i++) {
         if(textButtons[i].value == property){

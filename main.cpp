@@ -124,7 +124,6 @@ int main(int argc, char *argv[])
 
 
     Controller controller(model);
-    //start queue was here
 
     QObject::connect(&controller, &Controller::clearLoadButon,
                      &view, &View::on_loadButtonCleared);

@@ -19,6 +19,7 @@ OCP::~OCP()
     close(fd);
 }
 
+/*Connect OCP*/
 int OCP::connect(){
     fd = open(OCP_DEV_PATH, O_RDONLY );
     if(fd < 0){
@@ -31,13 +32,14 @@ int OCP::connect(){
     return 0;
 }
 
+/*Disconnect OCP*/
 void OCP::closeFd(){
     close(fd);
 }
 
 
+/*Read and process OCP event*/
 int OCP::processEvent(int& event){      // only valid event if not -1
-
     ocp_err = read(fd, &in, sizeof(struct input_event));
     if(ocp_err<0){
         return ocp_err;
@@ -107,10 +109,12 @@ int OCP::processEvent(int& event){      // only valid event if not -1
     return 0;
 }
 
-
+/*Setup loopback interface to trigger interrupt when OCP connected.
+Ping on loobpack interface executed from external C-program via udev rule ??*/
 int OCP::initLoopbackInterface(){
 
-    loopback_socket_fd = socket(AF_INET, SOCK_DGRAM, 0);        //soll nicht blockieren wenn lesen
+    /*Open socket on local loopback interface*/
+    loopback_socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
        if(loopback_socket_fd < 0){
            return -1;
        }
@@ -132,7 +136,7 @@ int OCP::initLoopbackInterface(){
        return 0;
 }
 
-
+/*Read data on socket*/
 int OCP::receiveLoopback(){
     ocp_err = recvfrom(loopback_socket_fd, (char*)buf, sizeof(buf) , 0, (struct sockaddr *)&destaddr, &len_sender);
     return ocp_err;
