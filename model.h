@@ -161,7 +161,7 @@ private:
     //todo: not all entries have 5 values!
     int c2Values[ROW_ENTRIES][COLUM_ENTRIES]=
                       {{1,1,49,NORMAL},     //headnr init_value, min_value, max_value
-                       {127,0,255,NORMAL,0,REQUESTABLE}, //Iris
+                       {127,0,255,NORMAL,0,0}, //Iris
                        {64,0,128,CENTER,0,REQUESTABLE},  //Pedestal
                        {0,0,8000,NORMAL,0,REQUESTABLE},  //Focus
                        {127,0,255,CENTER,0,REQUESTABLE}, //w_Red
@@ -192,7 +192,7 @@ private:
     // camera type 1 init values
     int c1Values[ROW_ENTRIES][COLUM_ENTRIES]=
                       {{1,1,49,NORMAL,0,0},     //headnr init_value, min_value, max_value
-                       {127,0,255,NORMAL,0,REQUESTABLE}, //Iris
+                       {127,0,255,NORMAL,0,0}, //Iris
                        {64,0,127,CENTER,0,REQUESTABLE},  //Pedestal
                        {0,0,8000,NORMAL,0,REQUESTABLE},  //Focus
                        {127,0,255,CENTER,0,REQUESTABLE}, //w_Red
@@ -250,6 +250,38 @@ private:
                        {0,0,2,TEXT,6},        //Head Power
                        {0,0,3,TEXT,7}               //Mirror
                       };
+
+    // camera type 3&4 init values
+    /*Problem with color temperature*/
+    int ursaValues[ROW_ENTRIES][COLUM_ENTRIES]=
+                      {{1,1,49,NORMAL,0,0},     //headnr init_value, min_value, max_value
+                       {2000,0,4095,NORMAL,0,0}, //Iris
+                       {127,0,400,CENTER,0,0},  //Pedestal
+                       {-1,-1,-1,NAN},  //Focus
+                       {400,1,800,CENTER,0,REQUESTABLE}, //w_Red
+                       {400,1,800,CENTER,0,REQUESTABLE}, //w_Blue
+                       {100,0,200,CENTER,0,REQUESTABLE}, //b_Red
+                       {100,0,200,CENTER,0,REQUESTABLE}, //b_Blue
+                       {1,1,4,NORMAL,0,REQUESTABLE},    //Gain
+                       {0,0,2,NORMAL,0,REQUESTABLE},   //Gamma
+                       {-1,-1,-1,NAN},      //Gamma-Table
+                       {0,0,3,NORMAL,0,REQUESTABLE},  //Detail
+                       {100,0,200,CENTER,0,REQUESTABLE},  //Color
+                       {0,0,0,NORMAL,0,REQUESTABLE},    //Color Temp
+                       {-1,-1,-1,NAN},    //Knee
+                       {-1,-1,-1,NAN},    //Knee Point
+                       {-1,-1,-1,NAN},       //ND Filter
+                       {100,1,200,NORMAL,0,REQUESTABLE},    //Shutter
+                       {5,1,10,NORMAL},      //PT Speed
+                       {1,1,10,NORMAL},      //Trans Speed
+                       {1,1,10,NORMAL},      //Ramp
+                       {0,0,5,OFFSET},       //SPP1
+                       {1,0,5,OFFSET},       //SPP2
+                       {0,0,30,NORMAL},      //SPP Wait Time
+                       {12,1,127,NORMAL},    //Bounce Zoom Speed
+                       {0,0,2,TEXT,6},        //Head Power
+                       {0,0,3,TEXT,7}               //Mirror
+                      };
     int commandtype[ROW_ENTRIES]{-1,IRIS_OPEN,MASTER_PED_UP,FOCUS_SET_ABSOLUTE,
     RED_GAIN_ADJ_UP,BLUE_GAIN_ADJ_UP,RED_PED_UP,BLUE_PED_UP,CAMERA_GAIN_UP,GAMMA,
     GAMMA_TABLE,DETAIL_LEVEL_ADJ,COLOR_UP,WHITE_BALANCE_PRST,KNEE_POINT_AUTO,KNEE_POINT,ND_FILTER,
@@ -271,6 +303,15 @@ private:
                                 {"Normal","H-Inverted","V-Inverted","HV-Inverted"}
                                };
     QString rTextTable[8][15]={{"-5dB","-4dB","-3dB","-2dB","-1dB","0dB","-1dB","2dB","3dB","4dB","5dB"},
+                               {"Low","Mid","High"},
+                                {"2800K","3200K","4000K","4600K","5600K"},
+                                {"Off","On","Auto"},
+                                {"Clear","1/4","1/16","1/64"},
+                                {"1/50","1/75","1/100","1/120","1/150","1/215","1/300"},
+                                {"Low","Mid","High"},
+                               {"Normal","H-Inverted","V-Inverted","HV-Inverted"}
+                               };
+    QString ursaTextTable[8][15]={{"-5dB","-4dB","-3dB","-2dB","-1dB","0dB","-1dB","2dB","3dB","4dB","5dB"},
                                {"Low","Mid","High"},
                                 {"2800K","3200K","4000K","4600K","5600K"},
                                 {"Off","On","Auto"},

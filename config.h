@@ -2,8 +2,8 @@
 #define CONFIG_H
 
 /*colors*/
-#define PRESET_COLOR 0xFFFFFF
-#define CAMERA_COLOR 0xFF00F0
+#define PRESET_COLOR 0x555555
+#define CAMERA_COLOR 0x550050
 #define SPP_COLOR    0x2483D6
 #define ACT_PRESET_COLOR 0x00FF00
 
