@@ -1,4 +1,96 @@
-# Konzept_ErstesBeispiel
+# Buildroot und Raspi
+1) Ziehe dir als erstes die neuste Version von Buildroot runter und entpacke es in einen Ordner
+```
+:~/buildroot
+```
+2) Kopiere das beigefügte File ```rpi_p6_defconfig``` in den Ordner configs
+```
+cp rpi_p6_defconfig ~/buildroot/configs
+```
+3) Schreibe die vorhandene Config in deine Buildrootconfig
+```
+:~/buildroot$ make rpi_p6_defconfig
+```
+4) Damit ist dein Buildroot so konfiguriert wie bei mir. Am besten kontrollierst du dies aber noch 
+kurz. Wenn Qt dabei ist dann ist sicher schonmal gut. Wie du wahrscheinlich weisst änderst du die 
+Config mit:
+```
+:~/buildroot$ make menuconfig
+```
+5) Wenn alles für dich stimmt kannst du mit dem Buildvorgang starten - das dauert...
+```
+:~/buildroot$ make
+```
+6) Wenn alles geklappt hat solltest du einen Ordner erhalten mit dem rootfs.tar
+```
+:~/buildroot/output/images
+```
+
+Mit Buildroot wars das jetzt schon jetzt muss das noch aufs Raspi.
+1) Ziehe dir Raspbian-Stretch-Lite herunter und flashe dieses mit dem Etcher-Programm auf eine SD-Karte. Damit ist die SD-Karte richtig formatiert und der Bootloader ist drauf.
+2) Du solltest nun folgende zwei partitionen auf deiner SD-Karte vorfinden:
+```
+:/media/$USER/boot
+:/media/$USER/rootfs
+```
+3) Im Ordner boot musst du im File cmdline.txt eine Anpassung machen:
+```
+:~$ gedit  /media/$USER/boot/cmdline.txt
+```
+alt:
+```
+dwc_otg.lpm_enable=0 console=serial0,115200 console=tty1 root=PARTUUID=34319f92-02 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait
+```
+neu:
+```
+dwc_otg.lpm_enable=0 console=serial0,115200 console=tty1 root=PARTUUID=34319f92-02 rootfstype=ext4 elevator=deadline logo.nologo rootwait
+```
+4) Im File config.txt musst du die bekannten Displayeinstellungen machen. Habe mein File beigefügt. Dies hat noch Zusätzliche Änderungen wie:
+- Ausschalten des Regenbogen-Sreens vor dem booten
+- Boot-Delay auf 0
+- alle Pullups die wir brauchen einschalten.
+5) Speichere den Ordner ```/media/$USER/rootfs/lib/modules``` irgendwo lokal ab. Da ich in Buildroot keinen Kernel kompilierte fehlen die module.
+6) Dein kompiliertes Rootfs auf die SD-Karte kopieren:
+```
+:~$ sudo rm -r /media/$USER/rootfs/*
+:~$ sudo tar -xvf buildroot/output/images/rootfs.tar -C /media/$USER/rootfs
+```
+7) Nun sollte das Raspi booten. Passwort: "raspi". Jetzt müssen noch ein paar Anpassungen gemacht werden.
+8) Fahre das Raspi nochmal runter und setzte die SD-Karte nochmals in deinem Compuer ein.
+– kopiere den zuvor gespeicherten Ordner ```modules``` nach  ```/media/$USER/rootfs/lib/```
+– dann kannst du wieder hochfahren.. somit sollten alle Treiber richtig laden
+
+Damit das Ethernet-Interface beim booten eingeschaltet wird musst du folgendes in die Datei ```/etc/network/interfaces``` schreiben:
+```
+auto lo 
+iface lo inet loopback
+auto eth0
+iface eth0 inet static
+wait-delay 2
+address -deine IP-
+netmask -deine Subnet-
+gateway -dein Gateway-
+```
+Das wait-delay ist wichtig, da das Ethernet-IF vom Raspi eigentlich ein USB-Adapter ist und die initialisierung etwas länger dauert...
+
+# QT-Creator
+Ähnlich wie bei dem nachinstallierten Qt muss dem Qt-Creaor ein neues Kit hinzugefügt werden.
+1) Neues Gerät erstellen:
+Einstellungen→ Geräte→ neues generisches Linuxgerät
+2) Kompiler bekanntgeben:
+Einstellungen→ Kits→ Compiler→Hinzufügen
+- GCC: ```buildroot/output/host/usr/bin/arm-buildroot-linux-gnueabi-gcc```
+- C++: ```buildroot/output/host/usr/bin/arm-buildroot-linux-gnueabi-g++```
+3) qmake Version angeben:
+Einstellungen→Kits→Qt Versionen→ Hinzufügen
+- ```buildroot/output/host/usr/bin/qmake```
+4) Kit mit den entsprechenden Komponenten erstellen.
+
+Kompilieren und debuggen sollten nun funktionieren
+
+## Fonts:
+Ich hatte das Problem das Qt die Fonts nicht fand auf dem Raspi. Die Fonts sind auf dem Raspi unter ```/usr/share/fonts``` installiert. Qt sucht unter ```/usr/lib/fonts```.
+Ich habe unter ```/usr/lib/``` einen Ordner ```fonts``` erstellt und nur die DejaVu fonts dort hinein kopiert (ohne Unterordner DejaVu). Hat funktioniert :)
 
 # Rotary-Encoder und Tastenfeld als Linux Input-Device
 Basierend auf dem [Raspberry Pi RCP Controller Panel](http://git.reufer.dyndns.org/bbm/dollycontroller/tree/master/hardware/controllerpanel)
