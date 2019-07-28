@@ -13,8 +13,7 @@
 #include <sched.h>
 #include <csignal>
 #include <QThread>
-
-
+#include <QCursor>
 
 
 int main(int argc, char *argv[])
@@ -152,7 +151,7 @@ int main(int argc, char *argv[])
     controller.startQueueProcessThread();
     poller.startListener();
     udpListener.startListener();
-
+    QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
 
     a.exec();
     poller.stopListener();
