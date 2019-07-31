@@ -39,7 +39,6 @@ SOURCES += \
     udplistener.cpp \
     rotary.cpp \
     tastenfeld.cpp \
-    smbus.cpp \
     ocp.cpp \
     home.cpp \
     view.cpp \
@@ -67,7 +66,6 @@ HEADERS += \
     rotary.h \
     tastenfeld.h \
     config.h \
-    smbus.h \
     ocp.h \
     home.h \
     view.h \

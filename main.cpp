@@ -10,10 +10,17 @@
 #include <QFile>
 #include "logging.h"
 #include <QCommandLineParser>
+#include <sched.h>
+
 
 
 int main(int argc, char *argv[])
 {
+     pthread_t this_thread = pthread_self ();
+     struct sched_param params;
+     params.sched_priority = 75;
+     pthread_setschedparam (this_thread, SCHED_FIFO, &params);
+
     QApplication a(argc, argv);
     QCoreApplication::setApplicationName("BBMNet RCP/OCP Dual Controller");
     QCoreApplication::setApplicationVersion("5.1");

@@ -20,6 +20,7 @@ private:
     uint8_t sense_val, button_val, slaveAddr;
     int8_t rotary_val;
     int rot_err;
+
 };
 
 #endif // ROTARY_H

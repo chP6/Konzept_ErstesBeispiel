@@ -211,7 +211,7 @@ void Poller::listener(){
         }
 
         if(poll_fd[3].revents & POLLPRI){                    // Rotary1 Button
-            usleep(DEBOUNCE_T);
+            usleep(3000);
 
             poll_err = rotary1.readButton();
             if(poll_err<0){
@@ -245,7 +245,7 @@ void Poller::listener(){
         }
 
         if(poll_fd[5].revents & POLLPRI){                    // Rotary2 Button
-
+            usleep(3000);
             //todo proper debounce
             poll_err = rotary2.readButton();
             if(poll_err<0){
@@ -253,7 +253,7 @@ void Poller::listener(){
                 controller->logSystemError(poll_err, "Could not readout Rotary2 button");
             }
             if(poll_err==0){
-            controller->queueEvent(E_LOAD_SAVEFILE);
+            controller->queueEvent(E_AUTOFOCUS);
             }
         }
 

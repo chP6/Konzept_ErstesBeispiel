@@ -429,6 +429,7 @@ void Controller::processQeue(){
             /*Pan and Tilt commands from the Joystick*/
             int x,y;
             x = loadedEvent.data[0];
+            model->setCamFlag(F_PRESET_MOVE,false);
             if(model->getCamFlag(F_X_INVERT)){x=10000-x;} //dirextion of the x axis inverted
 
             y = loadedEvent.data[1];
@@ -457,6 +458,7 @@ void Controller::processQeue(){
             /*Zoom Commands from the z axis of the joystick*/
             int z;
             z=loadedEvent.data[0];
+            model->setCamFlag(F_PRESET_MOVE,false);
             if(!model->getCamFlag(F_Z_INVERT)){z = 254 - z;} //direction of the zoom inverted
 
 
@@ -690,6 +692,9 @@ void Controller::processQeue(){
             else if(model->getCamFlag(F_BOUNCING)){
                 presetbus.setLed(PRESET_COLOR,model->getActivePreset());
             }
+            else if(model->getCamFlag(F_PRST_IN_STORE)){
+                presetbus.showStored(model->getUsedPreset(),model->getActivePreset());
+            }
             else{
                 presetbus.setLed(PRESET_COLOR,model->getActivePreset());
             }
@@ -872,6 +877,7 @@ void Controller::processQeue(){
             }
             model->updateView();
             qCDebug(logicIo) << "Head init done |";
+            system("echo 'Controllerapplication ready....' >/dev/kmsg");
             break;
         case E_CALIB_HEAD:
             /*Calib Head from user input on touch*/
