@@ -2,7 +2,7 @@
 #include "controller.h"
 #include <QDebug>
 
-
+/*Timer which can queue an event after expired interval*/
 GenericTimer::GenericTimer()
 {
 }
@@ -12,13 +12,13 @@ GenericTimer::~GenericTimer(){
     active = false;
 }
 
-
+/*Initialization*/
 int GenericTimer::init(int command, Controller& controller){
     this->controller = &controller;
     this->command = command;
     this->command_data = -1;
 
-    //creating timer, disarmed
+    /*creating timer, disarmed (interval = 0)*/
     timer_fd = timerfd_create(CLOCK_MONOTONIC, 0);
     timeout.it_value.tv_sec = 0;
     timeout.it_value.tv_nsec = 0;
@@ -34,6 +34,7 @@ int GenericTimer::init(int command, Controller& controller){
     poll_fd[0].fd = timer_fd;
     poll_fd[0].events = POLLIN;
 
+    /*Start thread. Only do once*/
     if(!init_done){
         init_done=true;
         std::thread t1(&GenericTimer::listen, this);                  //1.Arg: function type that will be called, 2.Arg: pointer to object (this)
@@ -43,13 +44,14 @@ int GenericTimer::init(int command, Controller& controller){
     return 0;
 }
 
+/*Overload function with data for event*/
 int GenericTimer::init(int command, int command_data, Controller& controller){
     this->controller = &controller;
     this->command = command;
     this->command_data = command_data;
 
 
-    //creating timer, disarmed
+    /*creating timer, disarmed (it_value both 0)*/
     timer_fd = timerfd_create(CLOCK_MONOTONIC, 0);
     timeout.it_value.tv_sec = 0;
     timeout.it_value.tv_nsec = 0;
@@ -74,6 +76,7 @@ int GenericTimer::init(int command, int command_data, Controller& controller){
      return 0;
 }
 
+/**/
 void GenericTimer::start(){
     timeout.it_value.tv_sec = sec;
     timeout.it_value.tv_nsec = usec*1000;
@@ -103,15 +106,17 @@ void GenericTimer::stop(){
     //qDebug("DISARMED");
 }
 
+/*Set timer interval*/
 void GenericTimer::setInterval(int interval_us){
     sec = interval_us/(1000*1000);
     usec = interval_us%(1000*1000);
 }
 
-
+/*Starts as thread. Pushes event to queue after interval*/
 void GenericTimer::listen(){
     while(active){
-        timer_err = poll(poll_fd,1,-1);                      //poll. Blocks until event occurs -> SIZE setzen! current = 15; -1 = infinite timeout
+        /*Blocks until event occurs. -1 = infinite timeout*/
+        timer_err = poll(poll_fd,1,-1);
 
         if(timer_err<0){
             timer_err = errno;

@@ -28,7 +28,7 @@ void Controller::onXptLableChanged()
     model->updateView();
 }
 
-Controller::Controller(Model& model)// : poller(*this)    //poller Konstruktor aufrufen -> erwartet Objekt (as reference) darum this dereferenzieren
+Controller::Controller(Model& model)
 {
     /*set the model for the controller*/
     setModel(model);
@@ -36,7 +36,7 @@ Controller::Controller(Model& model)// : poller(*this)    //poller Konstruktor a
     /*UDP Socket initialize port 9000*/
     contr_err = txSocket.init(9000);
     if(contr_err<0){
-        contr_err = errno;          //zwischenspeichern (muss)
+        contr_err = errno;
         logSystemError(contr_err, "Could not initialize udp-interface");
     }
 
@@ -81,35 +81,22 @@ Controller::Controller(Model& model)// : poller(*this)    //poller Konstruktor a
         sppTimer[i].init(E_SPP_WAIT_DONE,i,*this);
     }
 
-    /*fire the first event in the queue*/
+    /*push the first event in the queue*/
     queueEvent(E_SETUP_HEAD);
 
 
 }
 
+/*Set model*/
 void Controller::setModel(Model &model){
     this->model = &model;
 }
 
+/*Set poller*/
 void Controller::setPoller(Poller &poller){
     this->poller = &poller;
 }
 
-void Controller::increment(int inc){
-    int value = model->getData();
-    value+=inc;
-    model->setData(value);
-    //logError("Test Error");
-}
-
-void Controller::clear(){
-    model->setData(0);
-    usleep(2000*1000);
-}
-
-void Controller::setAxis(int x, int y){
-    model->setAxis(x,y);
-}
 /*Error information*/
 void Controller::logSystemError(int err_no, std::string msg){
     model->addError("(S) " + msg + " ERRNO: " + strerror(err_no));        //msg + string aus errno nummer
@@ -207,14 +194,14 @@ void Controller::settingsLoad(QSettings &savefile, bool send){
     }
 }
 
-/*write the file to /opt/savefile*/
+/*write the savefile to /opt/savefile*/
 int Controller::writeSavefile(){
     QSettings savefile(SAVEFILE_PATH, QSettings::NativeFormat);
     settingsWrite(savefile);
     return savefile.status();
 }
 
-/*load the file from /opt/savefile*/
+/*load the savefile from /opt/savefile*/
 int Controller::loadSavefile(){
     QSettings savefile(SAVEFILE_PATH, QSettings::NativeFormat);
     settingsLoad(savefile, true);
@@ -230,7 +217,7 @@ int Controller::writeAutosave(){
     return savefile.status();
 }
 
-/*load the file from /opt/autosave*/
+/*load the autosavefile from /opt/autosave*/
 int Controller::loadAutosave(){
     QSettings savefile(AUTOSAVE_PATH, QSettings::NativeFormat);
     settingsLoad(savefile,false);
@@ -244,12 +231,12 @@ void Controller::checkSettingsRequest(int slotNr){
     std::vector<int> remainingRequests;
     remainingRequests = model->getRemainingTelegrams(slotNr); //get the remaining telegrams into a vector
 
-    /*if it's all empty, everything has been received and all good. Stop the timer for periodic requests*/
+    /*if it's all empty, everything has been received and all is good. Stop the timer for periodic requests*/
     if(remainingRequests.empty()){
         reqSettingsTimer[slotNr].stop();
         model->setCamFlag(F_RECEIVED_ALL, true);
     }
-    /*if some requests still open and KNOWN flag of according slot set, Re Request*/
+    /*if some requests still open, re-request*/
     else if(model->getCamFlag(slotNr, F_CONNECTED)){
         for (size_t i=0;i<remainingRequests.size();i++){
             int headNr = model->getValue(slotNr,ABS,V_HEADNR);          // get the headnumber according to the slot
@@ -260,12 +247,12 @@ void Controller::checkSettingsRequest(int slotNr){
     }
 }
 
-/*request all settings e.g. after startup or new connectiom or user input*/
+/*request all settings e.g. after startup or new connection or user input*/
 void Controller::requestCameraSettings(int slot){
     int headNr = model->getValue(slot,ABS,V_HEADNR);
     int command;
     model->clearRemainingTelegrams(slot);
-    if(slot == model->getActiveCameraSlot()){model->receiveAllNew();}
+    if(slot == model->getActiveCameraSlot()){model->receiveAllNew();}   //Make all GUI labels yellow
     for (int i=0;i<ROW_ENTRIES;i++) {
         command = model->getRequestCommand(slot,i);     //check if requestable & push, else -1
         if(command>0){
@@ -273,12 +260,13 @@ void Controller::requestCameraSettings(int slot){
           qCDebug(requestIo)<<"Initial request| HeadNr:"<< headNr << ", Command:" << command;
         }
     }
-    reqSettingsTimer[slot].start();             //start the timer for requests that didn't arrive
+    /*Start timer to re-request settings which did not arrive*/
+    reqSettingsTimer[slot].start();
     qCDebug(requestIo)<<"Request timer started| SlotNr:"<< slot;
 }
 
 
-// change value on other camera slots too, if they have same headNr as current
+/*model alignement, if other cameraslots have the same headnumber as the current slot*/
 void Controller::alignSlots(int value){
     for (int i=0;i<NUMBER_OF_SLOTS;i++) {
         if(i != model->getActiveCameraSlot()){
@@ -316,7 +304,6 @@ void Controller::queueEvent(int evt, int dataA, int dataB, int dataC){
     eventQueue.qeueEvent(evt, data);
 }
 
-
 void Controller::queueEvent(int evt, std::vector<int> data){
     eventQueue.qeueEvent(evt, data);
 }
@@ -326,17 +313,16 @@ void Controller::queueEvent(int evt, bool sta){
 }
 
 
-/*start the queue*/
+/*start processQueue in a seperate thread*/
 void Controller::startQueueProcessThread(){
     usleep(800000);
-    eventQueue.initCleanup();
-    //poller->joystick.initRead();
+    eventQueue.initCleanup();                             // clean queue from unwanted startup events from joystick
     std::thread t1(&Controller::processQeue, this);       //1.Arg: function type that will be called, 2.Arg: pointer to object (this)
     t1.detach();
 }
 
 
-
+/*processes the events in the eventQueue*/
 void Controller::processQeue(){
     event_s loadedEvent;
 
@@ -352,7 +338,6 @@ void Controller::processQeue(){
         switch (loadedEvent.evt) {
         case E_CLEAR:
             /*debugging no function*/
-            clear();
             logError("Counter cleared!");
             break;
         case E_INCREASE:
@@ -367,27 +352,28 @@ void Controller::processQeue(){
             if (destination==SEND) {
                 if(model->getFastIris() && model->getCamtype()==6 && model->getRotaryField() == V_IRIS){
                     model->setValue(INC,field,loadedEvent.data[0]<<5);
-                }else {
+                }
+                else{
                     model->setValue(INC,field,loadedEvent.data[0]);     //Last Element
-                       }
+                }
 
                 alignSlots(field);
 
-                /*send what could be sent*/
+                /*send, if associated commandtype exists*/
                 if(model->getTxCommand(field) > 0){  //there could be values without commandtypes
                    txSocket.send(model->getValue(ABS,V_HEADNR),model->getTxCommand(field),model->getValue(ABS,field));
                 }
 
                 /*the headnumer has been changed*/
                 if(field==V_HEADNR){
-                    model->setCamFlag(F_KNOWN, false);
+                    model->setCamFlag(F_CAMERA_KNOWN, false);
                     qDebug("KNOWN Flag cleared!");
                     model->clearRemainingTelegrams(model->getActiveCameraSlot());
                     reqSettingsTimer[model->getActiveCameraSlot()].stop();
                     model->setUpView();
                     model->updateView();
                 }
-            }
+           }
            else{
                 /*nothing to send xpt settings */
                 switch (field) {
@@ -426,13 +412,12 @@ void Controller::processQeue(){
             /*Pan and Tilt commands from the Joystick*/
             int x,y;
             x = loadedEvent.data[0];
+
             model->setCamFlag(F_PRESET_MOVE,false);
             if(model->getCamFlag(F_X_INVERT)){x=10000-x;} //dirextion of the x axis inverted
 
             y = loadedEvent.data[1];
             if(model->getCamFlag(F_Y_INVERT)){y=10000-y;}  //direction of the y axis inverted
-
-            setAxis(x,y); //debug
 
             /*Joystick creeps around the zero point*/
             if(x==5000 && y==5000){
@@ -447,7 +432,7 @@ void Controller::processQeue(){
                 qCDebug(logicIo)<<"SPP stopped by Joystick";
             }
 
-            //debug
+            /*debug*/
             qCDebug(logicIo)<<"Joystick Pan/Tilt| x-Axis:"<< x << ", y-Axis:" << y;
             break;
 
@@ -499,11 +484,11 @@ void Controller::processQeue(){
             txSocket.send(model->getValue(ABS,V_HEADNR), SET_FOCUS_PUSH);
             qCDebug(logicIo)<< "Autofocus pressed |";
             break;
-        case E_AUTOFOCUS_ANSWER:
-            /*Answer from the camera after autofocus to get the new value into the model*/
-            model->setValue(ABS,V_FOCUS,loadedEvent.data[0]);
-            qCDebug(rxHeadIo) << "Focus value received | value:" << loadedEvent.data[0];
-            break;
+//        case E_AUTOFOCUS_ANSWER:
+//            /*Answer from the camera after autofocus to get the new value into the model*/
+//            model->setValue(ABS,V_FOCUS,loadedEvent.data[0]);
+//            qCDebug(rxHeadIo) << "Focus value received | value:" << loadedEvent.data[0];
+//            break;
         case E_TX_SERV_WATCHDOG:
             /*Watchdog to the server, periodically every second*/
             txSocket.send(SERVER, WATCHDOG);
@@ -530,7 +515,7 @@ void Controller::processQeue(){
             logError("Store Preset!");
             break;
         case E_GOTO_PRESET:
-            /*debug*/
+            /*Move camera to preset position*/
             txSocket.send(model->getValue(ABS,V_HEADNR), GOTO_PRESET, loadedEvent.data[0]+1,model->getValue(ABS,V_TRANS_SPEED));
             break;
         case E_STORE_PRESET:
@@ -550,7 +535,7 @@ void Controller::processQeue(){
             int activePreset = loadedEvent.data[0];
             model->setActivePreset(activePreset);    //get the new one
 
-            /*If Scheduled preset positionin is on, abort it and go to the slected preset, then break*/
+            /*If Scheduled preset positioning is on, abort it and go to the slected preset, then break*/
             if(model->getCamFlag(F_SPP_ON)){
                 queueEvent(E_SPP_ABORT);
                 presetbus.setLed(PRESET_COLOR,activePreset);
@@ -615,9 +600,7 @@ void Controller::processQeue(){
                     //txSocket.send(headNr,BNCE_ZOOM_START,model->getValue(ABS,V_BOUNCE_ZOOM_SPEED));  //Stop It
                     //model->setCamFlag(F_BOUNCE_ABORTED,false);
                     qCDebug(logicIo) << "Bounce stopped by key press|" << "HeadNr: " << headNr;
-
               }
-
             }
 
             /*Fast transition flag is set. Recall preset with fastest transition rate and break*/
@@ -635,7 +618,6 @@ void Controller::processQeue(){
             model->setCamFlag(F_PRESET_MOVE,true);
             qCDebug(presetIo) << "Goto Preset | HeadNr:" << headNr<< " ,PresetNr:" << activePreset+1 << ", Transition speed:" << transitionSpeed;
             break;
-
 
         }
 
@@ -715,19 +697,17 @@ void Controller::processQeue(){
             from = loadedEvent.data[0];
             type = loadedEvent.data[1];
             for (int i=0;i<NUMBER_OF_SLOTS;i++) {
-                // camera exists -> clear cameraWaitingFlags
                 if (model->getValue(i,ABS,V_HEADNR) == from) {
+                    /*Camera exists in one or more slots -> Clear cameraWaitingFlags*/
                     model->setCameraWaitingflag(i,false);
                 }
 
-                // respective camera exists in a slot & known flag is not set -> request camera settings
-                if (model->getValue(i,ABS,V_HEADNR) == from && !model->getCamFlag(i,F_KNOWN)) {
-                    //load all non requestable default settings for this cam type
-                    model->setCamType(i, type);
-                    //get actual settings from camera
+                if (model->getValue(i,ABS,V_HEADNR) == from && !model->getCamFlag(i,F_CAMERA_KNOWN)) {
+                    /*Camera exists in a slot & KNOWN flag is not set -> request camera settings*/
+                    model->setCamType(i, type);     //Set camera type and load all min,max settings
                     requestCameraSettings(i);
 
-                    model->setCamFlag(i,F_KNOWN,true);
+                    model->setCamFlag(i,F_CAMERA_KNOWN,true);
                     model->setUpView();     //grays out ui buttons for not supported camera settings, set yellow for requests
                     model->updateView();
                     qCDebug(logicIo) << "New camera registered | " << "HeadNr:" << from << "Cam Type:" << type ;
@@ -828,7 +808,7 @@ void Controller::processQeue(){
             command = loadedEvent.data[1];
             data = loadedEvent.data[2];
 
-            //writing answer values from camera to respective properties in model, if headnumber exists
+            /*Write answer values to respective properties in model, if headnumber exists*/
             for (int i=0;i<NUMBER_OF_SLOTS;i++) {
                 if(model->getValue(i,ABS,V_HEADNR) == from){
 
@@ -839,17 +819,18 @@ void Controller::processQeue(){
 //                         checkSettingsRequest(i);
 //                       }
                     }
+                    /*debug*/
                     qCDebug(rxHeadIo) << "Answer from Camera | HeadNr:" << from << "Command:" << command << "Data:" << data;
                 }
             }
             break;
         case E_RX_ADJ_RCP_CMD:
-            /*Adjustings from a RCP in the net*/
+            /*Update model with values sent by an adjacent RCP in the net*/
             from = loadedEvent.data[0];         //to which camera head the cmd was sent
             command = loadedEvent.data[1];
             data = loadedEvent.data[2];
 
-            //update model, if headnumber exists in slots
+            /*update model, if headnumber exists in slots*/
             for (int i=0;i<NUMBER_OF_SLOTS;i++) {
                 if(model->getValue(i,ABS,V_HEADNR) == from){
 
@@ -994,28 +975,27 @@ void Controller::processQeue(){
 
 
         case E_SPP_START:
-            /*Sheduled Preset Positioning start fron user input on touch*/
-            // only from active slot
-            from = model->getActiveCameraSlot();        //slotNr
+            /*Sheduled Preset Positioning start from user input on touch*/
+            from = model->getActiveCameraSlot();
             headNr = model->getValue(ABS,V_HEADNR);
             sppPreset = model->getValue(ABS,V_SPP1);
             time = model->getValue(ABS,V_SPP_WAIT_TIME);
 
-            // set states
+            /*Set goto1 state & spp_on flag*/
             model->setCamFlag(from, F_SPP_ON, true);
             model->setSppState(from, S_SPP_GOTO1);
 
-            // actions
+            /*Configure timer with user wait time between positions*/
             if(time==0){
-                sppTimer[model->getActiveCameraSlot()].setInterval(1*10000);
+                sppTimer[model->getActiveCameraSlot()].setInterval(1*10000);    // if no wait time, make 10us, 0 would stop timer
             }
             else{
                 sppTimer[model->getActiveCameraSlot()].setInterval(time*1000*1000);
             }
+            /*Send goto preset command, head will respond when position reached*/
             txSocket.send(headNr, GOTO_PRESET, sppPreset+1,model->getValue(ABS,V_TRANS_SPEED));
             model->setActivePreset(sppPreset);
             presetbus.setLed(SPP_COLOR, sppPreset);
-            // wait for response
             qCDebug(logicIo)<< "SPP started by user |";
             break;
 
@@ -1026,51 +1006,56 @@ void Controller::processQeue(){
             int presetNr = loadedEvent.data[1];
             qCDebug(presetIo)<< "Preset reached | HeadNr:" << headNr << "PresetNr:" << presetNr;
 
-            /*Use it for Scheduled Preset Positioning*/
+            /*Check if respective camera is in spp mode*/
             for (int i=0;i<NUMBER_OF_SLOTS;i++) {
                 if(headNr == model->getValue(i,ABS,V_HEADNR) ){      //if sender head matches any current slot head & spp flag is set
-                   model->setCamFlag(i,F_PRESET_MOVE,false); //debug
+                   model->setCamFlag(i,F_PRESET_MOVE,false);
                    if(model->getCamFlag(i,F_SPP_ON)){
-                    //set state
-                    switch (model->getSppState(i)) {
-                    case S_SPP_GOTO1:
-                        if(presetNr == model->getValue(OFFSET,V_SPP1)){
-                            model->setSppState(i, S_SPP_WAIT1);     //if reached, go to wait state 1
-                        qCDebug(logicIo)<< "SPP preset reached | Current state:" << S_SPP_GOTO1 << ", Next State:" << S_SPP_WAIT1 << ", Reached preset:" << presetNr;
+                        /*Act according to current spp state*/
+                        switch (model->getSppState(i)) {
+                        case S_SPP_GOTO1:
+                            /*Position 1 done, set state to wait1*/
+                            if(presetNr == model->getValue(OFFSET,V_SPP1)){
+                                model->setSppState(i, S_SPP_WAIT1);     //if reached, go to wait state 1
+                            qCDebug(logicIo)<< "SPP preset reached | Current state:" << S_SPP_GOTO1 << ", Next State:" << S_SPP_WAIT1 << ", Reached preset:" << presetNr;
+                            }
+                            break;
+                        case S_SPP_GOTO2:
+                            /*Position 2 done, set state to wait2*/
+                            if(presetNr == model->getValue(OFFSET,V_SPP2)){
+                                model->setSppState(i, S_SPP_WAIT2);     //if reached go to wait state 2
+                                qCDebug(logicIo)<< "SPP preset reached | Current state:" << S_SPP_GOTO2 << ", Next State:" << S_SPP_WAIT2 << ", Reached preset:" << presetNr;
+                            }
+                            break;
+                        default:
+                            break;
                         }
-                        break;
-                    case S_SPP_GOTO2:
-                        if(presetNr == model->getValue(OFFSET,V_SPP2)){
-                            model->setSppState(i, S_SPP_WAIT2);     //of reached go to wait state 2
-                            qCDebug(logicIo)<< "SPP preset reached | Current state:" << S_SPP_GOTO2 << ", Next State:" << S_SPP_WAIT2 << ", Reached preset:" << presetNr;
-                        }
-                        break;
-                    default:
-                        break;
+
+                        /*Start spp timer*/
+                        sppTimer[i].start();
+                        qCDebug(logicIo)<< "SPP wait Timer started| SlotNr:" << i;
                     }
-
-                    //actions
-                    sppTimer[i].start();
-                    qCDebug(logicIo)<< "SPP wait Timer started| SlotNr:" << i;
-                }}
+                }
             }
-
-            break;
         }
+        break;
+
         case E_SPP_WAIT_DONE:
             /*Scheduled Preset Positioning timer elapsed*/
             // from anywhere
             from = loadedEvent.data[0];                         // slotNr
             headNr = model->getValue(from,ABS,V_HEADNR);
 
-            //set state
+            /*Act according to current spp state*/
             switch (model->getSppState(from)) {
             case S_SPP_WAIT1:
+                /*Waittime after Position 1 done, set state to goto2*/
                 model->setSppState(from, S_SPP_GOTO2);
                 sppPreset = model->getValue(from,ABS,V_SPP2);
                 qCDebug(logicIo)<< "SPP wait time elapsed | Current state:" << S_SPP_WAIT1 << ", Next State:" << S_SPP_GOTO2 ;
                 break;
             case S_SPP_WAIT2:
+                /*Waittime after Position 2 done, set state to goto1*/
                 model->setSppState(from, S_SPP_GOTO1);
                 sppPreset = model->getValue(from,ABS,V_SPP1);
                 qCDebug(logicIo)<< "SPP wait time elapsed | Current state:" << S_SPP_WAIT2 << ", Next State:" << S_SPP_GOTO1 ;
@@ -1079,7 +1064,7 @@ void Controller::processQeue(){
                 break;
             }
 
-            //action
+            /*Stop spp timer, goto respective preset*/
             sppTimer[from].stop();
             qCDebug(logicIo)<< "SPP wait Timer stopped| SlotNr:" << from;
             txSocket.send(headNr, GOTO_PRESET, sppPreset+1, model->getValue(ABS,V_TRANS_SPEED) );
@@ -1089,7 +1074,7 @@ void Controller::processQeue(){
             if(from == model->getActiveCameraSlot()){       // only set button led if according slot is active
                 presetbus.setLed(SPP_COLOR, sppPreset);
             }
-            // wait for response
+            /*head will report when position reached*/
             break;
 
         case E_SPP_ABORT:
@@ -1097,12 +1082,12 @@ void Controller::processQeue(){
             // only from current slot
             from = model->getActiveCameraSlot();        //slotNr
 
-            //actions
+            /*Actions*/
             sppTimer[from].stop();
             qCDebug(logicIo)<< "SPP wait Timer stopped after abort| SlotNr:" << from;
             presetbus.setLed(PRESET_COLOR, model->getActivePreset());
 
-            //set states
+            /*Clear spp flag, set state to idle*/
             model->setCamFlag(from, F_SPP_ON, false);
             model->setSppState(from, S_SPP_IDLE);
             break;

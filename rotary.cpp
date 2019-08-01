@@ -20,33 +20,36 @@ Rotary::~Rotary()
     close(fd_ic2);
 }
 
+/*Initialization*/
 int Rotary::init(int sense_gpio, int button_gpio, uint8_t slaveAddr){
     this->sense_gpio = sense_gpio;
     this->button_gpio = button_gpio;
     this->slaveAddr = slaveAddr;
 
-    // Sense Leitung
+    /*GPIO setup sense signal*/
     std::string out;
     out = "echo '" + std::to_string(sense_gpio) + "' >/sys/class/gpio/export";
-    system(out.c_str());    // system("echo '4' >/sys/class/gpio/export");
+    system(out.c_str());
     out = "echo 'in' >/sys/class/gpio/gpio" + std::to_string(sense_gpio) + "/direction";
-    system(out.c_str());    // system("echo 'in' >/sys/class/gpio/gpio4/direction");
+    system(out.c_str());
     out = "echo 'falling' >/sys/class/gpio/gpio" + std::to_string(sense_gpio) + "/edge";
-    system(out.c_str());    // system("echo 'falling' >/sys/class/gpio/gpio4/edge");
+    system(out.c_str());
     out = "/sys/class/gpio/gpio" + std::to_string(sense_gpio) + "/value";
+
     fd_sense = open(out.c_str(), O_RDONLY);
     if (fd_sense < 0) {
         return fd_sense;
     }
 
-    // Button Leitung
+    /*GPIO setup button signal*/
     out = "echo '" + std::to_string(button_gpio) + "' >/sys/class/gpio/export";
-    system(out.c_str());    // system("echo '4' >/sys/class/gpio/export");
+    system(out.c_str());
     out = "echo 'in' >/sys/class/gpio/gpio" + std::to_string(button_gpio) + "/direction";
-    system(out.c_str());    // system("echo 'in' >/sys/class/gpio/gpio4/direction");
+    system(out.c_str());
     out = "echo 'falling' >/sys/class/gpio/gpio" + std::to_string(button_gpio) + "/edge";
-    system(out.c_str());    // system("echo 'falling' >/sys/class/gpio/gpio4/edge");
+    system(out.c_str());
     out = "/sys/class/gpio/gpio" + std::to_string(button_gpio) + "/value";
+
     fd_button = open(out.c_str(), O_RDONLY);
     if (fd_button < 0) {
         return fd_button;
@@ -54,7 +57,7 @@ int Rotary::init(int sense_gpio, int button_gpio, uint8_t slaveAddr){
 
 
 
-    // I2C
+    /*I2C setup*/
     char *i2cFilename = I2C_DEV_PATH;
     fd_ic2 = open(i2cFilename, O_RDWR);
     if (fd_ic2 < 0) {
@@ -68,11 +71,12 @@ int Rotary::init(int sense_gpio, int button_gpio, uint8_t slaveAddr){
     return 0;
 }
 
-
+/*Read sense GPIO*/
 int Rotary::readSense(){
-    lseek(fd_sense, 0, SEEK_SET);		//Leseposition wieder auf Null setzen
+    lseek(fd_sense, 0, SEEK_SET);               //Reset read position
     rot_err = read(fd_sense, &sense_val, 1);
 
+// obsolete ??
 //    if (sense_val == '1') {
 //      res = 1;
 //    }
@@ -83,7 +87,22 @@ int Rotary::readSense(){
 
 }
 
+/*Read button GPIO*/
+int Rotary::readButton(){
+    lseek(fd_button, 0, SEEK_SET);              //Reset read position
+    rot_err = read(fd_button, &button_val, 1);
+
+    if (button_val == '1') {
+      return 1;
+    }
+    else{
+      return 0;
+    }
+}
+
+/*Read rotary over i2c*/
 int Rotary::readRotary(int8_t& res){
+
     char obuf[1] = {0};
     char ibuf[1] = {0};
     rot_err = write(fd_ic2,obuf,1);
@@ -101,16 +120,4 @@ int Rotary::readRotary(int8_t& res){
     res = rotary_val;
 
     return 0;
-}
-
-int Rotary::readButton(){
-    lseek(fd_button, 0, SEEK_SET);		//Leseposition wieder auf Null setzen
-    rot_err = read(fd_button, &button_val, 1);
-
-    if (button_val == '1') {
-      return 1;
-    }
-    else{
-      return 0;
-    }
 }

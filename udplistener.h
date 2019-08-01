@@ -14,7 +14,6 @@ public:
     void startListener();
 private:
     Networkinterface rxSocket;
-    EventQueue* eventQueue;
     Controller* controller;
     Telegrambuilder telegramBuilder;
     uint8_t buffer[10];

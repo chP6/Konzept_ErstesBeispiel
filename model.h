@@ -41,10 +41,6 @@ signals:
 
 public:
     Model();
-    void setData(int data);
-    int getData();
-    void setAxis(int x, int y);
-    void getAxis(int &x, int &y);
     void addError(std::string str);
     void clearErrors();
     void setUsedPreset(int presetNr);

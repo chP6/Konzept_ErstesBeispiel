@@ -22,7 +22,6 @@ public:
 
 
 private:
-
     int gpioExport(int gpio);
     void gpioUnExport(int gpio);
     void mapTx(unsigned int blue, unsigned int red, unsigned int green, int button);

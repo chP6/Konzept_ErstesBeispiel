@@ -17,8 +17,7 @@ public:
     Poller(Controller& controller);
     ~Poller();
     void startListener();
-    void stopListener();
-    BBMJoystick joystick;               //for init debug joystick
+
 private:
     [[noreturn]]void listener();
     struct pollfd poll_fd[21];
@@ -30,6 +29,7 @@ private:
     ServerWatchdog srvWatchdog;
 
     Rotary rotary1, rotary2;
+    BBMJoystick joystick;
     Tastenfeld presetbus;
     Tastenfeld camerabus;
     ServerWatchdog xptWatchdog;
