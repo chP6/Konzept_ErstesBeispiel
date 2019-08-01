@@ -4,9 +4,6 @@
 #include "logging.h"
 
 
-
-
-
 XptInterface::XptInterface()
 {
 

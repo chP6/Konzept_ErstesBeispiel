@@ -13,6 +13,7 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <csignal>
 
 Poller::Poller(Controller& controller)
 {
@@ -115,11 +116,18 @@ Poller::Poller(Controller& controller)
 
 }
 
+Poller::~Poller()
+{
+    presetbus.closeAll();
+    camerabus.closeAll();
+}
+
 
 void Poller::listener(){
     std::vector<int> data;
     joystickData jsData;
     data.reserve(10);
+
 
 //flush all interrupts
 //    for (int i = 0;i<17;i++) {
@@ -505,4 +513,14 @@ void Poller::listener(){
 void Poller::startListener(){
     std::thread t2(&Poller::listener, this);                  //1.Arg: function type that will be called, 2.Arg: pointer to object (this)
     t2.detach();
+
 }
+
+void Poller::stopListener()
+{
+    presetbus.closeAll();
+    camerabus.closeAll();
+}
+
+
+

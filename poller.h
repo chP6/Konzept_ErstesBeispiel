@@ -15,7 +15,9 @@ class Poller
 {
 public:
     Poller(Controller& controller);
+    ~Poller();
     void startListener();
+    void stopListener();
     BBMJoystick joystick;               //for init debug joystick
 private:
     [[noreturn]]void listener();

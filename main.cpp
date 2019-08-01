@@ -11,11 +11,22 @@
 #include "logging.h"
 #include <QCommandLineParser>
 #include <sched.h>
+#include <csignal>
 
+
+void signalHandler( int signum ) {
+    qCDebug(logicIo)<< "Interrupt signal (" << signum << ") received.\n";
+
+
+   exit(signum);
+}
 
 
 int main(int argc, char *argv[])
 {
+
+
+
      pthread_t this_thread = pthread_self ();
      struct sched_param params;
      params.sched_priority = 75;
@@ -129,6 +140,8 @@ int main(int argc, char *argv[])
     QObject::connect(&model, &Model::receiveAllNew,
                      &view, &View::on_newRequest);
 
+    // register signal SIGINT and signal handler
+     std::signal(SIGINT|SIGKILL|SIGABRT|SIGTERM,signalHandler);
 
     Controller controller(model);
     //start queue was here
@@ -148,6 +161,6 @@ int main(int argc, char *argv[])
     controller.startQueueProcessThread();
     poller.startListener();
     udpListener.startListener();
-
+    poller.stopListener();
     return a.exec();
 }
