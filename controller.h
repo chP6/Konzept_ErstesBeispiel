@@ -60,7 +60,7 @@ private:
     Networkinterface txSocket;
     Tastenfeld presetbus;
     Tastenfeld camerabus;
-    XptInterface xptSocket;
+    xptinterface *xptSocket;
     GenericTimer blinkTimer, sppTimer[NUMBER_OF_SLOTS], xptWatchdog, reqSettingsTimer[NUMBER_OF_SLOTS];
     int xptConnectionAttempts=0;
 

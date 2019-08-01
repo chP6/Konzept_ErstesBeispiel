@@ -19,11 +19,12 @@
 /*Signal from xptSocktet 'inputLabelsChanged' to controller 'onXptLabelChanged'*/
 void Controller::onXptLableChanged()
 {
+
     /*update Model and View*/
-    model->setXptNumberOfInputs(xptSocket.getNumberOfInputs());
-    model->setXptNumberOfOutputs(xptSocket.getNumberOfOutputs());
-    model->setXptInputLables(xptSocket.getInputLabels());
-    model->setXptOutputLables(xptSocket.getOutputLabels());
+    model->setXptNumberOfInputs(xptSocket->getNumberOfInputs());
+    model->setXptNumberOfOutputs(xptSocket->getNumberOfOutputs());
+    model->setXptInputLables(xptSocket->getInputLabels());
+    model->setXptOutputLables(xptSocket->getOutputLabels());
     model->updateView();
 }
 
@@ -82,10 +83,6 @@ Controller::Controller(Model& model)// : poller(*this)    //poller Konstruktor a
 
     /*fire the first event in the queue*/
     queueEvent(E_SETUP_HEAD);
-
-    /*Signal connection from xptSocktet 'inputLabelsChanged' to controller 'onXptLabelChanged'*/
-    QObject::connect(&xptSocket, SIGNAL(inputLabelsChanged()),
-                     this, SLOT(onXptLableChanged()));
 
 
 }
@@ -702,7 +699,7 @@ void Controller::processQeue(){
             if(model->getXptEnabled() && model->getXptConnected()){
                 int source = model->getXptSlotSource(model->getActiveCameraSlot());
                 int destination = model->getXptDestination();
-                contr_err = xptSocket.sendChange(source, destination);
+                contr_err = xptSocket->sendChange(source, destination);
                 qCDebug(xptIo)<<"Send routing change | Source:" << source << ", Destination:" << destination;
                 if (contr_err < 0) {
                     contr_err = errno;
@@ -910,20 +907,31 @@ void Controller::processQeue(){
         case E_XPT_CONNECT:
             /*Connection to Xpt Router from user input on touch*/
             if(model->getXptEnabled()){
-                contr_err = xptSocket.init(XptInterface::XptType(model->getXptType()),model->getXptIpAdress()); // Initialize socket with the corresponding xpt type
-                if(contr_err<0){
-                    contr_err = errno;
-                    logSystemError(contr_err, "Could not initialize xpt-interface");
-                qCWarning(xptIo)<< "Could not initialize Xpt Socket| Xpt Type:" << model->getXptType() << ", Xpt adress:" << model->getXptIpAdress();
+                //contr_err = xptSocket.init(XptInterface::XptType(model->getXptType()),model->getXptIpAdress()); // Initialize socket with the corresponding xpt type
+                switch (model->getXptType()) {
+                case I_XPT_TYPE_BLACKMAGIC: xptSocket = new BmdInterface();break;
+                case I_XPT_TYPE_ROSS: xptSocket = new RossInterface();break;
                 }
+
+                /*Signal connection from xptSocktet 'inputLabelsChanged' to controller 'onXptLabelChanged'*/
+                QObject::connect(xptSocket, SIGNAL(inputLabelsChanged()),
+                                 this, SLOT(onXptLableChanged()));
+
+                contr_err = xptSocket->init(model->getXptIpAdress());
+                    if(contr_err<0){
+                        contr_err = errno;
+                        logSystemError(contr_err, "Could not initialize xpt-interface");
+                        qCWarning(xptIo)<< "Could not initialize Xpt Socket| Xpt Type:" << model->getXptType() << ", Xpt adress:" << model->getXptIpAdress();
+                    }
                 qCDebug(xptIo)<< "Xpt Socket initialized | Xpt Type:" << model->getXptType() << ", Xpt adress:" << model->getXptIpAdress();
-                contr_err = xptSocket.connectToXpt(); //try to connect
-                if(contr_err < 0){
-                    contr_err = errno;
-                    logSystemError(contr_err, "Could not connect to Xpt");
-                    qCWarning(xptIo)<< "Could not connect to Xpt Socket| Xpt Type:" << model->getXptType() << ", Xpt adress:" << model->getXptIpAdress();
-                    model->updateXptEnableStatus(false); //initial connection failed
-                    model->setXptConnected(false);
+
+                contr_err = xptSocket->connectToXpt(); //try to connect
+                    if(contr_err < 0){
+                        contr_err = errno;
+                        logSystemError(contr_err, "Could not connect to Xpt");
+                        qCWarning(xptIo)<< "Could not connect to Xpt Socket| Xpt Type:" << model->getXptType() << ", Xpt adress:" << model->getXptIpAdress();
+                        model->updateXptEnableStatus(false); //initial connection failed
+                        model->setXptConnected(false);
                 }else {
                     model->setXptConnected(true);
                     xptWatchdog.start();    // start watchdog for preiodic ping
@@ -932,7 +940,8 @@ void Controller::processQeue(){
 
             }
            else{
-            contr_err = xptSocket.disconnect();
+
+            contr_err = xptSocket->disconnect();
             if(contr_err < 0){
                 contr_err = errno;
                 qCWarning(xptIo)<< "Could not disconnect from Xpt Socket| Xpt Type:" << model->getXptType() << ", Xpt adress:" << model->getXptIpAdress();
@@ -941,6 +950,7 @@ void Controller::processQeue(){
                 model->setXptConnected(false);
                 qCDebug(xptIo)<< "Disconnected from Xpt | Xpt Type:" << model->getXptType() << ", Xpt adress:" << model->getXptIpAdress();
                 xptWatchdog.stop(); //stop timer
+                delete xptSocket;
             }
             break;
 
@@ -949,12 +959,12 @@ void Controller::processQeue(){
             if(model->getXptEnabled())
             {
                 int connection;
-                connection = xptSocket.checkConnection(); //ping
+                connection = xptSocket->checkConnection(); //ping
                 /*No answer form XPT router*/
                 if (connection <= 0 ) {
                     xptConnectionAttempts++;
-                    xptSocket.disconnect();     //disconnect
-                    if (xptSocket.connectToXpt() < 0) { //reconnect
+                    xptSocket->disconnect();     //disconnect
+                    if (xptSocket->connectToXpt() < 0) { //reconnect
                         qCDebug(xptIo)<< "Try to reconnect Xpt | Xpt Type:" << model->getXptType() << ", Xpt adress:" << model->getXptIpAdress() << ", Connection attempt:" << xptConnectionAttempts;
                         model->setXptConnected(false);  //show that not connected
                     }
@@ -965,6 +975,7 @@ void Controller::processQeue(){
                         model->updateXptEnableStatus(false);
                         xptWatchdog.stop();
                         qCDebug(xptIo)<< "Xpt unreachable | Xpt Type:" << model->getXptType() << ", Xpt adress:" << model->getXptIpAdress() << ", Connection attempt:" << xptConnectionAttempts;
+                        delete xptSocket;
                         break;
                     }
                      //model->setXptConnected(false);

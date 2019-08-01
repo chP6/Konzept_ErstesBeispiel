@@ -161,6 +161,6 @@ int main(int argc, char *argv[])
     controller.startQueueProcessThread();
     poller.startListener();
     udpListener.startListener();
-    poller.stopListener();
+
     return a.exec();
 }

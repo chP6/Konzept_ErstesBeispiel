@@ -3,51 +3,99 @@
 #include <QDebug>
 #include "logging.h"
 
-
-XptInterface::XptInterface()
+xptinterface::xptinterface()
 {
 
 }
 
-int XptInterface::init(XptType type, char *ipAdress)
+xptinterface::~xptinterface()
 {
-/*Prepare initialization according to the xpt type*/
-    switch (type) {
-        case XptInterface::BalckMagic:
-            xptType = XptInterface::BalckMagic;
-            xpt_adress.sin_port = htons(BMDPORT);
-            numberOfInputs = 40;
-            numberOfOutputs = 40;
-            inputLabels.clear();
-            outputLabels.clear();
-         break;
-        case XptInterface::Ross:
-            xptType = XptInterface::Ross;
-            xpt_adress.sin_port = htons(ROSSPORT);
-            numberOfInputs = 24;
-            numberOfOutputs = 8;
-            inputLabels.clear();
-            /*Ross is alway the same, doesen't send labels etc.*/
-                for (int i = 0;i<numberOfInputs;i++) {
-                    inputLabels.append(QString::number(i+1));
-                }
 
-            outputLabels.clear();
-                for (int i=0;i<numberOfOutputs;i++) {
-                    outputLabels.append(QStringLiteral("Aux %1").arg(i+1));
-                    }
-        break;
+}
+
+
+int xptinterface::disconnect()
+{
+    /*close socket*/
+    connect_err=close(sockfd);
+    if(connect_err<0){
+        return  -1;
     }
+    return 0;
+}
+
+QList<QString> xptinterface::getOutputLabels()
+{
+    return outputLabels;
+}
+
+QList<QString> xptinterface::getInputLabels()
+{
+    return inputLabels;
+}
+
+int xptinterface::getNumberOfInputs()
+{
+    return numberOfInputs;
+}
+
+int xptinterface::getNumberOfOutputs()
+{
+    return numberOfOutputs;
+}
+
+int xptinterface::changeIP(char *ipAdress)
+{
+    connect_err = inet_aton(ipAdress, &xpt_adress.sin_addr);
+    if (connect_err < 0) {
+        return -1;
+    }
+
+    return 0;
+}
+
+QList<QByteArray> xptinterface::appendInput(QByteArray &input)
+{
+    QList<QByteArray> message;
+    QList<QByteArray> lines = input.split('\n');
+    Q_FOREACH(QByteArray line, lines)
+    {
+            message.append(line);
+    }
+    return message;
+}
+
+/*************************************************************************/
+
+RossInterface::RossInterface()
+{
+
+}
+
+int RossInterface::init(char *ipAdress)
+{
+    xpt_adress.sin_port = htons(7788);
+    numberOfInputs = 24;
+    numberOfOutputs = 8;
+    inputLabels.clear();
+    /*Ross is alway the same, doesen't send labels etc.*/
+        for (int i = 0;i<numberOfInputs;i++) {
+            inputLabels.append(QString::number(i+1));
+        }
+
+    outputLabels.clear();
+        for (int i=0;i<numberOfOutputs;i++) {
+            outputLabels.append(QStringLiteral("Aux %1").arg(i+1));
+            }
 
     xpt_adress.sin_family = AF_INET;
     inet_aton(ipAdress, &xpt_adress.sin_addr);
     bzero(&(xpt_adress.sin_zero), 8);
 
     return 0;
-
 }
 
-int XptInterface::connectToXpt()
+int RossInterface::connectToXpt()
 {
     struct timeval tv;
             tv.tv_usec=100000;
@@ -67,82 +115,73 @@ int XptInterface::connectToXpt()
             return -1;
         }
 
-        switch (xptType) {
-            case XptInterface::BalckMagic:
-                {
-            /*receive initial dump of BMD device*/
-                XptInterface::SrvAnswer answer=bmdReceive();
-                /*catch the preamble line*/
-                    if (answer==XptInterface::Preamble) {
-                        /*receive the rest of the dump, inpul labels etc.*/
-                        answer=bmdReceive();
-                        if (answer==XptInterface::ACK) {
-                            /*cath ack and return 1, all good*/
-                            return 1;
-                                }
-                                        }
-                    else if (answer == XptInterface::ACK) {
-                        /*if no dump was sent, just look after ack*/
-                        return 1;
-                        }
-                    else {
-                        return -1;
-                       }
-            break;
-            }
-            case XptInterface::Ross:
-            /*ross doesn't send a dump*/
-                emit inputLabelsChanged(); //update the input label on touchscreen
-                return 1;
-        }
+    /*ross doesn't send a dump*/
+    emit inputLabelsChanged(); //update the input label on touchscreen
+    return 1;
 
-    return -1;
+
 }
-XptInterface::SrvAnswer XptInterface::bmdReceive()
+
+int RossInterface::sendChange(int source, int destination)
 {
-    /*receive xpt answer*/
-    recv_err=recv(sockfd, rxbuffer, MAXDATASIZE,0);
-         if (recv_err < 0) {
-             return XptInterface::Error;
-             }
+    memset(txBuffer,0,sizeof(txBuffer));
 
-         QByteArray input;
-         input.append(rxbuffer);    //put buffer in a Byte Array from Qt
-         qCDebug(xptIo)<< "Received message from BMD device | Message:" << input;
-         QList<QByteArray> message = appendInput(input); //put input in a message separated by line feed
+    sprintf(txBuffer,"XPT AUX:%d:IN:%d\n",destination+1,source+1); //send change ross doesn't confirm
+    //if(connect_err < 0){
+      //  return -1;
+        //    }
+    send_err = send(sockfd,txBuffer,strlen(txBuffer),MSG_NOSIGNAL);
+    if (send_err < 0) {
+        return -1;
+            }
 
-         if(!message.empty()){
-             XptInterface::SrvAnswer result = processBmdMessages(message); //do something according to message
-             qCDebug(xptIo)<< "BMD message processed";
-             return result;
-         }
-         return XptInterface::Error;
+    return  0;
 }
 
-XptInterface::SrvAnswer XptInterface::processRossMessages(QList<QByteArray> &message)
+int RossInterface::checkConnection()
+{
+    memset(txBuffer,0,sizeof(txBuffer));
+    memset(rxbuffer,0,sizeof(rxbuffer));
+
+    sprintf(txBuffer,"HELP\n");
+    /*send ping*/
+    send_err = send(sockfd,txBuffer,strlen(txBuffer),MSG_NOSIGNAL);
+    if (send_err < 0) {
+        return -1;
+        }
+    /*receive answer*/
+    xptinterface::SrvAnswer answer=receive();
+        if (answer==xptinterface::ACK) {
+            return 1;
+        }
+        else {
+            return -1;
+        }
+}
+
+xptinterface::SrvAnswer RossInterface::processMessages(QList<QByteArray> &message)
 {
     /*Nothing in Message*/
     if (message.length() < 1) {
-        return XptInterface::Error;
+        return xptinterface::Error;
     }
 
     /*Everything is good as long something is in the message*/
    if(!message.empty()){
        message.clear();
-       return XptInterface::ACK;
+       return xptinterface::ACK;
    }
    else {
-       return XptInterface::Error;
+       return xptinterface::Error;
    }
-
 }
 
-XptInterface::SrvAnswer XptInterface::rossReceive()
+xptinterface::SrvAnswer RossInterface::receive()
 {
     /*receive xpt answer*/
     recv_err=recv(sockfd, rxbuffer, MAXDATASIZE, 0);
          if (recv_err < 0) {
-             return XptInterface::Error;
+             return xptinterface::Error;
              }
 
          QByteArray input;
@@ -151,28 +190,115 @@ XptInterface::SrvAnswer XptInterface::rossReceive()
          QList<QByteArray> message = appendInput(input);    //put input in a message separated by line feed
 
          if(!message.empty()){
-             XptInterface::SrvAnswer result = processRossMessages(message); //do something according to message
+             xptinterface::SrvAnswer result = processMessages(message); //do something according to message
              qCDebug(xptIo)<< "Ross message processed";
              return result;
          }
-         return XptInterface::Error;
+         return xptinterface::Error;
 }
 
-int XptInterface::disconnect()
+
+/*******************************************************************************/
+
+BmdInterface::BmdInterface()
 {
-    /*close socket*/
-    connect_err=close(sockfd);
-    if(connect_err<0){
-        return  -1;
-    }
+
+}
+
+int BmdInterface::init(char *ipAdress)
+{
+    xpt_adress.sin_port = htons(9990);
+    numberOfInputs = 40;
+    numberOfOutputs = 40;
+    inputLabels.clear();
+    outputLabels.clear();
+
+    xpt_adress.sin_family = AF_INET;
+    inet_aton(ipAdress, &xpt_adress.sin_addr);
+    bzero(&(xpt_adress.sin_zero), 8);
+
     return 0;
 }
 
-XptInterface::SrvAnswer XptInterface::processBmdMessages(QList<QByteArray> &message)
+int BmdInterface::connectToXpt()
+{
+    struct timeval tv;
+            tv.tv_usec=100000;
+    /*Create a tcp socket*/
+    sockfd=socket(AF_INET,SOCK_STREAM,0);
+    /*prevent blocking when connection is lost, eg cable plugged out*/
+    setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (struct timeval *)&tv,sizeof(struct timeval));
+    setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, (struct timeval *)&tv,sizeof(struct timeval));
+
+    if(sockfd<0){
+        return -1;
+    }
+    /*connect to the prepared xpt in init*/
+    connect_err = ::connect(sockfd,(struct sockaddr *)&xpt_adress,sizeof(struct sockaddr));
+        if(connect_err < 0)
+        {
+            return -1;
+        }
+        /*receive initial dump of BMD device*/
+            xptinterface::SrvAnswer answer=receive();
+            /*catch the preamble line*/
+                if (answer==xptinterface::Preamble) {
+                    /*receive the rest of the dump, inpul labels etc.*/
+                    answer=receive();
+                    if (answer==xptinterface::ACK) {
+                        /*cath ack and return 1, all good*/
+                        return 1;
+                            }
+                                    }
+                else if (answer == xptinterface::ACK) {
+                    /*if no dump was sent, just look after ack*/
+                    return 1;
+                    }
+
+        return -1;
+}
+
+int BmdInterface::sendChange(int source, int destination)
+{
+    memset(txBuffer,0,sizeof(txBuffer));
+
+    sprintf(txBuffer,"VIDEO OUTPUT ROUTING:\n%d %d\n\n",destination,source); //send change xpt should send ack
+
+    send_err = send(sockfd,txBuffer,strlen(txBuffer),MSG_NOSIGNAL);
+    if (send_err < 0) {
+        return -1;
+            }
+
+    return  0;
+}
+
+int BmdInterface::checkConnection()
+{
+    //clear buffers
+    memset(txBuffer,0,sizeof(txBuffer));
+    memset(rxbuffer,0,sizeof(rxbuffer));
+
+    sprintf(txBuffer,"PING:\n\n");
+    /*send a ping*/
+    send_err = send(sockfd,txBuffer,strlen(txBuffer),MSG_NOSIGNAL);
+    if (send_err < 0) {
+        return -1;
+        }
+    /*receive answer*/
+    xptinterface::SrvAnswer answer=receive();
+        if (answer==xptinterface::ACK) {
+            return 1;
+        }
+        else {
+            return -1;
+        }
+}
+
+xptinterface::SrvAnswer BmdInterface::processMessages(QList<QByteArray> &message)
 {
     /*Message shouldn't be empty*/
     if (message.length() < 1) {
-        return XptInterface::Error;
+        return xptinterface::Error;
     }
     QByteArray header;
     int processedMessages=0;
@@ -272,149 +398,38 @@ while(!message.empty()){
     else if (header.startsWith("PROTOCOL PREAMBLE:")) { // detect preamble
 
         if (message.length()<10) {          // return when nothing else follows
-            return XptInterface::Preamble;
+            return xptinterface::Preamble;
         }
         processedMessages++;
     }
 
 }
     if(!processedMessages){
-        return XptInterface::Error;
+        return xptinterface::Error;
     }
     else {
-        return XptInterface::ACK;
+        return xptinterface::ACK;
     }
 
 }
 
-QList<QByteArray> XptInterface::appendInput(QByteArray &input)
+xptinterface::SrvAnswer BmdInterface::receive()
 {
-    QList<QByteArray> message;
-    QList<QByteArray> lines = input.split('\n');
-    Q_FOREACH(QByteArray line, lines)
-    {
-            message.append(line);
-    }
-    return message;
+    /*receive xpt answer*/
+       recv_err=recv(sockfd, rxbuffer, MAXDATASIZE,0);
+         if (recv_err < 0) {
+             return xptinterface::Error;
+             }
 
+       QByteArray input;
+       input.append(rxbuffer);    //put buffer in a Byte Array from Qt
+       qCDebug(xptIo)<< "Received message from BMD device | Message:" << input;
+       QList<QByteArray> message = appendInput(input); //put input in a message separated by line feed
+
+         if(!message.empty()){
+             xptinterface::SrvAnswer result = processMessages(message); //do something according to message
+             qCDebug(xptIo)<< "BMD message processed";
+             return result;
+         }
+         return xptinterface::Error;
 }
-
-
-
-int XptInterface::getNumberOfInputs()
-{
-    return numberOfInputs;
-}
-
-int XptInterface::getNumberOfOutputs()
-{
-    return numberOfOutputs;
-}
-
-QList<QString> XptInterface::getOutputLabels()
-{
-    return outputLabels;
-}
-
-QList<QString> XptInterface::getInputLabels()
-{
-    return inputLabels;
-}
-
-void XptInterface::setXptType(XptInterface::XptType type)
-{
-    if (xptType != type) {
-        xptType = type;
-    }
-}
-
-
-int XptInterface::changeIP(char *ipAdress)
-{
-   connect_err = inet_aton(ipAdress, &xpt_adress.sin_addr);
-   if (connect_err < 0) {
-       return -1;
-   }
-
-   return 0;
-}
-
-int XptInterface::sendChange(int source, int destination)
-{
-    memset(txBuffer,0,sizeof(txBuffer));
-
-    switch (xptType) {
-    case XptInterface::BalckMagic:
-
-            sprintf(txBuffer,"VIDEO OUTPUT ROUTING:\n%d %d\n\n",destination,source); //send change xpt should send ack
-          //  if(connect_err < 0){
-            //    return -1;
-              //      }
-            send_err = send(sockfd,txBuffer,strlen(txBuffer),MSG_NOSIGNAL);
-            if (send_err < 0) {
-                return -1;
-                    }
-
-            return  0;
-
-    case XptInterface::Ross:
-        sprintf(txBuffer,"XPT AUX:%d:IN:%d\n",destination+1,source+1); //send change ross doesn't confirm
-        //if(connect_err < 0){
-          //  return -1;
-            //    }
-        send_err = send(sockfd,txBuffer,strlen(txBuffer),MSG_NOSIGNAL);
-        if (send_err < 0) {
-            return -1;
-                }
-
-        return  0;
-    }
-    return -1;
-}
-
-int XptInterface::checkConnection()
-{
-    //clear buffers
-    memset(txBuffer,0,sizeof(txBuffer));
-    memset(rxbuffer,0,sizeof(rxbuffer));
-
-        switch (xptType) {
-        case XptInterface::BalckMagic:
-        {
-            sprintf(txBuffer,"PING:\n\n");
-            /*send a ping*/
-            send_err = send(sockfd,txBuffer,strlen(txBuffer),MSG_NOSIGNAL);
-            if (send_err < 0) {
-                return -1;
-                }
-            /*receive answer*/
-            XptInterface::SrvAnswer answer=bmdReceive();
-                if (answer==XptInterface::ACK) {
-                    return 1;
-                }
-                else {
-                    return -1;
-                }
-        }
-        case XptInterface::Ross:
-            sprintf(txBuffer,"HELP\n");
-            /*send ping*/
-            send_err = send(sockfd,txBuffer,strlen(txBuffer),MSG_NOSIGNAL);
-            if (send_err < 0) {
-                return -1;
-                }
-            /*receive answer*/
-            XptInterface::SrvAnswer answer=rossReceive();
-                if (answer==XptInterface::ACK) {
-                    return 1;
-                }
-                else {
-                    return -1;
-                }
-
-        }
-
-    return -1;
-
-}
-
