@@ -38,6 +38,13 @@ Model::Model()
 
 
     // emit updateView(); -> not possible yet, signals not routed at this point -> do in controller
+
+    /* default control/axis mapping */
+    controls[kAxisPan] = kControlJoystickX;
+    controls[kAxisTilt] = kControlJoystickY;
+    controls[kAxisZoom] = kControlJoystickZ;
+    controls[kAxisFocus] = kControlFocusWheel;
+    controls[kAxisTravelling] = kControlZoomRocker;
 }
 
 /*Add error to error list*/
@@ -931,4 +938,31 @@ void Model::clearRemainingTelegrams(int slotNr)
     cameras[slotNr].remainingTelegrams.clear();
 }
 
+void Model::setControl(axis_t axis, control_t control)
+{
+    qDebug("setControl of %S to %s", axisStr(axis), controlStr(control));
 
+    switch (axis) {
+    case kAxisPan:
+    case kAxisTilt:
+    case kAxisZoom:
+    case kAxisFocus:
+    case kAxisTravelling:
+        controls[axis] = control;
+        break;
+    }
+}
+
+control_t Model::getControl(axis_t axis)
+{
+    switch (axis) {
+    case kAxisPan:
+    case kAxisTilt:
+    case kAxisZoom:
+    case kAxisFocus:
+    case kAxisTravelling:
+        return controls[axis];
+    }
+
+    return kControlNone;
+}

@@ -117,6 +117,13 @@ void Controller::clearErrors(){
 /*prepare a savefile with all necessary userdata from the model*/
 void Controller::settingsWrite(QSettings &savefile){
     savefile.clear();
+
+    /* control Settings */
+    savefile.beginGroup("controls");
+    for (axis_t axis : { kAxisPan, kAxisTilt, kAxisZoom, kAxisFocus, kAxisTravelling })
+        savefile.setValue("controlAxis" + QString::number((int)axis), model->getControl(axis));
+    savefile.endGroup();
+
     /*xpt Settings*/
     savefile.beginGroup("xpt");
     savefile.setValue("xptType",model->getXptType());
@@ -150,6 +157,12 @@ void Controller::settingsWrite(QSettings &savefile){
 
 /*write the loaded settings to the model*/
 void Controller::settingsLoad(QSettings &savefile, bool send){
+    /* control Settings */
+    savefile.beginGroup("controls");
+    for (axis_t axis : { kAxisPan, kAxisTilt, kAxisZoom, kAxisFocus, kAxisTravelling })
+        model->setControl(axis, (control_t)savefile.value("controlAxis" + QString::number((int)axis)).toInt());
+    savefile.endGroup();
+
     /*write according to group*/
     savefile.beginGroup("xpt");
         model->setXptType(savefile.value("xptType").toInt());
@@ -435,10 +448,10 @@ void Controller::processQeue(){
             x = loadedEvent.data[0];
 
             model->setCamFlag(F_PRESET_MOVE,false);
-            if(model->getCamFlag(F_X_INVERT)){x=10000-x;} //dirextion of the x axis inverted
 
+            if(model->getCamFlag(F_PAN_INVERT)){x=10000-x;} //dirextion of the x axis inverted
             y = loadedEvent.data[1];
-            if(model->getCamFlag(F_Y_INVERT)){y=10000-y;}  //direction of the y axis inverted
+            if(model->getCamFlag(F_TILT_INVERT)){y=10000-y;} //direction of the y axis inverted
 
             /*Joystick creeps around the zero point*/
             if(x==5000 && y==5000){
@@ -461,9 +474,10 @@ void Controller::processQeue(){
             /*Zoom Commands from the z axis of the joystick*/
             int z;
             z=loadedEvent.data[0];
-            model->setCamFlag(F_PRESET_MOVE,false);
-            if(!model->getCamFlag(F_Z_INVERT)){z = 254 - z;} //direction of the zoom inverted
 
+            model->setCamFlag(F_PRESET_MOVE,false);
+
+            if(!model->getCamFlag(F_ZOOM_INVERT)){z = 254 - z;} //direction of the zoom inverted
 
             /*Joystick creeps around the zero point*/
             if(z==127){
@@ -494,7 +508,7 @@ void Controller::processQeue(){
             /*Focus Command from the Rotary Encoder*/
             int focus;
             focus=loadedEvent.data[0];
-            if(model->getCamFlag(F_FOCUSINVERT)){focus=(-focus);} //The direction of the focus can be inverted
+            if(model->getCamFlag(F_FOCUS_INVERT)){focus=(-focus);} //The direction of the focus can be inverted
             model->setValue(INC, V_FOCUS, focus);
             txSocket.send(model->getValue(ABS,V_HEADNR), FOCUS_SET_ABSOLUTE, model->getValue(ABS, V_FOCUS));
             qCDebug(logicIo)<<"Focus| delta:"<< focus << ", value:"<<model->getValue(ABS,V_FOCUS);

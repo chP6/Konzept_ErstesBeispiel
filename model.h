@@ -122,6 +122,8 @@ public:
     bool getFastIris();
     void setFastIris(bool flag);
 
+    void setControl(axis_t axis, control_t control);
+    control_t getControl(axis_t axis);
 
 private:
     QStringList errorList;
@@ -141,6 +143,9 @@ private:
     bool requestSettingsFlag = false;
     bool reqPendingArr[MAX_NUMBER_OF_CMDS];
     int currReqHeadNr;
+
+    /* control/axis mapping */
+    control_t controls[kAxisMax];
 
     /*XPT handling */
     bool xptConnect=false;
