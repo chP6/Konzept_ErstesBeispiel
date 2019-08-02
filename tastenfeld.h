@@ -18,7 +18,6 @@ public:
     int initSpi();
     void setRow(int row);
     int showStored(int usedPresets, int activePreset);
-     void closeAll();
 
 
 private:

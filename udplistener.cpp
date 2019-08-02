@@ -4,6 +4,7 @@
 #include "config.h"
 #include <thread>
 #include <QDebug>
+#include <csignal>
 
 UdpListener::UdpListener(Controller& controller)
 {
@@ -19,8 +20,17 @@ UdpListener::UdpListener(Controller& controller)
 
 /*Starts listener as a seperate thread*/
 void UdpListener::startListener(){
-    std::thread t1(&UdpListener::listener, this);                  //1.Arg: function type that will be called, 2.Arg: pointer to object (this)
-    t1.detach();
+    applicationRunning = true;
+    t2 = std::thread(&UdpListener::listener, this);                  //1.Arg: function type that will be called, 2.Arg: pointer to object (this)
+    //t1.detach();
+}
+
+void UdpListener::stopListener()
+{
+    rxSocket.closeSocket();
+    applicationRunning = false;
+    //std::raise(SIGCONT);
+
 }
 
 /*Read pending data on socket (or block), decode bbmnet telegram and push event to queue accordingly*/
@@ -28,7 +38,7 @@ void UdpListener::listener(){
     answer_s answer;
 
     /*Blocks until message received on socket*/
-    while(1){
+    while(applicationRunning){
         rx_err = rxSocket.receive(buffer);
         if(rx_err < 0){
             rx_err = errno;

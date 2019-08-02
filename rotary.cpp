@@ -18,6 +18,11 @@ Rotary::~Rotary()
     close(fd_sense);
     close(fd_button);
     close(fd_ic2);
+    std::string out;
+    out = "echo '" + std::to_string(button_gpio) + "' >/sys/class/gpio/unexport";
+    system(out.c_str());
+    out = "echo '" + std::to_string(sense_gpio) + "' >/sys/class/gpio/unexport";
+    system(out.c_str());
 }
 
 /*Initialization*/
@@ -99,6 +104,7 @@ int Rotary::readButton(){
       return 0;
     }
 }
+
 
 /*Read rotary over i2c*/
 int Rotary::readRotary(int8_t& res){

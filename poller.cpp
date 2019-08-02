@@ -15,8 +15,11 @@
 #include <stdio.h>
 #include <csignal>
 
+
+
 Poller::Poller(Controller& controller)
 {
+
 
 
     this->controller = &controller;
@@ -29,11 +32,11 @@ Poller::Poller(Controller& controller)
         controller.logSystemError(poll_err, "Could not initialize Watchdog Timer");
     }
 
-    poll_err = xptWatchdog.init(1);
-    if(poll_err < 0){
-        poll_err = errno;
-        controller.logSystemError(poll_err, "Could not initialize Watchdog Timer Xpt");
-    }
+//    poll_err = xptWatchdog.init(1);
+//    if(poll_err < 0){
+//        poll_err = errno;
+//        controller.logSystemError(poll_err, "Could not initialize Watchdog Timer Xpt");
+//    }
 
     poll_err = autoSaveWatchdog.init(10);
     if(poll_err < 0){
@@ -122,15 +125,16 @@ Poller::Poller(Controller& controller)
 
 Poller::~Poller()
 {
-    presetbus.closeAll();
-    camerabus.closeAll();
+
 }
 
 
 /*Starts listener function as seperate thread*/
 void Poller::startListener(){
-    std::thread t2(&Poller::listener, this);                  //1.Arg: function type that will be called, 2.Arg: pointer to object (this)
-    t2.detach();
+    applicationRunning = true;
+    //std::thread t2(&Poller::listener, this); //1.Arg: function type that will be called, 2.Arg: pointer to object (this)
+    t3 = std::thread(&Poller::listener, this);
+    //t2.detach();
 }
 
 
@@ -139,7 +143,6 @@ void Poller::listener(){
     std::vector<int> data;
     joystickData jsData;
     data.reserve(10);
-
 // obsolete ??
 //flush all interrupts
 //    for (int i = 0;i<17;i++) {
@@ -162,7 +165,7 @@ void Poller::listener(){
     }
 
     /*Endless loop*/
-    while(1){
+    while(applicationRunning){
 
         data.clear();
         /*Blocks until event occurs. -1 = infinite timeout*/
@@ -561,5 +564,19 @@ void Poller::listener(){
         }
 
     }
+}
+
+void Poller::stopListener()
+{
+
+    presetbus.~Tastenfeld();
+    camerabus.~Tastenfeld();
+    rotary1.~Rotary();
+    rotary2.~Rotary();
+    joystick.~BBMJoystick();
+    autoSaveWatchdog.~ServerWatchdog();
+    srvWatchdog.~ServerWatchdog();
+    ocp.~OCP();
+    applicationRunning = false;
 }
 

@@ -28,6 +28,11 @@ void Controller::onXptLableChanged()
     model->updateView();
 }
 
+void Controller::onAppQuit()
+{
+    qCDebug(logicIo)<<"This is the end";
+}
+
 Controller::Controller(Model& model)
 {
     /*set the model for the controller*/
@@ -261,7 +266,9 @@ void Controller::requestCameraSettings(int slot){
         }
     }
     /*Start timer to re-request settings which did not arrive*/
-    reqSettingsTimer[slot].start();
+    if(model->getCamFlag(slot,F_CONNECTED)){
+        reqSettingsTimer[slot].start();
+    }
     qCDebug(requestIo)<<"Request timer started| SlotNr:"<< slot;
 }
 
@@ -316,9 +323,23 @@ void Controller::queueEvent(int evt, bool sta){
 /*start processQueue in a seperate thread*/
 void Controller::startQueueProcessThread(){
     usleep(800000);
-    eventQueue.initCleanup();                             // clean queue from unwanted startup events from joystick
-    std::thread t1(&Controller::processQeue, this);       //1.Arg: function type that will be called, 2.Arg: pointer to object (this)
-    t1.detach();
+    eventQueue.initCleanup();   // clean queue from unwanted startup events from joystick
+    applicationRunning = true;
+    t1 = std::thread(&Controller::processQeue, this);       //1.Arg: function type that will be called, 2.Arg: pointer to object (this)
+    //t1.detach();
+}
+
+void Controller::stopQueueProcessThread()
+{
+    txSocket.~Networkinterface();
+    for (int i = 0;i<NUMBER_OF_SLOTS;i++) {
+        sppTimer[i].stop();
+        reqSettingsTimer[i].stop();
+    }
+    xptWatchdog.stop();
+    blinkTimer.stop();
+    applicationRunning = false;
+    eventQueue.qeueEvent(E_CLEAR); //fire event to stop thread
 }
 
 
@@ -331,7 +352,7 @@ void Controller::processQeue(){
     //struct timeval  tv1, tv2;
     model->setUpView();
 
-    while(1){
+    while(applicationRunning){
         eventQueue.pullEvent(loadedEvent);      //blocks if queue is empty
 //        gettimeofday(&tv1, NULL);
 

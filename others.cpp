@@ -105,7 +105,8 @@ void Others::on_btRequest_clicked()
 
 void Others::on_btSave_clicked()
 {
-    controller->queueEvent(E_WRITE_SAVEFILE);
+    QApplication::quit();
+   // controller->queueEvent(E_WRITE_SAVEFILE);
 }
 
 void Others::on_btLoad_clicked()

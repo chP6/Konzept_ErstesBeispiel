@@ -12,27 +12,22 @@
 #include <QCommandLineParser>
 #include <sched.h>
 #include <csignal>
+#include <QThread>
 
 
-void signalHandler( int signum ) {
-    qCDebug(logicIo)<< "Interrupt signal (" << signum << ") received.\n";
-
-
-   exit(signum);
-}
 
 
 int main(int argc, char *argv[])
 {
 
-
-
+    QApplication a(argc, argv);
+    //a.quit();
      pthread_t this_thread = pthread_self ();
      struct sched_param params;
      params.sched_priority = 75;
      pthread_setschedparam (this_thread, SCHED_FIFO, &params);
 
-    QApplication a(argc, argv);
+
     QCoreApplication::setApplicationName("BBMNet RCP/OCP Dual Controller");
     QCoreApplication::setApplicationVersion("5.1");
 
@@ -140,14 +135,13 @@ int main(int argc, char *argv[])
     QObject::connect(&model, &Model::receiveAllNew,
                      &view, &View::on_newRequest);
 
-    // register signal SIGINT and signal handler
-     std::signal(SIGINT|SIGKILL|SIGABRT|SIGTERM,signalHandler);
-
     Controller controller(model);
 
     QObject::connect(&controller, &Controller::clearLoadButon,
                      &view, &View::on_loadButtonCleared);
 
+    QObject::connect(&a, &QApplication::aboutToQuit,
+                     &controller, &Controller::onAppQuit);
 
     view.setModelController(model, controller);
     view.show();
@@ -155,11 +149,18 @@ int main(int argc, char *argv[])
     Poller poller(controller);
     controller.setPoller(poller);
     UdpListener udpListener(controller);
-
-
     controller.startQueueProcessThread();
     poller.startListener();
     udpListener.startListener();
 
-    return a.exec();
+
+    a.exec();
+    poller.stopListener();
+    if(poller.t3.joinable()){ poller.t3.join();}
+    controller.stopQueueProcessThread();
+    if(controller.t1.joinable()){controller.t1.join();}
+    udpListener.stopListener();
+    //if(udpListener.t2.joinable()){udpListener.t2.join();}
+    printf("bye bye \n");
+    exit(0);
 }

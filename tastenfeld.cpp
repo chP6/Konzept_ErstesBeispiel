@@ -25,7 +25,35 @@ Tastenfeld::Tastenfeld()
 Tastenfeld::~Tastenfeld()
 {
 
-    closeAll();
+    close(spi_fd);
+    /*close files*/
+    for(unsigned int i=0;i<(sizeof(button)/sizeof(button[0]));i++){
+
+        close(button[i]);
+    }
+    /*unexport sys*/
+    switch(button_bus){
+
+        case UPPER_ROW:
+            gpioUnExport(TASTE1);
+            gpioUnExport(TASTE2);
+            gpioUnExport(TASTE3);
+            gpioUnExport(TASTE4);
+            gpioUnExport(TASTE5);
+            gpioUnExport(TASTE6);
+        break;
+
+        case LOWER_ROW:
+            gpioUnExport(TASTE7);
+            gpioUnExport(TASTE8);
+            gpioUnExport(TASTE9);
+            gpioUnExport(TASTE10);
+            gpioUnExport(TASTE11);
+            gpioUnExport(TASTE12);
+
+        break;
+
+    }
 
 }
 
@@ -237,37 +265,6 @@ int Tastenfeld::showStored(int usedPresets, int activePreset)
             return 0;
 }
 
-void Tastenfeld::closeAll()
-{
-    /*close files*/
-    for(unsigned int i=0;i<(sizeof(button)/sizeof(button[0]));i++){
-
-        close(button[i]);
-    }
-    /*unexport sys*/
-    switch(button_bus){
-
-        case UPPER_ROW:
-            gpioUnExport(TASTE1);
-            gpioUnExport(TASTE2);
-            gpioUnExport(TASTE3);
-            gpioUnExport(TASTE4);
-            gpioUnExport(TASTE5);
-            gpioUnExport(TASTE6);
-        break;
-
-        case LOWER_ROW:
-            gpioUnExport(TASTE7);
-            gpioUnExport(TASTE8);
-            gpioUnExport(TASTE9);
-            gpioUnExport(TASTE10);
-            gpioUnExport(TASTE11);
-            gpioUnExport(TASTE12);
-
-        break;
-
-    }
-}
 
 
 int Tastenfeld::readButton(int buttonNr){

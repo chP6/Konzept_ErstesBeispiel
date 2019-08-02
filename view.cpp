@@ -5,12 +5,14 @@
 #include "QString"
 #include "events.h"
 #include "config.h"
+#include <csignal>
 
 View::View(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::View)
 {
     ui->setupUi(this);
+    std::signal(SIGINT,View::signalHandler);
 }
 
 View::~View()
@@ -27,6 +29,12 @@ void View::setModelController(Model& model, Controller& controller){
     ui->cameraView->setModelController(this->model, this->controller);
     ui->others->setModelController(this->model, this->controller);
     ui->xptControl->setModelController(this->model,this->controller);
+}
+
+void View::signalHandler(int signum)
+{
+    printf("Why do you kill me %d \n",signum);
+    QApplication::quit();
 }
 
 

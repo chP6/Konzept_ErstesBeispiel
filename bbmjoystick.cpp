@@ -12,6 +12,11 @@ BBMJoystick::BBMJoystick()
 {
 }
 
+BBMJoystick::~BBMJoystick()
+{
+    close(joystick_fd);
+}
+
 /*Initialization*/
 int BBMJoystick::init(){
     axis[0] = 0;
@@ -31,7 +36,7 @@ int BBMJoystick::init(){
     if(joystick_fd<0){
         usleep(1000);
         init();        //erst wenn scharf ??
-        error(joystick_fd,errno,"couldn't open device");
+        error(joystick_fd,errno,"couldn't open device Joystick");
         return -1;
     }
      return 0;

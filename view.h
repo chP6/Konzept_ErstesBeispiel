@@ -44,6 +44,7 @@ private:
     Ui::View *ui;
     Controller* controller;
     Model* model;
+    static void signalHandler(int signum);
 };
 
 #endif // VIE_H
