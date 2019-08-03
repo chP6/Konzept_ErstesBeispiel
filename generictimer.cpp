@@ -2,6 +2,7 @@
 #include "controller.h"
 #include <QDebug>
 #include "logging.h"
+#include <csignal>
 
 /*Timer which can queue an event after expired interval*/
 GenericTimer::GenericTimer()
@@ -36,12 +37,13 @@ int GenericTimer::init(int command, Controller& controller){
     poll_fd[0].events = POLLIN;
 
     /*Start thread. Only do once*/
-    if(!init_done){
-        init_done=true;
-        std::thread t1(&GenericTimer::listen, this);                  //1.Arg: function type that will be called, 2.Arg: pointer to object (this)
-        t1.detach();
-        //qDebug("Timer Thread created");
-    }
+//    if(!init_done){
+//        init_done=true;
+//        active = true;
+//        std::thread t1(&GenericTimer::listen, this);                  //1.Arg: function type that will be called, 2.Arg: pointer to object (this)
+//        t1.detach();
+//        qDebug("Timer Thread created");
+//    }
     return 0;
 }
 
@@ -68,18 +70,21 @@ int GenericTimer::init(int command, int command_data, Controller& controller){
     poll_fd[0].fd = timer_fd;
     poll_fd[0].events = POLLIN;
 
-    if(!init_done){
-        init_done=true;
+//    if(!init_done){
+//        init_done=true;
+//        active = true;
 //        std::thread t1(&GenericTimer::listen, this);                  //1.Arg: function type that will be called, 2.Arg: pointer to object (this)
 //        t1.detach();
-        //qDebug("Timer Thread created");
-    }
+//        qDebug("Timer Thread created");
+//    }
      return 0;
 }
 
 /**/
 void GenericTimer::start(){
+  if(!init_done){
     active = true;
+    init_done=true;
     timeout.it_value.tv_sec = sec;
     timeout.it_value.tv_nsec = usec*1000;
     timeout.it_interval.tv_sec = sec;
@@ -90,15 +95,21 @@ void GenericTimer::start(){
         timer_err = errno;
         controller->logSystemError(timer_err, "Could not set GenericTimer");
     }
-     t1 = std::thread(&GenericTimer::listen, this);                  //1.Arg: function type that will be called, 2.Arg: pointer to object (this)
-    //t1.detach();
-    //qDebug("ARMED");
+
+        t1 = std::thread(&GenericTimer::listen, this);                  //1.Arg: function type that will be called, 2.Arg: pointer to object (this)
+        //t1.detach();
+        qCDebug(logicIo)<<"Timer Thread Created";
+    }
 }
 
 void GenericTimer::stop(){
+if(init_done){
     active = false;
+
     if (t1.joinable()) {
         t1.join();
+    qCDebug(logicIo)<<"Timer Thread Joined";
+    init_done = false;
     }
     timeout.it_value.tv_sec = 0;
     timeout.it_value.tv_nsec = 0;
@@ -111,6 +122,7 @@ void GenericTimer::stop(){
         controller->logSystemError(timer_err, "Could not set GenericTimer");
     }
 
+}
     //qDebug("DISARMED");
 }
 
@@ -118,11 +130,12 @@ void GenericTimer::stop(){
 void GenericTimer::setInterval(int interval_us){
     sec = interval_us/(1000*1000);
     usec = interval_us%(1000*1000);
+
 }
 
 /*Starts as thread. Pushes event to queue after interval*/
 void GenericTimer::listen(){
-    while(active){
+   do{
         /*Blocks until event occurs. -1 = infinite timeout*/
         timer_err = poll(poll_fd,1,-1);
 
@@ -148,6 +161,7 @@ void GenericTimer::listen(){
             }
             //qDebug("Timer Tick");
         }
-    }
+    } while(active);
+
     qCDebug(logicIo)<<"Timer Thread died";
 }
