@@ -473,13 +473,12 @@ void Controller::processQeue(){
             txSocket.send(model->getValue(ABS,V_HEADNR),ZOOM_FOCUS_SET, z); //send zoom information to the camera
 
             /*Bounce mode can be aborted with the use of the zoom*/
-//            if(model->getCamFlag(F_BOUNCING) ){
-//                model->setCamFlag(F_BOUNCING,false);
-//                model->setCamFlag(F_BOUNCE_ABORTED,true);
-//                presetbus.setLed(PRESET_COLOR,model->getActivePreset());
-//                txSocket.send(model->getValue(ABS,V_HEADNR),BNCE_ZOOM_START,model->getValue(ABS,V_BOUNCE_ZOOM_SPEED)); //Stop It
-//                qCDebug(logicIo)<<"Bounce stopped by Joystick";
-//            }
+            if(model->getCamFlag(F_BOUNCING) ){
+                model->setCamFlag(F_BOUNCING,false);
+                presetbus.setLed(PRESET_COLOR,model->getActivePreset());
+                model->setCamFlag(F_BOUNCE_ABORTED,true);
+                qCDebug(logicIo)<<"Bounce stopped by Joystick";
+            }
 
             /*Sceduled Preset Positioning can be aborted with the move of the joystick*/
             if(model->getCamFlag(F_SPP_ON)){
@@ -596,7 +595,8 @@ void Controller::processQeue(){
                     //}
 
                     model->setCamFlag(F_BOUNCING,true);
-                    blinkTimer.start(); //blink the led
+                    blinkTimer.start();
+
                     break;
                 }
 
@@ -865,7 +865,6 @@ void Controller::processQeue(){
         case E_SETUP_HEAD:
             /*Initial Event from Controller*/
             loadAutosave();       //todo: case if empty file or not exist
-
             //send PT SPEED , RAMP values to Head, request all camera settings
             for (int i=0;i<NUMBER_OF_SLOTS;i++) {
                 txSocket.send(model->getValue(i,ABS,V_HEADNR), RAMP, model->getValue(i,ABS,V_RAMP));
@@ -1025,6 +1024,7 @@ void Controller::processQeue(){
             /*Preset reached from a camera in the net*/
             headNr = loadedEvent.data[0];
             int presetNr = loadedEvent.data[1];
+
             qCDebug(presetIo)<< "Preset reached | HeadNr:" << headNr << "PresetNr:" << presetNr;
 
             /*Check if respective camera is in spp mode*/
@@ -1036,15 +1036,17 @@ void Controller::processQeue(){
                         switch (model->getSppState(i)) {
                         case S_SPP_GOTO1:
                             /*Position 1 done, set state to wait1*/
-                            if(presetNr == model->getValue(OFFSET,V_SPP1)){
+                            if(presetNr == model->getValue(i,ABS,V_SPP1)+1){
                                 model->setSppState(i, S_SPP_WAIT1);     //if reached, go to wait state 1
+                                model->getValue(i,ABS,V_SPP_WAIT_TIME) == 0 ? queueEvent(E_SPP_WAIT_DONE,i) : sppTimer[i].start();
                             qCDebug(logicIo)<< "SPP preset reached | Current state:" << S_SPP_GOTO1 << ", Next State:" << S_SPP_WAIT1 << ", Reached preset:" << presetNr;
                             }
                             break;
                         case S_SPP_GOTO2:
                             /*Position 2 done, set state to wait2*/
-                            if(presetNr == model->getValue(OFFSET,V_SPP2)){
+                            if(presetNr == model->getValue(i,ABS,V_SPP2)+1){
                                 model->setSppState(i, S_SPP_WAIT2);     //if reached go to wait state 2
+                                model->getValue(i,ABS,V_SPP_WAIT_TIME) == 0 ? queueEvent(E_SPP_WAIT_DONE,i) : sppTimer[i].start();
                                 qCDebug(logicIo)<< "SPP preset reached | Current state:" << S_SPP_GOTO2 << ", Next State:" << S_SPP_WAIT2 << ", Reached preset:" << presetNr;
                             }
                             break;
@@ -1053,7 +1055,7 @@ void Controller::processQeue(){
                         }
 
                         /*Start spp timer*/
-                        sppTimer[i].start();
+                        //sppTimer[i].start();
                         qCDebug(logicIo)<< "SPP wait Timer started| SlotNr:" << i;
                     }
                 }
@@ -1088,7 +1090,8 @@ void Controller::processQeue(){
             /*Stop spp timer, goto respective preset*/
             sppTimer[from].stop();
             qCDebug(logicIo)<< "SPP wait Timer stopped| SlotNr:" << from;
-            txSocket.send(headNr, GOTO_PRESET, sppPreset+1, model->getValue(ABS,V_TRANS_SPEED) );
+            model->setCamFlag(from,F_PRESET_MOVE,true);
+            txSocket.send(headNr, GOTO_PRESET, sppPreset+1, model->getValue(from,ABS,V_TRANS_SPEED) );
             qCDebug(presetIo) << "Goto Preset | HeadNr:" << headNr<< " ,PresetNr:" << sppPreset+1 << ", Transition speed:" << model->getValue(ABS,V_TRANS_SPEED);
 
             model->setActivePreset(from, sppPreset);
