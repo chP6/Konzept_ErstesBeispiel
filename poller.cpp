@@ -50,6 +50,7 @@ Poller::Poller(Controller& controller)
         controller.logSystemError(poll_err, "Could not initialize Joystick");
     }
 
+    joystick.initRead();
     poll_err = rotary1.init(4, 16, 0x10);
     if(poll_err < 0){
         poll_err = errno;
