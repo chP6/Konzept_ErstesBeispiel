@@ -27,7 +27,7 @@ public:
     int send(int bbm_dev_no, int bbm_command, int d1);
     int send(int bbm_dev_no, int bbm_command, int d1, int d2);
     int send(int bbm_dev_no, int bbm_command, int d1, int d2, int d3);
-    int send(int bbm_dev_no, int bbm_command, int data[4]);
+    int send(int bbm_dev_no, int bbm_command, int (&data)[4]);
     int receive(uint8_t* rec_buffer);
     void getSenderAddr(std::string &addr);
     void closeSocket();

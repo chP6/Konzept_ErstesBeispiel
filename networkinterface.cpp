@@ -95,7 +95,7 @@ int Networkinterface::send(int bbm_dev_no, int bbm_command, int d1, int d2, int 
     return send_err;
 }
 
-int Networkinterface::send(int bbm_dev_no, int bbm_command, int d[4]){  //würg oder uint8_t* ?
+int Networkinterface::send(int bbm_dev_no, int bbm_command, int (&d)[4]){
     data.clear();
     data.push_back(d[0]);
     data.push_back(d[1]);

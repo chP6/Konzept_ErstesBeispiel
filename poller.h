@@ -25,7 +25,7 @@ public:
     bool applicationRunning=false;
 
 private:
-    struct pollfd poll_fd[21+4];
+    struct pollfd poll_fd[21+5];        // eleganter: nach Instanzierung aller Input-Devices dynamisch Speicher mit malloc() allozieren
     int poll_err;
     int sense_val;
     signed char rotary_val;

@@ -44,11 +44,13 @@ Poller::Poller(Controller& controller)
         controller.logSystemError(poll_err, "Could not initialize Autosave Timer");
     }
 
+#if 0
     poll_err = joystick.init();
     if(poll_err < 0){
         poll_err = errno;
         controller.logSystemError(poll_err, "Could not initialize Joystick");
     }
+#endif
 
     joystick.initRead();
     poll_err = rotary1.init(4, 16, 0x10);
@@ -140,6 +142,7 @@ Poller::Poller(Controller& controller)
                                            { KEY_5,  { E_PRESET_CHANGE, { 4 }}},
                                            { KEY_6,  { E_PRESET_CHANGE, { 5 }}} }));
 
+    m_devices.push_back(new XYZJoystick("/dev/input/by-id/usb-CH_Products_APEM_HF_Joystick-event-joystick"));
     m_devices.push_back(new ZoomFocusJoystick("/dev/input/by-id/usb-Adafruit_LLC_Adafruit_ItsyBitsy_M4_HIDAC-event-if02"));
 
     int i = 21;

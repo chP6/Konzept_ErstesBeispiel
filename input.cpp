@@ -1,5 +1,6 @@
 #include "input.h"
 #include "events.h"
+#include "config.h"
 
 #include <unistd.h>
 #include <fcntl.h>
@@ -90,6 +91,33 @@ int Keyboard::getEvent(std::vector<int> &data) {
 
 /* ------------------------------------------------------------------------- */
 
+XYZJoystick::XYZJoystick(const char* fileName)
+    : InputDevice(fileName) {}
+
+int XYZJoystick::getEvent(std::vector<int> &data) {
+    if (eventReceived()) {
+        struct input_event event;
+        if (readEvent(event)) {
+            if (event.type == EV_ABS) {
+                switch (event.code) {
+                case ABS_X: data.push_back(kControlJoystickX); break;
+                case ABS_Y: data.push_back(kControlJoystickY); break;
+                case ABS_Z: data.push_back(kControlJoystickZ); break;
+                default:    data.push_back(kControlNone);      break;
+                }
+                data.push_back((event.value - 2047) * 16); // -32'767..32'767
+                return E_CONTROL_INPUT;
+            } else if (event.type == EV_KEY) {
+                if (event.code == BTN_TRIGGER && event.value == 1)
+                    return E_AUTOFOCUS;
+            }
+        }
+    }
+    return E_NULLEVENT;
+}
+
+/* ------------------------------------------------------------------------- */
+
 ZoomFocusJoystick::ZoomFocusJoystick(const char* fileName)
     : InputDevice(fileName) {}
 
@@ -99,11 +127,13 @@ int ZoomFocusJoystick::getEvent(std::vector<int> &data) {
         if (readEvent(event)) {
             if (event.type == EV_ABS) {
                 if (event.code == ABS_Y) {
-                    data.push_back(event.value / 256); // -127..+127
-                    return E_SET_ZOOM;
+                    data.push_back(kControlZoomRocker);
+                    data.push_back(event.value);
+                    return E_CONTROL_INPUT;
                 } else if (event.code == ABS_X) {
-                    data.push_back(event.value - INT16_MIN); // 0..65'535
-                    return E_FOCUS_CHANGE;
+                    data.push_back(kControlFocusWheel);
+                    data.push_back(event.value);
+                    return E_CONTROL_INPUT;
                 }
             }
         }

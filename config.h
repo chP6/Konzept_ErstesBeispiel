@@ -179,4 +179,9 @@ static const char* controlStr(control_t c) {
                 "unknown";
 }
 
+#define AXES_UPDATE_INTERVAL_MS 20 /* update axis values every 20ms (50Hz) */
+
+#define AXIS_NO_VALUE_REL (INT8_MIN)
+#define AXIS_NO_VALUE_ABS (INT16_MIN)
+
 #endif // CONFIG_H
