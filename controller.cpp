@@ -648,22 +648,22 @@ void Controller::processQeue(){
             from = loadedEvent.data[0];
             data = loadedEvent.data[1];
             for (int i=0;i<NUMBER_OF_SLOTS;i++) {
-                if(model->getCamFlag(i,F_BOUNCING)){
-
-                    model->setCamFlag(i,F_BOUNCING,false);
-                    qCDebug(logicIo) << "Bounce stopped by external Preset change|" << "HeadNr: " << from;
-                }
-                if (model->getCamFlag(i,F_SPP_ON)) {
-                    model->setCamFlag(i,F_SPP_ON,false);
-                    qCDebug(logicIo) << "SPP stopped by external Preset change|" << "HeadNr: " << from;
-                }
-                if(model->getValue(i,ABS,V_HEADNR) == from ){
+                if (model->getValue(i,ABS,V_HEADNR) == from){
                     if(!(i == model->getActiveCameraSlot())){
-                        model->setActivePreset(i,data-1);
-                        qCDebug(presetIo) << "External Preset Change on inactive Slot | HeadNr:" << from<< " ,PresetNr:" << data;
-                    }
+                        if(model->getCamFlag(i,F_BOUNCING)){
+                            model->setCamFlag(i,F_BOUNCING,false);
+                            qCDebug(logicIo) << "Bounce stopped by external Preset change|" << "HeadNr: " << from;
+                            }
+                        if (model->getCamFlag(i,F_SPP_ON)) {
+                            model->setCamFlag(i,F_SPP_ON,false);
+                            qCDebug(logicIo) << "SPP stopped by external Preset change|" << "HeadNr: " << from;
+                            }
+
+                            model->setActivePreset(i,data-1);
+                            qCDebug(presetIo) << "External Preset Change on inactive Slot | HeadNr:" << from<< " ,PresetNr:" << data;
+                            }
                     else {
-                        model->setActivePreset(i,data-1);
+                        //model->setActivePreset(i,data-1);
                         presetbus.setLed(PRESET_COLOR,model->getActivePreset());
                         qCDebug(presetIo) << "External Preset Change on active Slot | HeadNr:" << from<< " ,PresetNr:" << data;
                     }
