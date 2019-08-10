@@ -129,18 +129,18 @@ Poller::Poller(Controller& controller)
                                            { KEY_ENTER, { E_FAST_IRIS, { }}}}));
     m_devices.push_back(new Keyboard("/dev/input/by-path/platform-led-buttons-event", {
                                            /* key      event             data */
-                                           { KEY_F1, { E_CAMERA_CHANGE, { 0 }}},
-                                           { KEY_F2, { E_CAMERA_CHANGE, { 1 }}},
-                                           { KEY_F3, { E_CAMERA_CHANGE, { 2 }}},
-                                           { KEY_F4, { E_CAMERA_CHANGE, { 3 }}},
-                                           { KEY_F5, { E_CAMERA_CHANGE, { 4 }}},
-                                           { KEY_F6, { E_CAMERA_CHANGE, { 5 }}},
-                                           { KEY_1,  { E_PRESET_CHANGE, { 0 }}},
-                                           { KEY_2,  { E_PRESET_CHANGE, { 1 }}},
-                                           { KEY_3,  { E_PRESET_CHANGE, { 2 }}},
-                                           { KEY_4,  { E_PRESET_CHANGE, { 3 }}},
-                                           { KEY_5,  { E_PRESET_CHANGE, { 4 }}},
-                                           { KEY_6,  { E_PRESET_CHANGE, { 5 }}} }));
+                                           { KEY_1,  { E_CAMERA_CHANGE, { 0 }}},
+                                           { KEY_2,  { E_CAMERA_CHANGE, { 1 }}},
+                                           { KEY_3,  { E_CAMERA_CHANGE, { 2 }}},
+                                           { KEY_4,  { E_CAMERA_CHANGE, { 3 }}},
+                                           { KEY_5,  { E_CAMERA_CHANGE, { 4 }}},
+                                           { KEY_6,  { E_CAMERA_CHANGE, { 5 }}},
+                                           { KEY_F1, { E_PRESET_CHANGE, { 0 }}},
+                                           { KEY_F2, { E_PRESET_CHANGE, { 1 }}},
+                                           { KEY_F3, { E_PRESET_CHANGE, { 2 }}},
+                                           { KEY_F4, { E_PRESET_CHANGE, { 3 }}},
+                                           { KEY_F5, { E_PRESET_CHANGE, { 4 }}},
+                                           { KEY_F6, { E_PRESET_CHANGE, { 5 }}} }));
 
     m_devices.push_back(new XYZJoystick("/dev/input/by-id/usb-CH_Products_APEM_HF_Joystick-event-joystick"));
     m_devices.push_back(new ZoomFocusJoystick("/dev/input/by-id/usb-Adafruit_LLC_Adafruit_ItsyBitsy_M4_HIDAC-event-if02"));
