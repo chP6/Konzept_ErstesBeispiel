@@ -8,7 +8,7 @@
 #include <QtDebug>
 
 
-BBMJoystick::BBMJoystick()
+BBMJoystick::BBMJoystick() : joystick_fd(-1)
 {
 }
 
