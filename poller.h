@@ -8,6 +8,7 @@
 #include "ocp.h"
 #include <poll.h>
 #include <vector>
+#include <thread>
 
 class Controller;
 
@@ -15,10 +16,14 @@ class Poller
 {
 public:
     Poller(Controller& controller);
+    ~Poller();
     void startListener();
+    void listener();
+    std::thread t3;
+    void stopListener();
+    bool applicationRunning=false;
 
 private:
-    [[noreturn]]void listener();
     struct pollfd poll_fd[21];
     int poll_err;
     int sense_val;
@@ -26,12 +31,11 @@ private:
     int xold,yold,zold;
     Controller* controller;
     ServerWatchdog srvWatchdog;
-
     Rotary rotary1, rotary2;
     BBMJoystick joystick;
     Tastenfeld presetbus;
     Tastenfeld camerabus;
-    ServerWatchdog xptWatchdog;
+    //ServerWatchdog xptWatchdog;
     ServerWatchdog autoSaveWatchdog;
     OCP ocp;
 };

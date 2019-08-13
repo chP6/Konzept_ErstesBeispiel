@@ -10,6 +10,7 @@
 #include <string>
 #include "bbmcommandtypes.h"
 #include "telegrambuilder.h"
+#include <fcntl.h>
 
 #define SERVER_IP 	"192.168.0.10"	//Server IP-Address
 #define PORT        8000   			//The port on which to send data
@@ -29,6 +30,7 @@ public:
     int send(int bbm_dev_no, int bbm_command, int data[4]);
     int receive(uint8_t* rec_buffer);
     void getSenderAddr(std::string &addr);
+    void closeSocket();
 
 private:
     int lowLevelSend();

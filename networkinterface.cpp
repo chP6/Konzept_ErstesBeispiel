@@ -133,3 +133,10 @@ int Networkinterface::lowLevelSend(){
 void Networkinterface::getSenderAddr(std::string &addr){
     addr = sender_addr;
 }
+
+void Networkinterface::closeSocket()
+{
+
+    close(socket_fd);
+
+}

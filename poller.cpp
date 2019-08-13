@@ -13,9 +13,13 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <csignal>
+
+
 
 Poller::Poller(Controller& controller)
 {
+
 
 
     this->controller = &controller;
@@ -28,11 +32,11 @@ Poller::Poller(Controller& controller)
         controller.logSystemError(poll_err, "Could not initialize Watchdog Timer");
     }
 
-    poll_err = xptWatchdog.init(1);
-    if(poll_err < 0){
-        poll_err = errno;
-        controller.logSystemError(poll_err, "Could not initialize Watchdog Timer Xpt");
-    }
+//    poll_err = xptWatchdog.init(1);
+//    if(poll_err < 0){
+//        poll_err = errno;
+//        controller.logSystemError(poll_err, "Could not initialize Watchdog Timer Xpt");
+//    }
 
     poll_err = autoSaveWatchdog.init(10);
     if(poll_err < 0){
@@ -46,6 +50,7 @@ Poller::Poller(Controller& controller)
         controller.logSystemError(poll_err, "Could not initialize Joystick");
     }
 
+    joystick.initRead();
     poll_err = rotary1.init(4, 16, 0x10);
     if(poll_err < 0){
         poll_err = errno;
@@ -118,18 +123,27 @@ Poller::Poller(Controller& controller)
 
 }
 
+
+Poller::~Poller()
+{
+
+}
+
+
 /*Starts listener function as seperate thread*/
 void Poller::startListener(){
-    std::thread t2(&Poller::listener, this);                  //1.Arg: function type that will be called, 2.Arg: pointer to object (this)
-    t2.detach();
+    applicationRunning = true;
+    //std::thread t2(&Poller::listener, this); //1.Arg: function type that will be called, 2.Arg: pointer to object (this)
+    t3 = std::thread(&Poller::listener, this);
+    //t2.detach();
 }
+
 
 /*Blocks until hardware interrupts occur*/
 void Poller::listener(){
     std::vector<int> data;
     joystickData jsData;
     data.reserve(10);
-
 // obsolete ??
 //flush all interrupts
 //    for (int i = 0;i<17;i++) {
@@ -152,7 +166,7 @@ void Poller::listener(){
     }
 
     /*Endless loop*/
-    while(1){
+    while(applicationRunning){
 
         data.clear();
         /*Blocks until event occurs. -1 = infinite timeout*/
@@ -225,9 +239,8 @@ void Poller::listener(){
             controller->queueEvent(E_INCREASE, rotary_val);
         }
 
-        /*Rotary 1 button actuated*/
-        if(poll_fd[3].revents & POLLPRI){
-            usleep(DEBOUNCE_T);
+        if(poll_fd[3].revents & POLLPRI){                    // Rotary1 Button
+            usleep(3000);
 
             poll_err = rotary1.readButton();
             if(poll_err<0){
@@ -260,17 +273,18 @@ void Poller::listener(){
             controller->queueEvent(E_FOCUS_CHANGE, rotary_val);
         }
 
-        /*Rotary 2 button actuated*/
-        if(poll_fd[5].revents & POLLPRI){
 
-            /*todo proper debounce ??*/
+        if(poll_fd[5].revents & POLLPRI){                    // Rotary2 Button
+            usleep(3000);
+
+
             poll_err = rotary2.readButton();
             if(poll_err<0){
                 poll_err = errno;
                 controller->logSystemError(poll_err, "Could not readout Rotary2 button");
             }
             if(poll_err==0){
-            controller->queueEvent(E_LOAD_SAVEFILE);
+            controller->queueEvent(E_AUTOFOCUS);
             }
         }
 
@@ -552,3 +566,18 @@ void Poller::listener(){
 
     }
 }
+
+void Poller::stopListener()
+{
+
+    presetbus.~Tastenfeld();
+    camerabus.~Tastenfeld();
+    rotary1.~Rotary();
+    rotary2.~Rotary();
+    joystick.~BBMJoystick();
+    autoSaveWatchdog.~ServerWatchdog();
+    srvWatchdog.~ServerWatchdog();
+    ocp.~OCP();
+    applicationRunning = false;
+}
+

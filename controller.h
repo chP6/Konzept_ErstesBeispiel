@@ -25,11 +25,15 @@ signals:
     void clearLoadButon();
 public slots:
     void onXptLableChanged();
+    void onAppQuit();
 public:
+    bool applicationRunning=false;
+    std::thread t1;
     Controller(Model& model);
     void setModel(Model& model);
     void setPoller(Poller& poller);
     void startQueueProcessThread();
+    void stopQueueProcessThread();
     void queueEvent(int evt);
     void queueEvent(int evt, int dataA);
     void queueEvent(int evt, int dataA, int dataB);
@@ -60,11 +64,11 @@ private:
     Networkinterface txSocket;
     Tastenfeld presetbus;
     Tastenfeld camerabus;
-    XptInterface xptSocket;
+    xptinterface *xptSocket;
     GenericTimer blinkTimer, sppTimer[NUMBER_OF_SLOTS], xptWatchdog, reqSettingsTimer[NUMBER_OF_SLOTS];
     int xptConnectionAttempts=0;
-
-    [[noreturn]]void processQeue();
+    //[[noreturn]]
+    void processQeue();
     int contr_err;
 
 };

@@ -19,10 +19,11 @@ public:
     void setInterval(int interval_us);
     int command;
     int command_data;
-    bool active = true;
+    bool active = false;
 
 private:
     void listen();
+    std::thread t1;
     Controller* controller;
     struct pollfd poll_fd[1];
     int timer_fd;

@@ -10,6 +10,11 @@ ServerWatchdog::ServerWatchdog()
 {
 }
 
+ServerWatchdog::~ServerWatchdog()
+{
+    close(timer_fd);
+}
+
 /*Initialization*/
 int ServerWatchdog::init(int interval_s){
     timer_fd = timerfd_create(CLOCK_MONOTONIC, 0);

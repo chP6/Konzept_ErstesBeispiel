@@ -18,6 +18,7 @@ class BBMJoystick
 {
 public:
     BBMJoystick();
+    ~BBMJoystick();
     int init();
     int processEvent(joystickData& jsData);
     void initRead();

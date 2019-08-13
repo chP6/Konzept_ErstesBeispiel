@@ -19,12 +19,18 @@
 /*Signal from xptSocktet 'inputLabelsChanged' to controller 'onXptLabelChanged'*/
 void Controller::onXptLableChanged()
 {
+
     /*update Model and View*/
-    model->setXptNumberOfInputs(xptSocket.getNumberOfInputs());
-    model->setXptNumberOfOutputs(xptSocket.getNumberOfOutputs());
-    model->setXptInputLables(xptSocket.getInputLabels());
-    model->setXptOutputLables(xptSocket.getOutputLabels());
+    model->setXptNumberOfInputs(xptSocket->getNumberOfInputs());
+    model->setXptNumberOfOutputs(xptSocket->getNumberOfOutputs());
+    model->setXptInputLables(xptSocket->getInputLabels());
+    model->setXptOutputLables(xptSocket->getOutputLabels());
     model->updateView();
+}
+
+void Controller::onAppQuit()
+{
+    qCDebug(logicIo)<<"This is the end";
 }
 
 Controller::Controller(Model& model)
@@ -82,10 +88,6 @@ Controller::Controller(Model& model)
 
     /*push the first event in the queue*/
     queueEvent(E_SETUP_HEAD);
-
-    /*Signal connection from xptSocktet 'inputLabelsChanged' to controller 'onXptLabelChanged'*/
-    QObject::connect(&xptSocket, SIGNAL(inputLabelsChanged()),
-                     this, SLOT(onXptLableChanged()));
 
 
 }
@@ -264,7 +266,9 @@ void Controller::requestCameraSettings(int slot){
         }
     }
     /*Start timer to re-request settings which did not arrive*/
-    reqSettingsTimer[slot].start();
+    if(model->getCamFlag(slot,F_CONNECTED)){
+        reqSettingsTimer[slot].start();
+    }
     qCDebug(requestIo)<<"Request timer started| SlotNr:"<< slot;
 }
 
@@ -319,9 +323,23 @@ void Controller::queueEvent(int evt, bool sta){
 /*start processQueue in a seperate thread*/
 void Controller::startQueueProcessThread(){
     usleep(800000);
-    eventQueue.initCleanup();                             // clean queue from unwanted startup events from joystick
-    std::thread t1(&Controller::processQeue, this);       //1.Arg: function type that will be called, 2.Arg: pointer to object (this)
-    t1.detach();
+    eventQueue.initCleanup();   // clean queue from unwanted startup events from joystick
+    applicationRunning = true;
+    t1 = std::thread(&Controller::processQeue, this);       //1.Arg: function type that will be called, 2.Arg: pointer to object (this)
+    //t1.detach();
+}
+
+void Controller::stopQueueProcessThread()
+{
+    txSocket.~Networkinterface();
+    for (int i = 0;i<NUMBER_OF_SLOTS;i++) {
+        sppTimer[i].stop();
+        reqSettingsTimer[i].stop();
+    }
+    xptWatchdog.stop();
+    blinkTimer.stop();
+    applicationRunning = false;
+    eventQueue.qeueEvent(E_CLEAR); //fire event to stop thread
 }
 
 
@@ -334,7 +352,7 @@ void Controller::processQeue(){
     //struct timeval  tv1, tv2;
     model->setUpView();
 
-    while(1){
+    while(applicationRunning){
         eventQueue.pullEvent(loadedEvent);      //blocks if queue is empty
 //        gettimeofday(&tv1, NULL);
 
@@ -415,7 +433,9 @@ void Controller::processQeue(){
             /*Pan and Tilt commands from the Joystick*/
             int x,y;
             x = loadedEvent.data[0];
-            if(model->getCamFlag(F_X_INVERT)){x=10000-x;} //direction of the x axis inverted
+
+            model->setCamFlag(F_PRESET_MOVE,false);
+            if(model->getCamFlag(F_X_INVERT)){x=10000-x;} //dirextion of the x axis inverted
 
             y = loadedEvent.data[1];
             if(model->getCamFlag(F_Y_INVERT)){y=10000-y;}  //direction of the y axis inverted
@@ -441,6 +461,7 @@ void Controller::processQeue(){
             /*Zoom Commands from the z axis of the joystick*/
             int z;
             z=loadedEvent.data[0];
+            model->setCamFlag(F_PRESET_MOVE,false);
             if(!model->getCamFlag(F_Z_INVERT)){z = 254 - z;} //direction of the zoom inverted
 
 
@@ -452,13 +473,12 @@ void Controller::processQeue(){
             txSocket.send(model->getValue(ABS,V_HEADNR),ZOOM_FOCUS_SET, z); //send zoom information to the camera
 
             /*Bounce mode can be aborted with the use of the zoom*/
-//            if(model->getCamFlag(F_BOUNCING) ){
-//                model->setCamFlag(F_BOUNCING,false);
-//                model->setCamFlag(F_BOUNCE_ABORTED,true);
-//                presetbus.setLed(PRESET_COLOR,model->getActivePreset());
-//                txSocket.send(model->getValue(ABS,V_HEADNR),BNCE_ZOOM_START,model->getValue(ABS,V_BOUNCE_ZOOM_SPEED)); //Stop It
-//                qCDebug(logicIo)<<"Bounce stopped by Joystick";
-//            }
+            if(model->getCamFlag(F_BOUNCING) ){
+                model->setCamFlag(F_BOUNCING,false);
+                presetbus.setLed(PRESET_COLOR,model->getActivePreset());
+                model->setCamFlag(F_BOUNCE_ABORTED,true);
+                qCDebug(logicIo)<<"Bounce stopped by Joystick";
+            }
 
             /*Sceduled Preset Positioning can be aborted with the move of the joystick*/
             if(model->getCamFlag(F_SPP_ON)){
@@ -575,7 +595,8 @@ void Controller::processQeue(){
                     //}
 
                     model->setCamFlag(F_BOUNCING,true);
-                    blinkTimer.start(); //blink the led
+                    blinkTimer.start();
+
                     break;
                 }
 
@@ -627,22 +648,22 @@ void Controller::processQeue(){
             from = loadedEvent.data[0];
             data = loadedEvent.data[1];
             for (int i=0;i<NUMBER_OF_SLOTS;i++) {
-                if(model->getCamFlag(i,F_BOUNCING)){
-
-                    model->setCamFlag(i,F_BOUNCING,false);
-                    qCDebug(logicIo) << "Bounce stopped by external Preset change|" << "HeadNr: " << from;
-                }
-                if (model->getCamFlag(i,F_SPP_ON)) {
-                    model->setCamFlag(i,F_SPP_ON,false);
-                    qCDebug(logicIo) << "SPP stopped by external Preset change|" << "HeadNr: " << from;
-                }
-                if(model->getValue(i,ABS,V_HEADNR) == from ){
+                if (model->getValue(i,ABS,V_HEADNR) == from){
                     if(!(i == model->getActiveCameraSlot())){
-                        model->setActivePreset(i,data-1);
-                        qCDebug(presetIo) << "External Preset Change on inactive Slot | HeadNr:" << from<< " ,PresetNr:" << data;
-                    }
+                        if(model->getCamFlag(i,F_BOUNCING)){
+                            model->setCamFlag(i,F_BOUNCING,false);
+                            qCDebug(logicIo) << "Bounce stopped by external Preset change|" << "HeadNr: " << from;
+                            }
+                        if (model->getCamFlag(i,F_SPP_ON)) {
+                            model->setCamFlag(i,F_SPP_ON,false);
+                            qCDebug(logicIo) << "SPP stopped by external Preset change|" << "HeadNr: " << from;
+                            }
+
+                            model->setActivePreset(i,data-1);
+                            qCDebug(presetIo) << "External Preset Change on inactive Slot | HeadNr:" << from<< " ,PresetNr:" << data;
+                            }
                     else {
-                        model->setActivePreset(i,data-1);
+                        //model->setActivePreset(i,data-1);
                         presetbus.setLed(PRESET_COLOR,model->getActivePreset());
                         qCDebug(presetIo) << "External Preset Change on active Slot | HeadNr:" << from<< " ,PresetNr:" << data;
                     }
@@ -671,6 +692,9 @@ void Controller::processQeue(){
             else if(model->getCamFlag(F_BOUNCING)){
                 presetbus.setLed(PRESET_COLOR,model->getActivePreset());
             }
+            else if(model->getCamFlag(F_PRST_IN_STORE)){
+                presetbus.showStored(model->getUsedPreset(),model->getActivePreset());
+            }
             else{
                 presetbus.setLed(PRESET_COLOR,model->getActivePreset());
             }
@@ -678,7 +702,7 @@ void Controller::processQeue(){
             if(model->getXptEnabled() && model->getXptConnected()){
                 int source = model->getXptSlotSource(model->getActiveCameraSlot());
                 int destination = model->getXptDestination();
-                contr_err = xptSocket.sendChange(source, destination);
+                contr_err = xptSocket->sendChange(source, destination);
                 qCDebug(xptIo)<<"Send routing change | Source:" << source << ", Destination:" << destination;
                 if (contr_err < 0) {
                     contr_err = errno;
@@ -841,7 +865,6 @@ void Controller::processQeue(){
         case E_SETUP_HEAD:
             /*Initial Event from Controller*/
             loadAutosave();       //todo: case if empty file or not exist
-
             //send PT SPEED , RAMP values to Head, request all camera settings
             for (int i=0;i<NUMBER_OF_SLOTS;i++) {
                 txSocket.send(model->getValue(i,ABS,V_HEADNR), RAMP, model->getValue(i,ABS,V_RAMP));
@@ -852,6 +875,7 @@ void Controller::processQeue(){
             }
             model->updateView();
             qCDebug(logicIo) << "Head init done |";
+            system("echo 'Controllerapplication ready....' >/dev/kmsg");
             break;
         case E_CALIB_HEAD:
             /*Calib Head from user input on touch*/
@@ -884,20 +908,31 @@ void Controller::processQeue(){
         case E_XPT_CONNECT:
             /*Connection to Xpt Router from user input on touch*/
             if(model->getXptEnabled()){
-                contr_err = xptSocket.init(XptInterface::XptType(model->getXptType()),model->getXptIpAdress()); // Initialize socket with the corresponding xpt type
-                if(contr_err<0){
-                    contr_err = errno;
-                    logSystemError(contr_err, "Could not initialize xpt-interface");
-                qCWarning(xptIo)<< "Could not initialize Xpt Socket| Xpt Type:" << model->getXptType() << ", Xpt adress:" << model->getXptIpAdress();
+                //contr_err = xptSocket.init(XptInterface::XptType(model->getXptType()),model->getXptIpAdress()); // Initialize socket with the corresponding xpt type
+                switch (model->getXptType()) {
+                case I_XPT_TYPE_BLACKMAGIC: xptSocket = new BmdInterface();break;
+                case I_XPT_TYPE_ROSS: xptSocket = new RossInterface();break;
                 }
+
+                /*Signal connection from xptSocktet 'inputLabelsChanged' to controller 'onXptLabelChanged'*/
+                QObject::connect(xptSocket, SIGNAL(inputLabelsChanged()),
+                                 this, SLOT(onXptLableChanged()));
+
+                contr_err = xptSocket->init(model->getXptIpAdress());
+                    if(contr_err<0){
+                        contr_err = errno;
+                        logSystemError(contr_err, "Could not initialize xpt-interface");
+                        qCWarning(xptIo)<< "Could not initialize Xpt Socket| Xpt Type:" << model->getXptType() << ", Xpt adress:" << model->getXptIpAdress();
+                    }
                 qCDebug(xptIo)<< "Xpt Socket initialized | Xpt Type:" << model->getXptType() << ", Xpt adress:" << model->getXptIpAdress();
-                contr_err = xptSocket.connectToXpt(); //try to connect
-                if(contr_err < 0){
-                    contr_err = errno;
-                    logSystemError(contr_err, "Could not connect to Xpt");
-                    qCWarning(xptIo)<< "Could not connect to Xpt Socket| Xpt Type:" << model->getXptType() << ", Xpt adress:" << model->getXptIpAdress();
-                    model->updateXptEnableStatus(false); //initial connection failed
-                    model->setXptConnected(false);
+
+                contr_err = xptSocket->connectToXpt(); //try to connect
+                    if(contr_err < 0){
+                        contr_err = errno;
+                        logSystemError(contr_err, "Could not connect to Xpt");
+                        qCWarning(xptIo)<< "Could not connect to Xpt Socket| Xpt Type:" << model->getXptType() << ", Xpt adress:" << model->getXptIpAdress();
+                        model->updateXptEnableStatus(false); //initial connection failed
+                        model->setXptConnected(false);
                 }else {
                     model->setXptConnected(true);
                     xptWatchdog.start();    // start watchdog for preiodic ping
@@ -906,7 +941,8 @@ void Controller::processQeue(){
 
             }
            else{
-            contr_err = xptSocket.disconnect();
+
+            contr_err = xptSocket->disconnect();
             if(contr_err < 0){
                 contr_err = errno;
                 qCWarning(xptIo)<< "Could not disconnect from Xpt Socket| Xpt Type:" << model->getXptType() << ", Xpt adress:" << model->getXptIpAdress();
@@ -915,6 +951,7 @@ void Controller::processQeue(){
                 model->setXptConnected(false);
                 qCDebug(xptIo)<< "Disconnected from Xpt | Xpt Type:" << model->getXptType() << ", Xpt adress:" << model->getXptIpAdress();
                 xptWatchdog.stop(); //stop timer
+                delete xptSocket;
             }
             break;
 
@@ -923,12 +960,12 @@ void Controller::processQeue(){
             if(model->getXptEnabled())
             {
                 int connection;
-                connection = xptSocket.checkConnection(); //ping
+                connection = xptSocket->checkConnection(); //ping
                 /*No answer form XPT router*/
                 if (connection <= 0 ) {
                     xptConnectionAttempts++;
-                    xptSocket.disconnect();     //disconnect
-                    if (xptSocket.connectToXpt() < 0) { //reconnect
+                    xptSocket->disconnect();     //disconnect
+                    if (xptSocket->connectToXpt() < 0) { //reconnect
                         qCDebug(xptIo)<< "Try to reconnect Xpt | Xpt Type:" << model->getXptType() << ", Xpt adress:" << model->getXptIpAdress() << ", Connection attempt:" << xptConnectionAttempts;
                         model->setXptConnected(false);  //show that not connected
                     }
@@ -939,6 +976,7 @@ void Controller::processQeue(){
                         model->updateXptEnableStatus(false);
                         xptWatchdog.stop();
                         qCDebug(xptIo)<< "Xpt unreachable | Xpt Type:" << model->getXptType() << ", Xpt adress:" << model->getXptIpAdress() << ", Connection attempt:" << xptConnectionAttempts;
+                        delete xptSocket;
                         break;
                     }
                      //model->setXptConnected(false);
@@ -986,6 +1024,7 @@ void Controller::processQeue(){
             /*Preset reached from a camera in the net*/
             headNr = loadedEvent.data[0];
             int presetNr = loadedEvent.data[1];
+
             qCDebug(presetIo)<< "Preset reached | HeadNr:" << headNr << "PresetNr:" << presetNr;
 
             /*Check if respective camera is in spp mode*/
@@ -997,15 +1036,17 @@ void Controller::processQeue(){
                         switch (model->getSppState(i)) {
                         case S_SPP_GOTO1:
                             /*Position 1 done, set state to wait1*/
-                            if(presetNr == model->getValue(OFFSET,V_SPP1)){
+                            if(presetNr == model->getValue(i,ABS,V_SPP1)+1){
                                 model->setSppState(i, S_SPP_WAIT1);     //if reached, go to wait state 1
+                                model->getValue(i,ABS,V_SPP_WAIT_TIME) == 0 ? queueEvent(E_SPP_WAIT_DONE,i) : sppTimer[i].start();
                             qCDebug(logicIo)<< "SPP preset reached | Current state:" << S_SPP_GOTO1 << ", Next State:" << S_SPP_WAIT1 << ", Reached preset:" << presetNr;
                             }
                             break;
                         case S_SPP_GOTO2:
                             /*Position 2 done, set state to wait2*/
-                            if(presetNr == model->getValue(OFFSET,V_SPP2)){
+                            if(presetNr == model->getValue(i,ABS,V_SPP2)+1){
                                 model->setSppState(i, S_SPP_WAIT2);     //if reached go to wait state 2
+                                model->getValue(i,ABS,V_SPP_WAIT_TIME) == 0 ? queueEvent(E_SPP_WAIT_DONE,i) : sppTimer[i].start();
                                 qCDebug(logicIo)<< "SPP preset reached | Current state:" << S_SPP_GOTO2 << ", Next State:" << S_SPP_WAIT2 << ", Reached preset:" << presetNr;
                             }
                             break;
@@ -1014,7 +1055,7 @@ void Controller::processQeue(){
                         }
 
                         /*Start spp timer*/
-                        sppTimer[i].start();
+                        //sppTimer[i].start();
                         qCDebug(logicIo)<< "SPP wait Timer started| SlotNr:" << i;
                     }
                 }
@@ -1049,7 +1090,8 @@ void Controller::processQeue(){
             /*Stop spp timer, goto respective preset*/
             sppTimer[from].stop();
             qCDebug(logicIo)<< "SPP wait Timer stopped| SlotNr:" << from;
-            txSocket.send(headNr, GOTO_PRESET, sppPreset+1, model->getValue(ABS,V_TRANS_SPEED) );
+            model->setCamFlag(from,F_PRESET_MOVE,true);
+            txSocket.send(headNr, GOTO_PRESET, sppPreset+1, model->getValue(from,ABS,V_TRANS_SPEED) );
             qCDebug(presetIo) << "Goto Preset | HeadNr:" << headNr<< " ,PresetNr:" << sppPreset+1 << ", Transition speed:" << model->getValue(ABS,V_TRANS_SPEED);
 
             model->setActivePreset(from, sppPreset);

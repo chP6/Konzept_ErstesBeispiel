@@ -5,12 +5,12 @@
 #include "config.h"
 #include <linux/i2c-dev.h>
 #include <sys/ioctl.h>
-#include "smbus.h"
 #include <string>
 
 
 Rotary::Rotary()
 {
+
 }
 
 Rotary::~Rotary()
@@ -18,6 +18,11 @@ Rotary::~Rotary()
     close(fd_sense);
     close(fd_button);
     close(fd_ic2);
+    std::string out;
+    out = "echo '" + std::to_string(button_gpio) + "' >/sys/class/gpio/unexport";
+    system(out.c_str());
+    out = "echo '" + std::to_string(sense_gpio) + "' >/sys/class/gpio/unexport";
+    system(out.c_str());
 }
 
 /*Initialization*/
@@ -100,14 +105,22 @@ int Rotary::readButton(){
     }
 }
 
+
 /*Read rotary over i2c*/
 int Rotary::readRotary(int8_t& res){
-    rotary_val = int8_t(i2c_smbus_read_byte_data(fd_ic2 ,0x00));
-    if (rot_err < 0) {
-      return rot_err;
-    }
-    /*i2c error workaround*/
-    if(rotary_val < -80 || rotary_val > 80){
+
+    char obuf[1] = {0};
+    char ibuf[1] = {0};
+    rot_err = write(fd_ic2,obuf,1);
+        if (rot_err < 0) {
+            return rot_err;
+            }
+    read(fd_ic2,ibuf,1);
+    rotary_val = int8_t(ibuf[0]);
+        if (rot_err < 0) {
+            return rot_err;
+           }
+    if(rotary_val < -80 || rotary_val > 80){       // i2c error workaround
         rotary_val = 0;
     }
     res = rotary_val;

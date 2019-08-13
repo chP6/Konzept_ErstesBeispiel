@@ -24,6 +24,8 @@ Tastenfeld::Tastenfeld()
 
 Tastenfeld::~Tastenfeld()
 {
+
+    close(spi_fd);
     /*close files*/
     for(unsigned int i=0;i<(sizeof(button)/sizeof(button[0]));i++){
 
@@ -52,7 +54,6 @@ Tastenfeld::~Tastenfeld()
         break;
 
     }
-
 
 }
 
@@ -263,6 +264,7 @@ int Tastenfeld::showStored(int usedPresets, int activePreset)
             if(spi_err<0){return -1;}
             return 0;
 }
+
 
 
 int Tastenfeld::readButton(int buttonNr){

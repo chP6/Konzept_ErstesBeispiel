@@ -9,6 +9,7 @@ class ServerWatchdog
 {
 public:
     ServerWatchdog();
+    ~ServerWatchdog();
     int processEvent();
     int init(int interval_s);
     int timer_fd;
