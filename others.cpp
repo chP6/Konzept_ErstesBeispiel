@@ -28,10 +28,10 @@ void Others::updateUi()
     errorWindow->updateUi();
     ui->btHeadPower->setText(model->getTextValue(V_HEAD_POWER));
     ui->btMirror->setText(model->getTextValue(V_MIRROR));
-    ui->btPanInvert->setChecked(model->getCamFlag(F_X_INVERT));
-    ui->btTiltInvert->setChecked(model->getCamFlag(F_Y_INVERT));
-    ui->btZoomInvert->setChecked(model->getCamFlag(F_Z_INVERT));
-    ui->btFocusInvert->setChecked(model->getCamFlag(F_FOCUSINVERT));
+    ui->btPanInvert->setChecked(model->getCamFlag(F_PAN_INVERT));
+    ui->btTiltInvert->setChecked(model->getCamFlag(F_TILT_INVERT));
+    ui->btZoomInvert->setChecked(model->getCamFlag(F_ZOOM_INVERT));
+    ui->btFocusInvert->setChecked(model->getCamFlag(F_FOCUS_INVERT));
 }
 
 void Others::clearLoadButton(){
@@ -49,22 +49,22 @@ void Others::setModelController(Model *model, Controller *controller)
 
 void Others::on_btPanInvert_clicked(bool checked)
 {
-     model->setCamFlag(F_X_INVERT,checked);
+     model->setCamFlag(F_PAN_INVERT,checked);
 }
 
 void Others::on_btTiltInvert_clicked(bool checked)
 {
-    model->setCamFlag(F_Y_INVERT,checked);
+    model->setCamFlag(F_TILT_INVERT,checked);
 }
 
 void Others::on_btZoomInvert_clicked(bool checked)
 {
-    model->setCamFlag(F_Z_INVERT,checked);
+    model->setCamFlag(F_ZOOM_INVERT,checked);
 }
 
 void Others::on_btFocusInvert_clicked(bool checked)
 {
-    model->setCamFlag(F_FOCUSINVERT,checked);
+    model->setCamFlag(F_FOCUS_INVERT,checked);
 }
 
 void Others::on_btMirror_clicked()
@@ -130,7 +130,5 @@ void Others::stackChanged()
 
     }
     button->click();
+    updateUi();
 }
-
-
-

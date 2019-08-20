@@ -21,6 +21,12 @@ struct camera_s{
   int xptSource;
   std::vector<int> remainingTelegrams;
   std::mutex mtx;
+
+  /* control inputs */
+  struct axes_t {
+      int16_t relative;
+      int16_t absolute;
+  } axes[kAxisMax];
 };
 
 
@@ -67,7 +73,9 @@ public:
     int getValue(int slotNr, int type, int property);
     QString getTextValue(int property);
     int getMin(int property);
+    int getMin(int slotNr, int property);
     int getMax(int property);
+    int getMax(int slotNr, int property);
     void setCamFlag(int flag, bool value);
     void setCamFlag(int slotNr, int flag, bool value);
     bool getCamFlag(int flag);
@@ -122,6 +130,11 @@ public:
     bool getFastIris();
     void setFastIris(bool flag);
 
+    void setControl(axis_t axis, control_t control);
+    control_t getControl(axis_t axis);
+
+    void setAxis(axis_t axis, int16_t value, bool absolute);
+    bool getAxisUpdates(int slotNr, int16_t (&axes)[kAxisMax], bool absolute);
 
 private:
     QStringList errorList;
@@ -141,6 +154,9 @@ private:
     bool requestSettingsFlag = false;
     bool reqPendingArr[MAX_NUMBER_OF_CMDS];
     int currReqHeadNr;
+
+    /* control/axis mapping */
+    control_t controls[kAxisMax];
 
     /*XPT handling */
     bool xptConnect=false;

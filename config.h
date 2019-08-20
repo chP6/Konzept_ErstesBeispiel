@@ -97,7 +97,7 @@
 #define REQUESTABLE           1
 #define ARRIVED               1
 
-#define NUMBER_OF_FLAGS       14
+#define NUMBER_OF_FLAGS       15
 /*flags*/
 #define F_PRST_IN_STORE       0
 #define F_BOUNCING            1
@@ -106,13 +106,14 @@
 #define F_BOUNCE_ENABLE       4
 #define F_CAMERA_KNOWN        5
 #define F_CONNECTED           6
-#define F_X_INVERT            7
-#define F_Y_INVERT            8
-#define F_Z_INVERT            9
-#define F_FOCUSINVERT         10
-#define F_PRESET_MOVE         11
-#define F_RECEIVED_ALL        12
-#define F_BOUNCE_ABORTED      13
+#define F_PRESET_MOVE         7
+#define F_RECEIVED_ALL        8
+#define F_BOUNCE_ABORTED      9
+#define F_PAN_INVERT          10
+#define F_TILT_INVERT         11
+#define F_ZOOM_INVERT         12
+#define F_FOCUS_INVERT        13
+#define F_TRAVELLING_INVERT   14
 
 /*set,get types*/
 #define ABS                 1
@@ -140,5 +141,47 @@
 #define S_SPP_GOTO2           2
 #define S_SPP_WAIT1           3
 #define S_SPP_WAIT2           4
+
+typedef enum {
+    kAxisPan,
+    kAxisTilt,
+    kAxisZoom,
+    kAxisFocus,
+    kAxisTravelling,
+    kAxisMax
+} axis_t;
+
+typedef enum {
+    kControlNone,
+    kControlJoystickX,
+    kControlJoystickY,
+    kControlJoystickZ,
+    kControlZoomRocker,
+    kControlFocusWheel
+} control_t;
+
+static const char* axisStr(axis_t a) {
+    return a == kAxisPan ? "Pan" :
+            a == kAxisTilt ? "Tilt" :
+            a == kAxisZoom ? "Zoom" :
+            a == kAxisFocus ? "Focus" :
+            a == kAxisTravelling ? "Travelling" :
+                "unknown";
+}
+
+static const char* controlStr(control_t c) {
+    return c == kControlNone ? "none" :
+            c == kControlJoystickX ? "Joystick Left/Right" :
+            c == kControlJoystickY ? "Joystick Up/Down" :
+            c == kControlJoystickZ ? "Joystick Rotation" :
+            c == kControlZoomRocker ? "Zoom Rocker" :
+            c == kControlFocusWheel ? "Focus Wheel" :
+                "unknown";
+}
+
+#define AXES_UPDATE_INTERVAL_MS 20 /* update axis values every 20ms (50Hz) */
+
+#define AXIS_NO_VALUE_REL (INT8_MIN)
+#define AXIS_NO_VALUE_ABS (INT16_MIN)
 
 #endif // CONFIG_H

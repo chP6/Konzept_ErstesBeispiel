@@ -17,7 +17,8 @@
 
 Tastenfeld::Tastenfeld()
 {
-
+    for (size_t i = 0; i < sizeof(button)/sizeof(button[0]); i++)
+        button[i] = -1; // default fd, wird von poll() ignoriert
 }
 
 
@@ -61,11 +62,11 @@ void Tastenfeld::setRow(int row){
     /*distinguish between SPI Chip Selects*/
     switch (row) {
     case UPPER_ROW:
-        spi_bus=SPI1;       //path is /dev/spidev0.1
+        spi_bus=SPI0;       //path is /dev/spidev0.1
         button_bus=row;     //store for object
         break;
     case LOWER_ROW:
-        spi_bus=SPI0;       //path is /dev/spidev0.0
+        spi_bus=SPI1;       //path is /dev/spidev0.0
         button_bus=row;     //store for object
         break;
     }
@@ -175,7 +176,7 @@ void Tastenfeld::gpioUnExport(int gpio){
 void Tastenfeld::mapTx(unsigned int blue, unsigned int red, unsigned int green, int button)
 {
     /*invert direction*/
-    button=5-button;
+    button=7-button;
     /*The PWM Chip requires 12Bit per color per button, means 36 bit per button*/
     /*The buttons are mapped as follows*/
 
@@ -183,8 +184,9 @@ void Tastenfeld::mapTx(unsigned int blue, unsigned int red, unsigned int green, 
     *         | bb | br | rr | gg | g  | b  | bb | rr | rg | gg | ...
       Tx byte | 0  | 1  | 2  | 4  |     5   |  6 |  7 |  8 |  9 | ...*/
 
+    std::swap(red, green);
     /*An odd button number needs to be treated differently than an even button number*/
-    static char button_map[]= {0,4,9,13,18,22,27};
+    static char button_map[]= {0,4,9,13,18,22,27,31};
     //static char button_map[]= {0,4,9,15,20,25,30};
         if(button % 2 == 0){				//Buttonnumber even
             /*mapping*/

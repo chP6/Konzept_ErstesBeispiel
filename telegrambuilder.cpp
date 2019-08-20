@@ -196,6 +196,25 @@ void Telegrambuilder::encode(bool request, int bbm_dev_no, int bbm_command, std:
         case KNEE_POINT:
             datagram[8] = uint8_t(data[0]);
             break;
+
+        case PAN_TILT_ZOOM_FOCUS:
+        case DOLLY_LIFT:
+            datagram[5] = uint8_t(data[0]);
+            datagram[6] = uint8_t(data[1]);
+            datagram[7] = uint8_t(data[2]);
+            datagram[8] = uint8_t(data[3]);
+            break;
+
+        case PAN_TILT_SET_ABSOLUTE:
+        case ZOOM_FOCUS_SET_ABSOLUTE:
+        case DOLLY_LIFT_SET_ABSOLUTE:
+        case RESERVED_SET_ABSOLUTE:
+            datagram[5] = uint8_t((data[0]>>8));
+            datagram[6] = uint8_t(data[0]);
+            datagram[7] = uint8_t((data[1]>>8));
+            datagram[8] = uint8_t(data[1]);
+            break;
+
         default:
             break;
         }

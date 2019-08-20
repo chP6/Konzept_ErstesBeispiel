@@ -7,6 +7,7 @@
 #include "eventqueue.h"
 #include "tastenfeld.h"
 #include "config.h"
+#include "input.h"
 #include <QDebug>
 #include <QTimer>
 #include <time.h>
@@ -14,8 +15,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <csignal>
-
-
+#include <vector>
 
 Poller::Poller(Controller& controller)
 {
@@ -44,11 +44,13 @@ Poller::Poller(Controller& controller)
         controller.logSystemError(poll_err, "Could not initialize Autosave Timer");
     }
 
+#if 0
     poll_err = joystick.init();
     if(poll_err < 0){
         poll_err = errno;
         controller.logSystemError(poll_err, "Could not initialize Joystick");
     }
+#endif
 
     joystick.initRead();
     poll_err = rotary1.init(4, 16, 0x10);
@@ -121,12 +123,36 @@ Poller::Poller(Controller& controller)
     poll_fd[20].fd = autoSaveWatchdog.timer_fd;
     poll_fd[20].events = POLLIN;
 
+    m_devices.push_back(new RotaryEncoder("/dev/input/by-path/platform-rotary@17-event"));
+    m_devices.push_back(new Keyboard("/dev/input/by-path/platform-button@18-event", {
+                                           /* key         event          data */
+                                           { KEY_ENTER, { E_FAST_IRIS, { }}}}));
+    m_devices.push_back(new Keyboard("/dev/input/by-path/platform-led-buttons-event", {
+                                           /* key      event             data */
+                                           { KEY_1,  { E_CAMERA_CHANGE, { 0 }}},
+                                           { KEY_2,  { E_CAMERA_CHANGE, { 1 }}},
+                                           { KEY_3,  { E_CAMERA_CHANGE, { 2 }}},
+                                           { KEY_4,  { E_CAMERA_CHANGE, { 3 }}},
+                                           { KEY_5,  { E_CAMERA_CHANGE, { 4 }}},
+                                           { KEY_6,  { E_CAMERA_CHANGE, { 5 }}},
+                                           { KEY_F1, { E_PRESET_CHANGE, { 0 }}},
+                                           { KEY_F2, { E_PRESET_CHANGE, { 1 }}},
+                                           { KEY_F3, { E_PRESET_CHANGE, { 2 }}},
+                                           { KEY_F4, { E_PRESET_CHANGE, { 3 }}},
+                                           { KEY_F5, { E_PRESET_CHANGE, { 4 }}},
+                                           { KEY_F6, { E_PRESET_CHANGE, { 5 }}} }));
+
+    m_devices.push_back(new XYZJoystick("/dev/input/by-id/usb-CH_Products_APEM_HF_Joystick-event-joystick"));
+    m_devices.push_back(new ZoomFocusJoystick("/dev/input/by-id/usb-Adafruit_LLC_Adafruit_ItsyBitsy_M4_HIDAC-event-if02"));
+
+    int i = 21;
+    for (InputDevice* d : m_devices)
+        d->init(&poll_fd[i++]);
 }
 
-
-Poller::~Poller()
-{
-
+Poller::~Poller() {
+    for (InputDevice* d : m_devices) delete d;
+    m_devices.clear();
 }
 
 
@@ -170,7 +196,7 @@ void Poller::listener(){
 
         data.clear();
         /*Blocks until event occurs. -1 = infinite timeout*/
-        poll_err = poll(poll_fd,21,-1);
+        poll_err = poll(poll_fd, sizeof(poll_fd) / sizeof(poll_fd[0]), -1);                      //poll. Blocks until event occurs -> SIZE setzen! -1 = infinite timeout
 
         if(poll_err<0){
             poll_err = errno;
@@ -564,6 +590,12 @@ void Poller::listener(){
             controller->queueEvent(E_WRITE_AUTOSAVE);
         }
 
+        for (InputDevice* d : m_devices) {
+            std::vector<int> data;
+            int event = d->getEvent(data);
+            if (event != E_NULLEVENT)
+                controller->queueEvent(event, data);
+        }
     }
 }
 

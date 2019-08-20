@@ -14,6 +14,7 @@
 #include <chrono>
 #include <ctime>
 #include <sys/time.h>
+#include <algorithm>
 
 
 /*Signal from xptSocktet 'inputLabelsChanged' to controller 'onXptLabelChanged'*/
@@ -86,6 +87,9 @@ Controller::Controller(Model& model)
         sppTimer[i].init(E_SPP_WAIT_DONE,i,*this);
     }
 
+    axesUpdater.init(E_SEND_AXES_UPDATES, *this);
+    axesUpdater.setInterval(AXES_UPDATE_INTERVAL_MS * 1000);
+
     /*push the first event in the queue*/
     queueEvent(E_SETUP_HEAD);
 
@@ -117,6 +121,13 @@ void Controller::clearErrors(){
 /*prepare a savefile with all necessary userdata from the model*/
 void Controller::settingsWrite(QSettings &savefile){
     savefile.clear();
+
+    /* control Settings */
+    savefile.beginGroup("controls");
+    for (axis_t axis : { kAxisPan, kAxisTilt, kAxisZoom, kAxisFocus, kAxisTravelling })
+        savefile.setValue("controlAxis" + QString::number((int)axis), model->getControl(axis));
+    savefile.endGroup();
+
     /*xpt Settings*/
     savefile.beginGroup("xpt");
     savefile.setValue("xptType",model->getXptType());
@@ -150,6 +161,12 @@ void Controller::settingsWrite(QSettings &savefile){
 
 /*write the loaded settings to the model*/
 void Controller::settingsLoad(QSettings &savefile, bool send){
+    /* control Settings */
+    savefile.beginGroup("controls");
+    for (axis_t axis : { kAxisPan, kAxisTilt, kAxisZoom, kAxisFocus, kAxisTravelling })
+        model->setControl(axis, (control_t)savefile.value("controlAxis" + QString::number((int)axis)).toInt());
+    savefile.endGroup();
+
     /*write according to group*/
     savefile.beginGroup("xpt");
         model->setXptType(savefile.value("xptType").toInt());
@@ -327,6 +344,7 @@ void Controller::startQueueProcessThread(){
     applicationRunning = true;
     t1 = std::thread(&Controller::processQeue, this);       //1.Arg: function type that will be called, 2.Arg: pointer to object (this)
     //t1.detach();
+    axesUpdater.start();
 }
 
 void Controller::stopQueueProcessThread()
@@ -435,10 +453,10 @@ void Controller::processQeue(){
             x = loadedEvent.data[0];
 
             model->setCamFlag(F_PRESET_MOVE,false);
-            if(model->getCamFlag(F_X_INVERT)){x=10000-x;} //dirextion of the x axis inverted
 
+            if(model->getCamFlag(F_PAN_INVERT)){x=10000-x;} //dirextion of the x axis inverted
             y = loadedEvent.data[1];
-            if(model->getCamFlag(F_Y_INVERT)){y=10000-y;}  //direction of the y axis inverted
+            if(model->getCamFlag(F_TILT_INVERT)){y=10000-y;} //direction of the y axis inverted
 
             /*Joystick creeps around the zero point*/
             if(x==5000 && y==5000){
@@ -461,9 +479,10 @@ void Controller::processQeue(){
             /*Zoom Commands from the z axis of the joystick*/
             int z;
             z=loadedEvent.data[0];
-            model->setCamFlag(F_PRESET_MOVE,false);
-            if(!model->getCamFlag(F_Z_INVERT)){z = 254 - z;} //direction of the zoom inverted
 
+            model->setCamFlag(F_PRESET_MOVE,false);
+
+            if(!model->getCamFlag(F_ZOOM_INVERT)){z = 254 - z;} //direction of the zoom inverted
 
             /*Joystick creeps around the zero point*/
             if(z==127){
@@ -494,7 +513,7 @@ void Controller::processQeue(){
             /*Focus Command from the Rotary Encoder*/
             int focus;
             focus=loadedEvent.data[0];
-            if(model->getCamFlag(F_FOCUSINVERT)){focus=(-focus);} //The direction of the focus can be inverted
+            if(model->getCamFlag(F_FOCUS_INVERT)){focus=(-focus);} //The direction of the focus can be inverted
             model->setValue(INC, V_FOCUS, focus);
             txSocket.send(model->getValue(ABS,V_HEADNR), FOCUS_SET_ABSOLUTE, model->getValue(ABS, V_FOCUS));
             qCDebug(logicIo)<<"Focus| delta:"<< focus << ", value:"<<model->getValue(ABS,V_FOCUS);
@@ -1148,6 +1167,128 @@ void Controller::processQeue(){
                 }
             }
             break;
+
+        case E_CONTROL_INPUT: {
+            control_t control = (control_t)loadedEvent.data[0];
+            for (axis_t axis : { kAxisPan, kAxisTilt, kAxisZoom, kAxisFocus, kAxisTravelling }) {
+                /* bool absolute: currently only focus axis is absolute,
+                 * but this shall be configurable in the future */
+                bool absolute = axis == kAxisFocus;
+
+                int data = loadedEvent.data[1];
+                data = std::max(data, -INT16_MAX);
+                data = std::min(data, INT16_MAX);
+                data = model->getCamFlag(
+                    axis == kAxisPan   ? F_PAN_INVERT :
+                    axis == kAxisTilt  ? F_TILT_INVERT :
+                    axis == kAxisZoom  ? F_ZOOM_INVERT :
+                    axis == kAxisFocus ? F_FOCUS_INVERT :
+                                         F_TRAVELLING_INVERT
+                ) ? -data : data;
+
+                if (model->getControl(axis) == control)
+                    model->setAxis(axis, absolute ? data : data / 256, absolute);
+            }
+            /* Sheduled Preset Positioning can be aborted by control input */
+            if (model->getCamFlag(F_SPP_ON)) {
+                queueEvent(E_SPP_ABORT);
+                qCDebug(logicIo) << "SPP stopped by control input";
+            }
+        } break;
+
+        case E_SEND_AXES_UPDATES: {
+
+            for (int i = 0; i < NUMBER_OF_SLOTS; i++) {
+                int16_t axes[kAxisMax];
+                bool useNewTelegrams = false;
+
+                /* check axes updates on absolute values */
+                if (model->getAxisUpdates(i, axes, false)) {
+
+                    if (useNewTelegrams) {
+
+                        { /* pan, tilt, zoom & focus */
+                            int d[4] = { AXIS_NO_VALUE_REL, AXIS_NO_VALUE_REL, AXIS_NO_VALUE_REL, AXIS_NO_VALUE_REL};
+                            int i = 0; bool sendTelegram = false;
+                                for (axis_t axis : { kAxisPan, kAxisTilt, kAxisZoom, kAxisFocus }) {
+                                if (axes[axis] != AXIS_NO_VALUE_REL)
+                                    sendTelegram = true;
+                                d[i++] = axes[axis];
+                            }
+                            if (sendTelegram)
+                                txSocket.send(model->getValue(ABS, V_HEADNR), PAN_TILT_ZOOM_FOCUS, d);
+                        }
+                        { /* travelling (and further axes in the future...) */
+                            int d[4] = { AXIS_NO_VALUE_REL, AXIS_NO_VALUE_REL, AXIS_NO_VALUE_REL, AXIS_NO_VALUE_REL};
+                            int i = 0; bool sendTelegram = false;
+                            for (axis_t axis : { kAxisTravelling }) {
+                                if (axes[axis] != AXIS_NO_VALUE_REL)
+                                    sendTelegram = true;
+                                d[i++] = axes[axis];
+                            }
+                            if (sendTelegram)
+                                txSocket.send(model->getValue(ABS, V_HEADNR), DOLLY_LIFT, d);
+                        }
+
+                    } else {
+
+                        /* old BTT_TILT_PAN telegram */
+                        bool panTiltUpdate = false;
+
+                        /* hack: store previous pan/tilt values since old BTT_TILT_PAN
+                           telegram does not support <no value> */
+                        static int x[NUMBER_OF_SLOTS] = {};
+                        static int y[NUMBER_OF_SLOTS] = {};
+
+                        if (axes[kAxisPan] != AXIS_NO_VALUE_REL) {
+                            x[i] = ((axes[kAxisPan] * 5000) / 127) + 5000;
+                            panTiltUpdate = true;
+                        }
+                        if (axes[kAxisTilt] != AXIS_NO_VALUE_REL) {
+                            y[i] = ((axes[kAxisTilt] * 5000) / 127) + 5000;
+                            panTiltUpdate = true;
+                        }
+                        if (panTiltUpdate)
+                            txSocket.send(model->getValue(i, ABS, V_HEADNR), TILT_PAN, x[i], y[i]);
+
+                        if (axes[kAxisZoom] != AXIS_NO_VALUE_REL)
+                            txSocket.send(model->getValue(ABS, V_HEADNR), ZOOM_FOCUS_SET, axes[kAxisZoom] + 127);
+                    }
+                }
+
+                /* check axes updates on absolute values */
+                if (model->getAxisUpdates(i, axes, true)) {
+
+                    if (useNewTelegrams) {
+
+                        /* pan/tilt absolute */
+                        if (axes[kAxisPan] != AXIS_NO_VALUE_ABS || axes[kAxisTilt] != AXIS_NO_VALUE_ABS)
+                            txSocket.send(model->getValue(ABS,V_HEADNR), PAN_TILT_SET_ABSOLUTE, axes[kAxisPan], axes[kAxisTilt]);
+
+                        /* zoom/focus absolute */
+                        if (axes[kAxisZoom] != AXIS_NO_VALUE_ABS || axes[kAxisFocus] != AXIS_NO_VALUE_ABS)
+                            txSocket.send(model->getValue(ABS,V_HEADNR), ZOOM_FOCUS_SET_ABSOLUTE, axes[kAxisZoom], axes[kAxisFocus]);
+
+                        /* travelling absolute */
+                        if (axes[kAxisTravelling] != AXIS_NO_VALUE_ABS)
+                            txSocket.send(model->getValue(ABS,V_HEADNR), DOLLY_LIFT_SET_ABSOLUTE, axes[kAxisTravelling], AXIS_NO_VALUE_ABS);
+
+                    } else {
+
+                        /* focus */
+                        if (axes[kAxisFocus] != AXIS_NO_VALUE_ABS) {
+                            int fmin = model->getMin(i, V_FOCUS);
+                            int fmax = model->getMax(i, V_FOCUS);
+                            int f = (((int32_t)axes[kAxisFocus] + INT16_MAX) * (fmax - fmin)) / (2 * INT16_MAX);
+                            txSocket.send(model->getValue(ABS,V_HEADNR), FOCUS_SET_ABSOLUTE, f);
+
+                            qDebug("old focus: %lx", f);
+                        }
+                    }
+                }
+            }
+            break;
+        }
 
         default:
             break;

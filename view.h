@@ -30,7 +30,7 @@ private slots:
     void on_btCamCtrl_clicked();
     void on_btXptControl_clicked();
     void on_btOthers_clicked();
-
+    void on_btControls_clicked();
 
 signals:
     void stackChanged();

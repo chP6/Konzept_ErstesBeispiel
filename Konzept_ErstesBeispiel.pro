@@ -25,8 +25,10 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
+    controls.cpp \
     logging.cpp \
-        main.cpp \
+    input.cpp \
+    main.cpp \
     model.cpp \
     controller.cpp \
     poller.cpp \
@@ -50,7 +52,9 @@ SOURCES += \
 
 
 HEADERS += \
+    controls.h \
     logging.h \
+    input.h \
     model.h \
     controller.h \
     poller.h \
@@ -76,6 +80,7 @@ HEADERS += \
     xptinterface.h
 
 FORMS += \
+    controls.ui \
     errorwindow.ui \
     home.ui \
     view.ui \

@@ -12,6 +12,7 @@ Model::Model()
     y = 0;
     xptNumberOfInputs = 8;
     xptNumberOfOutputs = 8;
+    activeCameraSlot = 0;
 
     memset(cameras,0,sizeof(cameras));
     /*set all cameras to type 1 (CODGER)*/
@@ -22,6 +23,12 @@ Model::Model()
         /*set all flags to flase*/
         for (int j=0;j<NUMBER_OF_FLAGS;j++) {
             cameras[i].flags[j] = false;
+        }
+
+        // clear axis input values
+        for (int j = 0; j < kAxisMax; j++) {
+            cameras[i].axes[j].absolute = AXIS_NO_VALUE_ABS;
+            cameras[i].axes[j].relative = AXIS_NO_VALUE_REL;
         }
     }
 /*
@@ -37,6 +44,13 @@ Model::Model()
 
 
     // emit updateView(); -> not possible yet, signals not routed at this point -> do in controller
+
+    /* default control/axis mapping */
+    controls[kAxisPan] = kControlJoystickX;
+    controls[kAxisTilt] = kControlJoystickY;
+    controls[kAxisZoom] = kControlJoystickZ;
+    controls[kAxisFocus] = kControlFocusWheel;
+    controls[kAxisTravelling] = kControlZoomRocker;
 }
 
 /*Add error to error list*/
@@ -447,6 +461,16 @@ int Model::getMin(int property)
 int Model::getMax(int property)
 {
     return cameras[activeCameraSlot].values[property][MAX];
+}
+
+int Model::getMin(int slotNr, int property)
+{
+    return cameras[slotNr].values[property][MIN];
+}
+
+int Model::getMax(int slotNr, int property)
+{
+    return cameras[slotNr].values[property][MAX];
 }
 
 /*Camera flag setter*/
@@ -930,4 +954,60 @@ void Model::clearRemainingTelegrams(int slotNr)
     cameras[slotNr].remainingTelegrams.clear();
 }
 
+void Model::setControl(axis_t axis, control_t control)
+{
+    switch (axis) {
+    case kAxisPan:
+    case kAxisTilt:
+    case kAxisZoom:
+    case kAxisFocus:
+    case kAxisTravelling:
+        controls[axis] = control;
+        break;
+    }
+}
 
+control_t Model::getControl(axis_t axis)
+{
+    switch (axis) {
+    case kAxisPan:
+    case kAxisTilt:
+    case kAxisZoom:
+    case kAxisFocus:
+    case kAxisTravelling:
+        return controls[axis];
+    }
+
+    return kControlNone;
+}
+
+void Model::setAxis(axis_t axis, int16_t value, bool absolute) {
+    std::unique_lock<std::mutex> lock(cameras[activeCameraSlot].mtx);
+
+    if (absolute)
+        cameras[activeCameraSlot].axes[axis].absolute = value;
+    else
+        cameras[activeCameraSlot].axes[axis].relative = value;
+}
+
+bool Model::getAxisUpdates(int slotNr, int16_t (&axes)[kAxisMax], bool absolute) {
+    bool newValue = false;
+    std::unique_lock<std::mutex> lock(cameras[slotNr].mtx);
+
+    for (int axis = 0; axis < kAxisMax; axis++) {
+        if (absolute) {
+            axes[axis] = cameras[slotNr].axes[axis].absolute;
+            if (axes[axis] != AXIS_NO_VALUE_ABS) {
+                cameras[slotNr].axes[axis].absolute = AXIS_NO_VALUE_ABS;
+                newValue = true;
+            }
+        } else {
+            axes[axis] = cameras[slotNr].axes[axis].relative;
+            if (axes[axis] != AXIS_NO_VALUE_REL) {
+                cameras[slotNr].axes[axis].relative = AXIS_NO_VALUE_REL;
+                newValue = true;
+            }
+        }
+    }
+    return newValue;
+}
