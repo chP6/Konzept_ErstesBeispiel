@@ -1200,7 +1200,7 @@ void Controller::processQeue(){
 
             for (int i = 0; i < NUMBER_OF_SLOTS; i++) {
                 int16_t axes[kAxisMax];
-                bool useNewTelegrams = false;
+                bool useNewTelegrams = true;
 
                 /* check axes updates on absolute values */
                 if (model->getAxisUpdates(i, axes, false)) {
