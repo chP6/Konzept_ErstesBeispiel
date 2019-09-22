@@ -184,7 +184,7 @@ private:
                        {127,0,255,CENTER,0,REQUESTABLE}, //w_Blue
                        {100,0,200,CENTER,0,REQUESTABLE}, //b_Red
                        {100,0,200,CENTER,0,REQUESTABLE}, //b_Blue
-                       {0,0,14,TEXT,0,REQUESTABLE},    //Gain
+                       {1,1,17,TEXT,0,REQUESTABLE},    //Gain
                        {255,0,512,CENTER,0,REQUESTABLE},   //Gamma
                        {0,0,2,TEXT,1,REQUESTABLE},      //Gamma-Table
                        {128,1,254,CENTER,0,REQUESTABLE},  //Detail
@@ -215,7 +215,7 @@ private:
                        {127,0,255,CENTER,0,REQUESTABLE}, //w_Blue
                        {100,0,200,CENTER,0,REQUESTABLE}, //b_Red
                        {100,0,200,CENTER,0,REQUESTABLE}, //b_Blue
-                       {0,0,14,TEXT,0,REQUESTABLE},    //Gain
+                       {1,1,15,TEXT,0,REQUESTABLE},    //Gain
                        {-1,-1,-1,NAN},   //Gamma
                        {0,0,1,TEXT,1,REQUESTABLE},      //Gamma-Table
                        {128,0,254,CENTER,0,REQUESTABLE},  //Detail
