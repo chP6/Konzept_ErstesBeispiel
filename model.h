@@ -155,6 +155,11 @@ private:
     bool reqPendingArr[MAX_NUMBER_OF_CMDS];
     int currReqHeadNr;
 
+    /* used for normalizing, source: arduino.cc */
+    long map(long x, long in_min, long in_max, long out_min, long out_max) {
+      return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+    }
+
     /* control/axis mapping */
     control_t controls[kAxisMax];
 

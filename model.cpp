@@ -321,6 +321,10 @@ void Model::setValue(int type, int property, int value)
         cameras[activeCameraSlot].values[property][VAL]=value;
         emit updateView();
         break;
+    case NORM:
+        /*Set normalized value*/
+        cameras[activeCameraSlot].values[property][VAL] = map(value, 0, 255, cameras[activeCameraSlot].values[property][MIN], cameras[activeCameraSlot].values[property][MAX]);
+        emit updateView();
     case INC:
         /*Incremental change, prevent out of bound*/
         cameras[activeCameraSlot].values[property][VAL]+=value;
@@ -383,6 +387,9 @@ int Model::getValue(int type, int property)
     case ABS:
         /*Return absolute value*/
         return cameras[activeCameraSlot].values[property][VAL];
+    case NORM:
+        /*Return normalized value*/
+        return map(cameras[activeCameraSlot].values[property][VAL], cameras[activeCameraSlot].values[property][MIN], cameras[activeCameraSlot].values[property][MAX], 0, 255);
     case DISP:
         /*Return value to show in GUI*/
         switch (cameras[activeCameraSlot].values[property][TYP]) {
