@@ -189,8 +189,8 @@ private:
                        {127,0,255,CENTER,0,REQUESTABLE}, //w_Blue
                        {100,0,200,CENTER,0,REQUESTABLE}, //b_Red
                        {100,0,200,CENTER,0,REQUESTABLE}, //b_Blue
-                       {1,1,17,TEXT,0,REQUESTABLE},    //Gain
-                       {255,0,512,CENTER,0,REQUESTABLE},   //Gamma
+                       {1,1,13,TEXT,0,REQUESTABLE},    //Gain
+                       {255,1,512,CENTER,0,REQUESTABLE},   //Gamma
                        {0,0,2,TEXT,1,REQUESTABLE},      //Gamma-Table
                        {128,1,254,CENTER,0,REQUESTABLE},  //Detail
                        {127,1,255,CENTER,0,REQUESTABLE},  //Color
@@ -214,7 +214,7 @@ private:
     int c1Values[ROW_ENTRIES][COLUM_ENTRIES]=
                       {{1,1,49,NORMAL,0,0},     //headnr init_value, min_value, max_value
                        {0x05,0x05,0x11,TEXT,0,REQUESTABLE}, //Iris
-                       {64,0,127,CENTER,0,REQUESTABLE},  //Pedestal
+                       {64,0,128,CENTER,0,REQUESTABLE},  //Pedestal
                        {0,0,8000,NORMAL,0,REQUESTABLE},  //Focus
                        {127,0,255,CENTER,0,REQUESTABLE}, //w_Red
                        {127,0,255,CENTER,0,REQUESTABLE}, //w_Blue
@@ -224,7 +224,7 @@ private:
                        {-1,-1,-1,NAN},   //Gamma
                        {0,0,1,TEXT,1,REQUESTABLE},      //Gamma-Table
                        {128,0,254,CENTER,0,REQUESTABLE},  //Detail
-                       {127,1,255,CENTER,0,REQUESTABLE},  //Color
+                       {4,0,14,TEXT,0,REQUESTABLE},  //Color
                        {0,0,5,TEXT,2,REQUESTABLE},      //Color Temp
                        {-1,-1,-1,NAN},    //Knee
                        {-1,-1,-1,NAN},    //Knee Point
@@ -321,7 +321,7 @@ private:
         {}, // gamma
         {"High","Low"}, // gamma table
         {}, // detail
-        {}, // color
+        {"60%", "70%", "80%", "90%", "100%", "110%", "120%", "130%", "140%", "150%", "160%", "170%", "180%", "190%", "200%", }, // color
         {"Auto","Indoor","Outdoor","One Push WB","ATW","Manual"}, // wb preset
         {}, // knee
         {}, // knee point
@@ -348,7 +348,7 @@ private:
         {}, // b blue
         {"0dB","3dB","6dB","9dB","12dB","15dB","18dB","21dB","24dB","27dB","30dB","33dB","36dB","39dB","42dB","45dB","48dB"}, // gain
         {}, // gamma
-        {"Low","Mid","High"}, // gamma table
+        {"Standard","Straight","Pattern"}, // gamma table
         {}, // detail
         {}, // color
         {"Auto","Indoor","Outdoor","One Push WB","ATW","Manual"}, // wb preset
