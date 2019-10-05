@@ -119,6 +119,7 @@
 #define ABS                 1
 #define INC                 2
 #define DISP                3
+#define NORM                4
 
 
 #define INTERNAL            0

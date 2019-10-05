@@ -400,7 +400,10 @@ void Controller::processQeue(){
 
                 /*send, if associated commandtype exists*/
                 if(model->getTxCommand(field) > 0){  //there could be values without commandtypes
-                   txSocket.send(model->getValue(ABS,V_HEADNR),model->getTxCommand(field),model->getValue(ABS,field));
+                    if (model->getRotaryField() == V_IRIS)
+                        txSocket.send(model->getValue(ABS,V_HEADNR),model->getTxCommand(field),model->getValue(NORM,field));
+                    else
+                        txSocket.send(model->getValue(ABS,V_HEADNR),model->getTxCommand(field),model->getValue(ABS,field));
                 }
 
                 /*the headnumer has been changed*/
@@ -851,9 +854,13 @@ void Controller::processQeue(){
             /*Write answer values to respective properties in model, if headnumber exists*/
             for (int i=0;i<NUMBER_OF_SLOTS;i++) {
                 if(model->getValue(i,ABS,V_HEADNR) == from){
-
-                    if(model->getValueFromBBMCommand(command) > 0){  //there could be commandtypes without values
-                       model->setValue(i, ABS, model->getValueFromBBMCommand(command), data);
+                    int property = model->getValueFromBBMCommand(command);
+                    if(property > 0){  //there could be commandtypes without values
+                        if (property == IRIS_OPEN) {
+                            model->setValue(i, NORM, model->getValueFromBBMCommand(command), data);
+                        } else {
+                            model->setValue(i, ABS, model->getValueFromBBMCommand(command), data);
+                        }
                        model->setRequestReceived(i,model->getValueFromBBMCommand(command));
 //                       if(!model->getCamFlag(i,F_RECEIVED_ALL)){
 //                         checkSettingsRequest(i);
@@ -873,9 +880,14 @@ void Controller::processQeue(){
             /*update model, if headnumber exists in slots*/
             for (int i=0;i<NUMBER_OF_SLOTS;i++) {
                 if(model->getValue(i,ABS,V_HEADNR) == from){
+                    int property = model->getValueFromBBMCommand(command);
 
-                    if(model->getValueFromBBMCommand(command) > 0){  //there could be commandtypes without values
-                       model->setValue(i, ABS, model->getValueFromBBMCommand(command), data);
+                    if(property > 0){  //there could be commandtypes without values
+                        if (property == IRIS_OPEN) {
+                            model->setValue(i, NORM, model->getValueFromBBMCommand(command), data);
+                        } else {
+                            model->setValue(i, ABS, model->getValueFromBBMCommand(command), data);
+                        }
                     }
                     qCDebug(rxRcpIo) << "Answer from RCP | HeadNr:" << from << "Command:" << command << "Data:" << data;
                 }
@@ -1200,7 +1212,7 @@ void Controller::processQeue(){
 
             for (int i = 0; i < NUMBER_OF_SLOTS; i++) {
                 int16_t axes[kAxisMax];
-                bool useNewTelegrams = false;
+                bool useNewTelegrams = true;
 
                 /* check axes updates on absolute values */
                 if (model->getAxisUpdates(i, axes, false)) {

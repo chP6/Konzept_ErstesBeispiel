@@ -155,6 +155,11 @@ private:
     bool reqPendingArr[MAX_NUMBER_OF_CMDS];
     int currReqHeadNr;
 
+    /* used for normalizing, source: arduino.cc */
+    long map(long x, long in_min, long in_max, long out_min, long out_max) {
+      return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+    }
+
     /* control/axis mapping */
     control_t controls[kAxisMax];
 
@@ -177,15 +182,15 @@ private:
     //todo: not all entries have 5 values!
     int c2Values[ROW_ENTRIES][COLUM_ENTRIES]=
                       {{1,1,49,NORMAL},     //headnr init_value, min_value, max_value
-                       {127,0,255,NORMAL,0,0}, //Iris
+                       {0x05,0x05,0x15,TEXT,0,REQUESTABLE}, //Iris
                        {64,0,128,CENTER,0,REQUESTABLE},  //Pedestal
                        {0,0,8000,NORMAL,0,REQUESTABLE},  //Focus
                        {127,0,255,CENTER,0,REQUESTABLE}, //w_Red
                        {127,0,255,CENTER,0,REQUESTABLE}, //w_Blue
                        {100,0,200,CENTER,0,REQUESTABLE}, //b_Red
                        {100,0,200,CENTER,0,REQUESTABLE}, //b_Blue
-                       {0,0,14,TEXT,0,REQUESTABLE},    //Gain
-                       {255,0,512,CENTER,0,REQUESTABLE},   //Gamma
+                       {1,1,13,TEXT,0,REQUESTABLE},    //Gain
+                       {255,1,512,CENTER,0,REQUESTABLE},   //Gamma
                        {0,0,2,TEXT,1,REQUESTABLE},      //Gamma-Table
                        {128,1,254,CENTER,0,REQUESTABLE},  //Detail
                        {127,1,255,CENTER,0,REQUESTABLE},  //Color
@@ -208,18 +213,18 @@ private:
     // camera type 1 init values
     int c1Values[ROW_ENTRIES][COLUM_ENTRIES]=
                       {{1,1,49,NORMAL,0,0},     //headnr init_value, min_value, max_value
-                       {127,0,255,NORMAL,0,0}, //Iris
-                       {64,0,127,CENTER,0,REQUESTABLE},  //Pedestal
+                       {0x05,0x05,0x11,TEXT,0,REQUESTABLE}, //Iris
+                       {64,0,128,CENTER,0,REQUESTABLE},  //Pedestal
                        {0,0,8000,NORMAL,0,REQUESTABLE},  //Focus
                        {127,0,255,CENTER,0,REQUESTABLE}, //w_Red
                        {127,0,255,CENTER,0,REQUESTABLE}, //w_Blue
                        {100,0,200,CENTER,0,REQUESTABLE}, //b_Red
                        {100,0,200,CENTER,0,REQUESTABLE}, //b_Blue
-                       {0,0,14,TEXT,0,REQUESTABLE},    //Gain
+                       {1,1,15,TEXT,0,REQUESTABLE},    //Gain
                        {-1,-1,-1,NAN},   //Gamma
                        {0,0,1,TEXT,1,REQUESTABLE},      //Gamma-Table
                        {128,0,254,CENTER,0,REQUESTABLE},  //Detail
-                       {127,1,255,CENTER,0,REQUESTABLE},  //Color
+                       {4,0,14,TEXT,0,REQUESTABLE},  //Color
                        {0,0,5,TEXT,2,REQUESTABLE},      //Color Temp
                        {-1,-1,-1,NAN},    //Knee
                        {-1,-1,-1,NAN},    //Knee Point
@@ -303,42 +308,123 @@ private:
     GAMMA_TABLE,DETAIL_LEVEL_ADJ,COLOR_UP,WHITE_BALANCE_PRST,KNEE_POINT_AUTO,KNEE_POINT,ND_FILTER,
     SHUTTER_UP,PAN_TILT_SPEED,-1,RAMP,-1,-1,BNCE_WAIT_TIME,-1,HEAD_POWER,MIRROR_H_V};
 
-    QString c1TextTable[6][15]={{"-10.5dB","-9dB","-7.5dB","-6dB","-4.5dB","-3dB","-1.5dB","0dB","1.5dB","3dB","4.5dB","6dB","7.5dB","9dB","10.5dB"},
-                               {"High","Low"},
-                                {"2800K","3200K","4000K","4600K","5600K","6300K"},
-                                {"1/50","1/75","1/100","1/120","1/150","1/215","1/300","1/425","1/600","1/1000","1/1250","1/1750","1/2500","1/3500","1/6000"},
-                                {"Low","Mid","High"},
-                                {"Normal","H-Inverted","V-Inverted","HV-Inverted"}
-                               };
-    QString c2TextTable[7][15]={{"-10.5dB","-9dB","-7.5dB","-6dB","-4.5dB","-3dB","-1.5dB","0dB","1.5dB","3dB","4.5dB","6dB","7.5dB","9dB","10.5dB"},
-                               {"Low","Mid","High"},
-                                {"2800K","3200K","4000K","4600K","5600K","6300K"},
-                                {"Clear","1/4","1/16","1/64"},
-                                {"1/50","1/100","1/120","1/150","1/215","1/300","1/425","1/600","1/1000","1/1250","1/1750","1/2500","1/3500","1/6000"},
-                                {"Low","Mid","High"},
-                                {"Normal","H-Inverted","V-Inverted","HV-Inverted"}
-                               };
-    QString rTextTable[8][15]={{"-5dB","-4dB","-3dB","-2dB","-1dB","0dB","-1dB","2dB","3dB","4dB","5dB"},
-                               {"Low","Mid","High"},
-                                {"2800K","3200K","4000K","4600K","5600K"},
-                                {"Off","On","Auto"},
-                                {"Clear","1/4","1/16","1/64"},
-                                {"1/50","1/75","1/100","1/120","1/150","1/215","1/300"},
-                                {"Low","Mid","High"},
-                               {"Normal","H-Inverted","V-Inverted","HV-Inverted"}
-                               };
-    QString ursaTextTable[8][15]={{"-5dB","-4dB","-3dB","-2dB","-1dB","0dB","-1dB","2dB","3dB","4dB","5dB"},
-                               {"Low","Mid","High"},
-                                {"2800K","3200K","4000K","4600K","5600K"},
-                                {"Off","On","Auto"},
-                                {"Clear","1/4","1/16","1/64"},
-                                {"1/50","1/75","1/100","1/120","1/150","1/215","1/300"},
-                                {"Low","Mid","High"},
-                               {"Normal","H-Inverted","V-Inverted","HV-Inverted"}
-                               };
 
-
-
+    QString c1TextTable[ROW_ENTRIES][256]={
+        {}, // head nr
+        {"f14","f11","f9.6","f8","f6.8","f5.6","f4.8","f4","f3.4","f2.8","f2.4","f2","f1.6"}, // iris
+        {}, // pedestal
+        {}, // focus
+        {}, // w red
+        {}, // w blue
+        {}, // b red
+        {}, // b blue
+        {"0dB","3dB","6dB","9dB","12dB","15dB","18dB","21dB","24dB","27dB","30dB","33dB","36dB","39dB","42dB"}, // gain
+        {}, // gamma
+        {"High","Low"}, // gamma table
+        {}, // detail
+        {"60%", "70%", "80%", "90%", "100%", "110%", "120%", "130%", "140%", "150%", "160%", "170%", "180%", "190%", "200%", }, // color
+        {"Auto","Indoor","Outdoor","One Push WB","ATW","Manual"}, // wb preset
+        {}, // knee
+        {}, // knee point
+        {}, // ND filter
+        {"1/50","1/75","1/100","1/120","1/150","1/215","1/300","1/425","1/600","1/1000","1/1250","1/1750","1/2500","1/3500","1/6000"}, // shutter
+        {}, // PT speed
+        {}, // trans speed
+        {}, // ramp
+        {}, // SPP 1
+        {}, // SPP 2
+        {}, // SPP wait time
+        {}, // bounce zoom speed
+        {"Low","Mid","High"}, // head power
+        {"Normal","H-Inverted","V-Inverted","HV-Inverted"} // mirror
+    };
+    QString c2TextTable[ROW_ENTRIES][256]={
+        {}, // head nr
+        {"f11","f10","f9.6","f8.7","f8.0","f7.3","f6.8","f6.2","f5.6","f5.2","f4.8","f4.4","f4.0","f3.7","f3.4","f3.1","f2.8"}, // iris
+        {}, // pedestal
+        {}, // focus
+        {}, // w red
+        {}, // w blue
+        {}, // b red
+        {}, // b blue
+        {"0dB","3dB","6dB","9dB","12dB","15dB","18dB","21dB","24dB","27dB","30dB","33dB","36dB","39dB","42dB","45dB","48dB"}, // gain
+        {}, // gamma
+        {"Standard","Straight","Pattern"}, // gamma table
+        {}, // detail
+        {}, // color
+        {"Auto","Indoor","Outdoor","One Push WB","ATW","Manual"}, // wb preset
+        {}, // knee
+        {}, // knee point
+        {"Clear","1/4","1/16","1/64"}, // ND filter
+        {"1/50","1/100","1/120","1/150","1/215","1/300","1/425","1/600","1/1000","1/1250","1/1750","1/2500","1/3500","1/6000"}, // shutter
+        {}, // PT speed
+        {}, // trans speed
+        {}, // ramp
+        {}, // SPP 1
+        {}, // SPP 2
+        {}, // SPP wait time
+        {}, // bounce zoom speed
+        {"Low","Mid","High"}, // head power
+        {"Normal","H-Inverted","V-Inverted","HV-Inverted"} // mirror
+    };
+    QString rTextTable[ROW_ENTRIES][256]={
+        {}, // head nr
+        {}, // iris
+        {}, // pedestal
+        {}, // focus
+        {}, // w red
+        {}, // w blue
+        {}, // b red
+        {}, // b blue
+        {"-5dB","-4dB","-3dB","-2dB","-1dB","0dB","-1dB","2dB","3dB","4dB","5dB"}, // gain
+        {}, // gamma
+        {"Low","Mid","High"}, // gamma table
+        {}, // detail
+        {}, // color
+        {"2800K","3200K","4000K","4600K","5600K"}, // wb preset
+        {"Off","On","Auto"}, // knee
+        {}, // knee point
+        {"Clear","1/4","1/16","1/64"}, // ND filter
+        {"1/50","1/75","1/100","1/120","1/150","1/215","1/300"}, // shutter
+        {}, // PT speed
+        {}, // trans speed
+        {}, // ramp
+        {}, // SPP 1
+        {}, // SPP 2
+        {}, // SPP wait time
+        {}, // bounce zoom speed
+        {"Low","Mid","High"}, // head power
+        {"Normal","H-Inverted","V-Inverted","HV-Inverted"} // mirror
+    };
+    QString ursaTextTable[ROW_ENTRIES][256]={
+        {}, // head nr
+        {}, // iris
+        {}, // pedestal
+        {}, // focus
+        {}, // w red
+        {}, // w blue
+        {}, // b red
+        {}, // b blue
+        {"-5dB","-4dB","-3dB","-2dB","-1dB","0dB","-1dB","2dB","3dB","4dB","5dB"}, // gain
+        {}, // gamma
+        {"Low","Mid","High"}, // gamma table
+        {}, // detail
+        {}, // color
+        {"2800K","3200K","4000K","4600K","5600K"}, // wb preset
+        {"Off","On","Auto"}, // knee
+        {}, // knee point
+        {"Clear","1/4","1/16","1/64"}, // ND filter
+        {"1/50","1/75","1/100","1/120","1/150","1/215","1/300"}, // shutter
+        {}, // PT speed
+        {}, // trans speed
+        {}, // ramp
+        {}, // SPP 1
+        {}, // SPP 2
+        {}, // SPP wait time
+        {}, // bounce zoom speed
+        {"Low","Mid","High"}, // head power
+        {"Normal","H-Inverted","V-Inverted","HV-Inverted"} // mirror
+    };
 
 };
 
