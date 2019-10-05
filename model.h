@@ -337,6 +337,9 @@ private:
                                {"Normal","H-Inverted","V-Inverted","HV-Inverted"}
                                };
 
+
+
+
 };
 
 #endif // MODEL_H
