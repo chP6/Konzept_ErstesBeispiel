@@ -1,22 +1,18 @@
 #ifndef ERRORWINDOW_H
 #define ERRORWINDOW_H
 
-#include <QWidget>
+//#include <QWidget>
 #include <QStringListModel>
+#include <QObject>
+#include "model.h"
+#include "controller.h"
 
-class Model;
-class Controller;
-
-namespace Ui {
-class ErrorWindow;
-}
-
-class ErrorWindow : public QWidget
+class ErrorWindow : QObject
 {
     Q_OBJECT
 
 public:
-    explicit ErrorWindow(QWidget *parent = nullptr);
+    explicit ErrorWindow();
     ~ErrorWindow();
     void setModelController(Model* model, Controller* controller);
     void updateUi();
@@ -26,7 +22,6 @@ private slots:
     void on_pbEwClear_clicked();
 
 private:
-    Ui::ErrorWindow *ui;
     QStringListModel *listModel;
     Model* model;
     Controller* controller;

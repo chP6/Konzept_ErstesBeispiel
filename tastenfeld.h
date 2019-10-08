@@ -1,6 +1,6 @@
 #ifndef TASTENFELD_H
 #define TASTENFELD_H
-#include <QWidget>
+//#include <QWidget>
 
 
 

@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>Camera.qml</file>
+        <file>Controls.qml</file>
+        <file>CustomDial.qml</file>
+        <file>Home.qml</file>
+        <file>Others.qml</file>
+        <file>Xpt.qml</file>
+    </qresource>
+</RCC>

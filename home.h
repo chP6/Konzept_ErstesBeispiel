@@ -1,61 +1,88 @@
 #ifndef HOME_H
 #define HOME_H
 
-#include <QWidget>
-class Model;
-class Controller;
+#include "model.h"
+#include "controller.h"
+#include "events.h"
+#include <QObject>
+#include "config.h"
 
 
-namespace Ui {
-class Home;
-}
-
-class Home : public QWidget
+class Home : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(QList<QVariant> ptSpeed READ ptSpeed NOTIFY ptSpeedChanged)
+    Q_PROPERTY(QList<QVariant> zoomSpeed READ zoomSpeed NOTIFY zoomSpeedChanged)
+    Q_PROPERTY(QList<QVariant> transitionSpeed READ transitionSpeed NOTIFY transitionSpeedChanged)
+    Q_PROPERTY(QList<QVariant> ramp READ ramp NOTIFY rampChanged)
+    Q_PROPERTY(QList<QVariant> spp1 READ spp1 NOTIFY spp1Changed)
+    Q_PROPERTY(QList<QVariant> spp2 READ spp2 NOTIFY spp2Changed)
+    Q_PROPERTY(QList<QVariant> sppWaitTime READ sppWaitTime NOTIFY sppWaitTimeChanged)
+    Q_PROPERTY(int headNr READ headNr NOTIFY headNrChanged)
+    Q_PROPERTY(int preset READ preset NOTIFY updateView)
+    Q_PROPERTY(bool presetMoving READ presetMoving NOTIFY presetMovingChanged)
+    Q_PROPERTY(bool bounce READ bounce WRITE setBounce NOTIFY bounceChanged)
+    Q_PROPERTY(bool sppStart READ sppStart WRITE setSppStart NOTIFY sppStartChanged)
+    Q_PROPERTY(bool fpm READ fpm WRITE setFpm NOTIFY fpmChanged)
 
 public:
-    explicit Home(QWidget *parent = nullptr);
+    explicit Home(Model *model, Controller *controller);
     ~Home();
-    void updateUi();
-     void setModelController(Model* model, Controller* controller);
-     void serverConnectionChanged(bool connection);
-     void cameraConnectionChanged(bool connection);
-     void stackChanged();
-     void sppUpdate(bool active);
+
+    /*PT Speed Dial*/
+    QList<QVariant> ptSpeed();
+    QList<QVariant> zoomSpeed();
+    QList<QVariant> transitionSpeed();
+    QList<QVariant> ramp();
+    QList<QVariant> spp1();
+    QList<QVariant> spp2();
+    QList<QVariant> sppWaitTime();
+    int headNr();
+    int preset();
+    Q_INVOKABLE void storePreset();
+
+    void updateAll();
+
+    bool presetMoving();
+    bool bounce();
+    bool sppStart();
+    bool fpm();
+
+public slots:
+
+    void setBounce(bool bounce);
+    void setSppStart(bool sppStart);
+    void setFpm(bool fpm);
+
+
+signals:
+    void updateView();
+    void ptSpeedChanged();
+    void zoomSpeedChanged();
+    void transitionSpeedChanged();
+    void rampChanged();
+    void spp1Changed();
+    void spp2Changed();
+    void sppWaitTimeChanged();
+    void headNrChanged();
+    void presetMovingChanged();
+    void bounceChanged();
+    void sppStartChanged();
+    void fpmChanged();
+
 private:
-    Ui::Home *ui;
     Model* model;
     Controller* controller;
 
+    bool m_presetMoving;
+
+    bool m_bounce;
+
+    bool m_sppStart;
+
+    bool m_fpm;
+
 private slots:
-
-
-    void on_btBounce_clicked(bool checked);
-
-    void on_btWideSet_clicked();
-
-    void on_btAutoZoomSpeed_clicked();
-
-    void on_btTransSpeed_clicked();
-
-    void on_btPanTiltSpeed_clicked();
-
-    void on_btRamp_clicked();
-
-    void on_btFasttrans_clicked(bool checked);
-
-    void on_btSpp1_clicked();
-
-    void on_btSpp2_clicked();
-
-    void on_btSppWait_clicked();
-
-    void on_btSppStart_clicked(bool checked);
-
-    void on_btHeadNr_clicked();
-
-    void on_btStorePreset_clicked();
 
 
 };

@@ -101,7 +101,7 @@ void View::on_modelUpdateProperty(properties_t property)
     switch (property) {
     case Ped: cameraBackend.blackLevelChanged(); break;
     case Iris: cameraBackend.irisChanged();break;
-    case GammaTable: cameraBackend.gammaChanged();break;
+    case GammaTable: cameraBackend.gammaTableChanged();break;
     case Gamma: cameraBackend.gammaChanged();break;
     case KneePoint: cameraBackend.kneePointChanged();break;
     case Color: cameraBackend.saturationChanged();break;

@@ -1,15 +1,18 @@
 #ifndef VIE_H
 #define VIE_H
 
-#include <QWidget>
-#include <QMainWindow>
-#include "errorwindow.h"
+#include <QObject>
+#include "controller.h"
+#include "model.h"
+#include <csignal>
+#include "events.h"
+#include "config.h"
+#include "home.h"
+#include "cameraview.h"
+#include "xptcontrol.h"
+#include "others.h"
 
-namespace Ui {
-class View;
-}
-
-class View : public QMainWindow
+class View : public QObject
 {
     Q_OBJECT
 
@@ -24,6 +27,8 @@ public slots:
     void on_loadButtonCleared();
     void on_newReceive(int property);
     void on_newRequest();
+    void on_modelUpdateProperty(properties_t property);
+    void on_modelUpdateFlag(flags_t flag);
 
 private slots:
     void on_btHome_clicked();
@@ -36,12 +41,15 @@ signals:
     void stackChanged();
 
 public:
-    explicit View(QWidget *parent = nullptr);
+    explicit View(Model& model, Controller& controller);
     ~View();
-    void setModelController(Model& model, Controller& controller);
+    Home homeBackend;
+    CameraView cameraBackend;
+    Others othersBackend;
+    XptControl xptBackend;
 
 private:
-    Ui::View *ui;
+
     Controller* controller;
     Model* model;
     static void signalHandler(int signum);

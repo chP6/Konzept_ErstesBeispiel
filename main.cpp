@@ -1,6 +1,9 @@
-#include <QApplication>
 #include "view.h"
 #include "model.h"
+#include <QGuiApplication>
+#include <QQmlApplicationEngine>
+#include <QQmlContext>
+#include <QQuickStyle>
 #include "controller.h"
 #include "udplistener.h"
 #include "poller.h"
@@ -16,10 +19,18 @@
 #include <QCursor>
 
 
+
 int main(int argc, char *argv[])
 {
+   qRegisterMetaType<properties_t>("properties_t");
+   qRegisterMetaType<flags_t>("flags_t");
 
-    QApplication a(argc, argv);
+    qputenv("QT_IM_MODULE", QByteArray("qtvirtualkeyboard"));
+    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+
+    QGuiApplication app(argc, argv);
+    QQmlApplicationEngine engine;
+
     //a.quit();
      pthread_t this_thread = pthread_self ();
      struct sched_param params;
@@ -64,7 +75,7 @@ int main(int argc, char *argv[])
     QCommandLineOption logInquiry(QStringList() << "i" << "inquiry", QCoreApplication::translate("main", "log inquiry traffic"));
         parser.addOption(logInquiry);
 
-    parser.process(a);
+    parser.process(app);
     QByteArray filter;
     filter.append("*.debug=false\n");   //disable any debugging
 
@@ -109,16 +120,45 @@ int main(int argc, char *argv[])
     /*add filter to logger*/
     QLoggingCategory::setFilterRules(filter);
 
-    View view;
-    Model model;
-    Q_INIT_RESOURCE(styles);
-    QFile File(":/stylesheet.qss");
-    File.open(QFile::ReadOnly);
-    QString StyleSheet = QLatin1String(File.readAll());
 
-    view.setStyleSheet(StyleSheet);
+    Model model;
+    Controller controller(model);
+    View view(model,controller);
+
+    qmlRegisterType<CameraView>("io.qt.examples.backend", 1, 0, "CameraBackend");
+    qmlRegisterType<CameraView>("io.qt.examples.backend", 1, 0, "HomeBackend");
+
+    qmlRegisterUncreatableMetaObject(Config::staticMetaObject, // static meta object
+                                     "com.bbm.config",          // import statement
+                                     1, 0,                         // major and minor version of the import
+                                     "Config",                 // name in QML
+                                     "Error: only enums");
+    engine.rootContext()->setContextProperty("cameraBackend",&view.cameraBackend);
+    engine.rootContext()->setContextProperty("homeBackend",&view.homeBackend);
+
+    QQuickStyle::setStyle("Material");
+    const QUrl url(QStringLiteral("qrc:/main.qml"));
+//    QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
+//                     &app, [url](QObject *obj, const QUrl &objUrl) {
+//        if (!obj && url == objUrl)
+//            QCoreApplication::exit(-1);
+//    }, Qt::QueuedConnection);
+    engine.load(url);
+
+    //Q_INIT_RESOURCE(styles);
+    //QFile File(":/stylesheet.qss");
+    //File.open(QFile::ReadOnly);
+    //QString StyleSheet = QLatin1String(File.readAll());
+
+    //view.setStyleSheet(StyleSheet);
     QObject::connect(&model, &Model::updateView,            // model signal mit view slot verbinden
                      &view, &View::on_modelUpdate);
+//    QObject::connect(&model, SIGNAL(updateViewProperty(properties_t)),
+//                &view, SLOT(on_modelUpdateProperty(properties_t)));
+    QObject::connect(&model, &Model::updateViewProperty,            // model signal mit view slot verbinden
+                     &view, &View::on_modelUpdateProperty);
+    QObject::connect(&model, &Model::updateViewFlag,            // model signal mit view slot verbinden
+                     &view, &View::on_modelUpdateFlag);
     QObject::connect(&model, &Model::setUpView,            // model signal mit view slot verbinden
                      &view, &View::on_modelSetUp);
     QObject::connect(&model, &Model::updateServerConnectionStatus,
@@ -134,16 +174,16 @@ int main(int argc, char *argv[])
     QObject::connect(&model, &Model::receiveAllNew,
                      &view, &View::on_newRequest);
 
-    Controller controller(model);
+
 
     QObject::connect(&controller, &Controller::clearLoadButon,
                      &view, &View::on_loadButtonCleared);
 
-    QObject::connect(&a, &QApplication::aboutToQuit,
-                     &controller, &Controller::onAppQuit);
+//    QObject::connect(&a, &QApplication::aboutToQuit,
+//                     &controller, &Controller::onAppQuit);
 
-    view.setModelController(model, controller);
-    view.show();
+    //view.setModelController(model, controller);
+    //view.show();
 
     Poller poller(controller);
     controller.setPoller(poller);
@@ -151,9 +191,9 @@ int main(int argc, char *argv[])
     controller.startQueueProcessThread();
     poller.startListener();
     udpListener.startListener();
-    QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
+    //QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
 
-    a.exec();
+    app.exec();
     poller.stopListener();
     if(poller.t3.joinable()){ poller.t3.join();}
     controller.stopQueueProcessThread();

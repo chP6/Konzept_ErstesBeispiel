@@ -1,163 +1,169 @@
 #include "home.h"
-#include "ui_home.h"
-#include <QDebug>
-#include <QString>
-#include <config.h>
-#include "model.h"
-#include "controller.h"
-#include "events.h"
 
-Home::Home(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::Home)
-{
-    ui->setupUi(this);
-
-}
-
-Home::~Home()
-{
-    delete ui;
-}
-
-void Home::updateUi()
-{
-    /*update every button with the respecive value*/
-    ui->btPanTiltSpeed->setText(QString::number(model->getValue(DISP,V_PT_SPEED)));
-    ui->btTransSpeed->setText(QString::number(model->getValue(DISP,V_TRANS_SPEED)));
-    ui->btRamp->setText(QString::number(model->getValue(DISP,V_RAMP)));
-    ui->btSpp1->setText(QString::number(model->getValue(DISP,V_SPP1)));
-    ui->btSpp2->setText(QString::number(model->getValue(DISP,V_SPP2)));
-    ui->btSppWait->setText(QString::number(model->getValue(DISP,V_SPP_WAIT_TIME)));
-    ui->btHeadNr->setText(QString::number(model->getValue(DISP,V_HEADNR)));
-    ui->lPresetNr->setText(QString::number(model->getActivePreset()+1));
-    ui->btAutoZoomSpeed->setText(QString::number(model->getValue(DISP,V_BOUNCE_ZOOM_SPEED)));
-    ui->btBounce->setChecked(model->getCamFlag(F_BOUNCE_ENABLE));
-    ui->btFasttrans->setChecked(model->getCamFlag(F_FASTTRANS));
-    ui->btSppStart->setChecked(model->getCamFlag(F_SPP_ON));
-}
-
-void Home::setModelController(Model *model, Controller *controller)
-{
+Home::Home(Model *model, Controller *controller){
     this->model = model;
     this->controller = controller;
 }
 
-void Home::serverConnectionChanged(bool connection)
-{
-    /*indicate the server connection according to the connection flag*/
-    if(connection){ui->lServer->setText("OK");}
-    else {
-        ui->lServer->setText("Not OK");
-    }
-}
-
-void Home::cameraConnectionChanged(bool connection)
-{
-    /*indicate the camera connection according to the connection flag*/
-    if(connection){ui->lCamera->setText("OK");}
-    else {
-        ui->lCamera->setText("Not OK");
-    }
-}
-
-/*Qt Slots for button clicks **************/
-void Home::on_btBounce_clicked(bool checked)
-{
-    ui->btWideSet->setEnabled(checked);         //ebable whideSet button only wehn Bounce mode is enabled
-    model->setCamFlag(F_BOUNCE_ENABLE,checked); //set Flag
-    //controller->queueEvent(E_BOUNCE);           //add the event in the queue
-}
-
-void Home::on_btWideSet_clicked()
-{
-    controller->queueEvent(E_WIDESET);          //add the event in the queue
-}
-
-void Home::on_btFasttrans_clicked(bool checked)
-{
-    model->setCamFlag(F_FASTTRANS,checked);     //add the event in the queue
-}
-
-void Home::on_btSppStart_clicked(bool checked)
+Home::~Home()
 {
 
-    if(!checked){
-        controller->queueEvent(E_SPP_ABORT);    //add the event in the queue
-    }
-    else{       //toggle
-        controller->queueEvent(E_SPP_START);    //add the event in the queue
-    }
-
 }
-void Home::on_btStorePreset_clicked()
+
+QList<QVariant> Home::ptSpeed()
+{
+    QList<QVariant> list;
+    properties_t property = PtSpeed;
+    list.insert(Min,model->getMin(property));
+    list.insert(Max,model->getMax(property));
+    list.insert(Value,model->getValue(Absolute,property));
+    list.insert(TextList,model->getTextList(property));
+    list.insert(State,model->getDialState(property));
+    return list;
+}
+
+QList<QVariant> Home::zoomSpeed()
+{
+    QList<QVariant> list;
+    properties_t property = BounceZoomSpeed;
+    list.insert(Min,model->getMin(property));
+    list.insert(Max,model->getMax(property));
+    list.insert(Value,model->getValue(Absolute,property));
+    list.insert(TextList,model->getTextList(property));
+    list.insert(State,model->getDialState(property));
+    return list;
+}
+
+QList<QVariant> Home::transitionSpeed()
+{
+    QList<QVariant> list;
+    properties_t property = TransSpeed;
+    list.insert(Min,model->getMin(property));
+    list.insert(Max,model->getMax(property));
+    list.insert(Value,model->getValue(Absolute,property));
+    list.insert(TextList,model->getTextList(property));
+    list.insert(State,model->getDialState(property));
+    return list;
+}
+
+QList<QVariant> Home::ramp()
+{
+    QList<QVariant> list;
+    properties_t property = Ramp;
+    list.insert(Min,model->getMin(property));
+    list.insert(Max,model->getMax(property));
+    list.insert(Value,model->getValue(Absolute,property));
+    list.insert(TextList,model->getTextList(property));
+    list.insert(State,model->getDialState(property));
+    return list;
+}
+
+QList<QVariant> Home::spp1()
+{
+    QList<QVariant> list;
+    properties_t property = Spp1;
+    list.insert(Min,model->getMin(property));
+    list.insert(Max,model->getMax(property));
+    list.insert(Value,model->getValue(Absolute,property));
+    list.insert(TextList,model->getTextList(property));
+    list.insert(State,model->getDialState(property));
+    return list;
+}
+
+QList<QVariant> Home::spp2()
+{
+    QList<QVariant> list;
+    properties_t property = Spp2;
+    list.insert(Min,model->getMin(property));
+    list.insert(Max,model->getMax(property));
+    list.insert(Value,model->getValue(Absolute,property));
+    list.insert(TextList,model->getTextList(property));
+    list.insert(State,model->getDialState(property));
+    return list;
+}
+
+QList<QVariant> Home::sppWaitTime()
+{
+    QList<QVariant> list;
+    properties_t property = SppwWaitTime;
+    list.insert(Min,model->getMin(property));
+    list.insert(Max,model->getMax(property));
+    list.insert(Value,model->getValue(Absolute,property));
+    list.insert(TextList,model->getTextList(property));
+    list.insert(State,model->getDialState(property));
+    return list;
+}
+
+int Home::preset()
+{
+    return model->getActivePreset();
+}
+
+void Home::storePreset()
 {
     controller->queueEvent(E_STORE_PRESET);
 }
 
-/*point to the respective field, the rotary encoder will queue the event
-  value can be sent
-***********/
-void Home::on_btAutoZoomSpeed_clicked()
+void Home::updateAll()
 {
-
-    model->setRotaryField(V_BOUNCE_ZOOM_SPEED,SEND);
+    emit updateView();
+    emit ptSpeedChanged();
+    emit zoomSpeedChanged();
+    emit transitionSpeedChanged();
+    emit rampChanged();
+    emit spp1Changed();
+    emit spp2Changed();
+    emit sppWaitTimeChanged();
+    emit headNrChanged();
+    emit presetMovingChanged();
+    emit bounceChanged();
+    emit sppStartChanged();
+    emit fpmChanged();
 }
 
-void Home::on_btTransSpeed_clicked()
+bool Home::presetMoving()
 {
-    model->setRotaryField(V_TRANS_SPEED,SEND);
+    return model->getCamFlag(PresetMoving);
 }
 
-void Home::on_btPanTiltSpeed_clicked()
+bool Home::bounce()
 {
-    model->setRotaryField(V_PT_SPEED,SEND);
+    return model->getCamFlag(BounceEnabled);
 }
 
-void Home::on_btRamp_clicked()
+bool Home::sppStart()
 {
-    model->setRotaryField(V_RAMP,SEND);
+    return model->getCamFlag(SppEnabled);
 }
 
-void Home::on_btSpp1_clicked()
+bool Home::fpm()
 {
-    model->setRotaryField(V_SPP1,SEND);
+    return model->getCamFlag(FastTransEnabled);
 }
 
-void Home::on_btSpp2_clicked()
+void Home::setBounce(bool bounce)
 {
-    model->setRotaryField(V_SPP2,SEND);
+    model->setCamFlag(BounceEnabled,bounce);
 }
 
-void Home::on_btSppWait_clicked()
+void Home::setSppStart(bool sppStart)
 {
-    model->setRotaryField(V_SPP_WAIT_TIME,SEND);
+    model->setCamFlag(SppEnabled,sppStart);
+    sppStart ? controller->queueEvent(E_SPP_START) : controller->queueEvent(E_SPP_ABORT);
 }
 
-void Home::on_btHeadNr_clicked()
+void Home::setFpm(bool fpm)
 {
-    model->setRotaryField(V_HEADNR,SEND);
-}
-/****************/
-/*******************/
-
-void Home::stackChanged()
-{
-    /*Pres the last prest button in this window again*/
-    QPushButton *button=ui->btRamp;                                     //dummy
-    QList<QPushButton*> allButtons=this->findChildren<QPushButton*>();  //find all buttons and put them in a list
-    for(int i=0;i<allButtons.size();i++){
-        if(allButtons[i]->isChecked() && allButtons[i]->autoExclusive())    //find the one which was checked there are buttons which aren't autoexclusive, ignore them
-        {button=allButtons[i];}         //find the one which was checked
-
-    }
-    button->click();                //click it
+    model->setCamFlag(FastTransEnabled,fpm);
 }
 
-void Home::sppUpdate(bool active)
+int Home::headNr()
 {
-    ui->btSppStart->setChecked(active); //check according to active
+    return model->getValue(Absolute,HeadNr);
 }
+
+
+
 
 
 

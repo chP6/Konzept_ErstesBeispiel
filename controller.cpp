@@ -149,10 +149,10 @@ void Controller::settingsWrite(QSettings &savefile){
         //savefile.setValue("usedPresets",model->getUsedPreset(i));
         savefile.setValue("xptSource",model->getXptSlotSource(i));
         for (int k=0;k<NUMBER_OF_FLAGS;k++) {
-            savefile.setValue("flag_"+QString::number(k),model->getCamFlag(i,k));
+            savefile.setValue("flag_"+QString::number(k),model->getCamFlag(i,flags_t(k)));
         }
         for (int j=0;j<ROW_ENTRIES;j++) {
-            savefile.setValue("value_"+QString::number(j),model->getValue(i,ABS,j));
+            savefile.setValue("value_"+QString::number(j),model->getValue(i,Absolute,properties_t(j)));
         }
         savefile.endGroup();
     }
@@ -170,10 +170,10 @@ void Controller::settingsLoad(QSettings &savefile, bool send){
     /*write according to group*/
     savefile.beginGroup("xpt");
         model->setXptType(savefile.value("xptType").toInt());
-        model->setXptIpField(ABS,0,savefile.value("xptIpField1").toInt());
-        model->setXptIpField(ABS,1,savefile.value("xptIpField2").toInt());
-        model->setXptIpField(ABS,2,savefile.value("xptIpField3").toInt());
-        model->setXptIpField(ABS,3,savefile.value("xptIpField4").toInt());
+        model->setXptIpField(Absolute,0,savefile.value("xptIpField1").toInt());
+        model->setXptIpField(Absolute,1,savefile.value("xptIpField2").toInt());
+        model->setXptIpField(Absolute,2,savefile.value("xptIpField3").toInt());
+        model->setXptIpField(Absolute,3,savefile.value("xptIpField4").toInt());
         model->setXptNumberOfInputs(savefile.value("xptNumberOfInputs").toInt());
         model->setXptNumberOfOutputs(savefile.value("xptNumberOfOutputs").toInt());
         savefile.endGroup();
@@ -188,27 +188,27 @@ void Controller::settingsLoad(QSettings &savefile, bool send){
         model->setXptSlotSource(savefile.value("xptSource").toInt());
 
         for (int k=0;k<NUMBER_OF_FLAGS;k++) {
-            if(k != F_BOUNCING){
-            model->setCamFlag(i,k,savefile.value("flag_"+QString::number(k)).toBool());
+            if(k != Bouncing){
+            model->setCamFlag(i,flags_t(k),savefile.value("flag_"+QString::number(k)).toBool());
             }
         }
 
         /*Set texttable pointer according to type*/
-        model->setTextTable(i,model->getCamtype(i));
+        //model->setTextTable(i,model->getCamtype(i));
 
         for (int j=0;j<ROW_ENTRIES;j++) {
-            model->setValue(i, ABS, j, savefile.value("value_"+QString::number(j)).toInt());
+            model->setValue(i, Absolute, properties_t(j), savefile.value("value_"+QString::number(j)).toInt());
 
         /*Somethimes it is necessary to send certain values to the camera after reboot*/
             if(send){
                 //send value to cameras
-                if(model->getTxCommand(j) > 0){  //there could be values without commandtypes
+                if(model->getTxCommand(properties_t(j)) > 0){  //there could be values without commandtypes
 
                     //Head Arduino seems to need pause to process certain commands
-                    if(j==V_RAMP || j==V_PT_SPEED || j==V_SHUTTER || j==V_GAIN){
+                    if(j==Ramp || j==PtSpeed || j==Shutter || j==Gain){
                         usleep(TX_T);
                     }
-                    txSocket.send(model->getValue(i,ABS,V_HEADNR), model->getTxCommand(j),model->getValue(ABS,j));
+                    txSocket.send(model->getValue(i,Absolute,HeadNr), model->getTxCommand(properties_t(j)),model->getValue(Absolute,properties_t(j)));
                 }
             }
         }
@@ -250,18 +250,18 @@ int Controller::loadAutosave(){
 
 /*routine to see if there are requested values that couldn't be recieved*/
 void Controller::checkSettingsRequest(int slotNr){
-    std::vector<int> remainingRequests;
+    std::vector<properties_t> remainingRequests;
     remainingRequests = model->getRemainingTelegrams(slotNr); //get the remaining telegrams into a vector
 
     /*if it's all empty, everything has been received and all is good. Stop the timer for periodic requests*/
     if(remainingRequests.empty()){
         reqSettingsTimer[slotNr].stop();
-        model->setCamFlag(F_RECEIVED_ALL, true);
+        model->setCamFlag(ReceivedAll, true);
     }
     /*if some requests still open, re-request*/
-    else if(model->getCamFlag(slotNr, F_CONNECTED)){
+    else if(model->getCamFlag(slotNr, CameraConnected)){
         for (size_t i=0;i<remainingRequests.size();i++){
-            int headNr = model->getValue(slotNr,ABS,V_HEADNR);          // get the headnumber according to the slot
+            int headNr = model->getValue(slotNr,Absolute,HeadNr);          // get the headnumber according to the slot
             int command = model->getTxCommand(remainingRequests[i]);    //get the command to request again
             txSocket.request(headNr, command);                          //request it
             qCDebug(requestIo)<<"Rerequest| SlotNr:"<< slotNr << ", Command:" << command;
@@ -271,19 +271,19 @@ void Controller::checkSettingsRequest(int slotNr){
 
 /*request all settings e.g. after startup or new connection or user input*/
 void Controller::requestCameraSettings(int slot){
-    int headNr = model->getValue(slot,ABS,V_HEADNR);
+    int headNr = model->getValue(slot,Absolute,HeadNr);
     int command;
     model->clearRemainingTelegrams(slot);
     if(slot == model->getActiveCameraSlot()){model->receiveAllNew();}   //Make all GUI labels yellow
     for (int i=0;i<ROW_ENTRIES;i++) {
-        command = model->getRequestCommand(slot,i);     //check if requestable & push, else -1
+        command = model->getRequestCommand(slot,properties_t(i));     //check if requestable & push, else -1
         if(command>0){
           txSocket.request(headNr, command);
           qCDebug(requestIo)<<"Initial request| HeadNr:"<< headNr << ", Command:" << command;
         }
     }
     /*Start timer to re-request settings which did not arrive*/
-    if(model->getCamFlag(slot,F_CONNECTED)){
+    if(model->getCamFlag(slot,CameraConnected)){
         reqSettingsTimer[slot].start();
     }
     qCDebug(requestIo)<<"Request timer started| SlotNr:"<< slot;
@@ -291,11 +291,11 @@ void Controller::requestCameraSettings(int slot){
 
 
 /*model alignement, if other cameraslots have the same headnumber as the current slot*/
-void Controller::alignSlots(int value){
+void Controller::alignSlots(properties_t property){
     for (int i=0;i<NUMBER_OF_SLOTS;i++) {
         if(i != model->getActiveCameraSlot()){
-            if(model->getValue(ABS,V_HEADNR) == model->getValue(i, ABS,V_HEADNR)){
-                model->setValue(i,ABS,value,model->getValue(ABS,value));
+            if(model->getValue(Absolute,HeadNr) == model->getValue(i, Absolute,HeadNr)){
+                model->setValue(i,Absolute,property,model->getValue(Absolute,property));
             }
         }
     }
@@ -381,7 +381,7 @@ void Controller::processQeue(){
             break;
         case E_INCREASE:
             /*Signal from the Rotary Encoder for the touch and turn*/
-            int field;
+            properties_t field;
             int destination;
             field=model->getRotaryField();              //get the field that was pressed by the user on the touch
             destination=model->getRotaryDestination();  //get the destination for the value, SEND: can be sent right away, INTERNAL: nothing to send something else
@@ -389,26 +389,26 @@ void Controller::processQeue(){
             /*Cam Type 6 has a huge range of iris steps (0 - 4000), This requires a lot of turns with the rotary.
             Therefore there is a fast iris function*/
             if (destination==SEND) {
-                if(model->getFastIris() && model->getCamtype()==6 && model->getRotaryField() == V_IRIS){
-                    model->setValue(INC,field,loadedEvent.data[0]<<5);
+                if(model->getFastIris() && model->getCamtype()==6 && model->getRotaryField() == Iris){
+                    model->setValue(Incremental,field,loadedEvent.data[0]<<5);
                 }
                 else{
-                    model->setValue(INC,field,loadedEvent.data[0]);     //Last Element
+                    model->setValue(Incremental,field,loadedEvent.data[0]);     //Last Element
                 }
 
                 alignSlots(field);
 
                 /*send, if associated commandtype exists*/
                 if(model->getTxCommand(field) > 0){  //there could be values without commandtypes
-                    if (model->getRotaryField() == V_IRIS)
-                        txSocket.send(model->getValue(ABS,V_HEADNR),model->getTxCommand(field),model->getValue(NORM,field));
+                    if (model->getRotaryField() == Iris)
+                        txSocket.send(model->getValue(Absolute,HeadNr),model->getTxCommand(field),model->getValue(Normalized,field));
                     else
-                        txSocket.send(model->getValue(ABS,V_HEADNR),model->getTxCommand(field),model->getValue(ABS,field));
+                        txSocket.send(model->getValue(Absolute,HeadNr),model->getTxCommand(field),model->getValue(Absolute,field));
                 }
 
                 /*the headnumer has been changed*/
-                if(field==V_HEADNR){
-                    model->setCamFlag(F_CAMERA_KNOWN, false);
+                if(field==HeadNr){
+                    model->setCamFlag(CameraFamiliar, false);
                     qDebug("KNOWN Flag cleared!");
                     model->clearRemainingTelegrams(model->getActiveCameraSlot());
                     reqSettingsTimer[model->getActiveCameraSlot()].stop();
@@ -426,19 +426,19 @@ void Controller::processQeue(){
                     model->setXptDestination(loadedEvent.data[0]);
                     break;
                 case I_XPT_IP_FIELD_1:
-                    model->setXptIpField(INC,0,loadedEvent.data[0]);
+                    model->setXptIpField(Incremental,0,loadedEvent.data[0]);
 
                     break;
                 case I_XPT_IP_FIELD_2:
-                    model->setXptIpField(INC,1,loadedEvent.data[0]);
+                    model->setXptIpField(Incremental,1,loadedEvent.data[0]);
 
                     break;
                 case I_XPT_IP_FIELD_3:
-                    model->setXptIpField(INC,2,loadedEvent.data[0]);
+                    model->setXptIpField(Incremental,2,loadedEvent.data[0]);
 
                     break;
                 case I_XPT_IP_FIELD_4:
-                    model->setXptIpField(INC,3,loadedEvent.data[0]);
+                    model->setXptIpField(Incremental,3,loadedEvent.data[0]);
 
                     break;
                 default:
@@ -455,21 +455,21 @@ void Controller::processQeue(){
             int x,y;
             x = loadedEvent.data[0];
 
-            model->setCamFlag(F_PRESET_MOVE,false);
+            model->setCamFlag(PresetMoving,false);
 
-            if(model->getCamFlag(F_PAN_INVERT)){x=10000-x;} //dirextion of the x axis inverted
+            if(model->getCamFlag(PanInverted)){x=10000-x;} //dirextion of the x axis inverted
             y = loadedEvent.data[1];
-            if(model->getCamFlag(F_TILT_INVERT)){y=10000-y;} //direction of the y axis inverted
+            if(model->getCamFlag(TiltInverted)){y=10000-y;} //direction of the y axis inverted
 
             /*Joystick creeps around the zero point*/
             if(x==5000 && y==5000){
                 usleep(CREEP_T);
             }
 
-            txSocket.send(model->getValue(ABS,V_HEADNR), TILT_PAN, x, y); //send pan tilt information to the camera
+            txSocket.send(model->getValue(Absolute,HeadNr), TILT_PAN, x, y); //send pan tilt information to the camera
 
             /*Sceduled Preset Positioning can be aborted with the move of the joystick*/
-            if(model->getCamFlag(F_SPP_ON)){
+            if(model->getCamFlag(SppEnabled)){
                 queueEvent(E_SPP_ABORT);
                 qCDebug(logicIo)<<"SPP stopped by Joystick";
             }
@@ -483,27 +483,27 @@ void Controller::processQeue(){
             int z;
             z=loadedEvent.data[0];
 
-            model->setCamFlag(F_PRESET_MOVE,false);
+            model->setCamFlag(PresetMoving,false);
 
-            if(!model->getCamFlag(F_ZOOM_INVERT)){z = 254 - z;} //direction of the zoom inverted
+            if(!model->getCamFlag(ZoomInverted)){z = 254 - z;} //direction of the zoom inverted
 
             /*Joystick creeps around the zero point*/
             if(z==127){
                 usleep(CREEP_T);
             }
 
-            txSocket.send(model->getValue(ABS,V_HEADNR),ZOOM_FOCUS_SET, z); //send zoom information to the camera
+            txSocket.send(model->getValue(Absolute,HeadNr),ZOOM_FOCUS_SET, z); //send zoom information to the camera
 
             /*Bounce mode can be aborted with the use of the zoom*/
-            if(model->getCamFlag(F_BOUNCING) ){
-                model->setCamFlag(F_BOUNCING,false);
+            if(model->getCamFlag(Bouncing) ){
+                model->setCamFlag(Bouncing,false);
                 presetbus.setLed(PRESET_COLOR,model->getActivePreset());
-                model->setCamFlag(F_BOUNCE_ABORTED,true);
+                model->setCamFlag(BounceAborted,true);
                 qCDebug(logicIo)<<"Bounce stopped by Joystick";
             }
 
             /*Sceduled Preset Positioning can be aborted with the move of the joystick*/
-            if(model->getCamFlag(F_SPP_ON)){
+            if(model->getCamFlag(SppEnabled)){
                 queueEvent(E_SPP_ABORT);
                 qCDebug(logicIo)<<"SPP stopped by Joystick";
             }
@@ -516,14 +516,14 @@ void Controller::processQeue(){
             /*Focus Command from the Rotary Encoder*/
             int focus;
             focus=loadedEvent.data[0];
-            if(model->getCamFlag(F_FOCUS_INVERT)){focus=(-focus);} //The direction of the focus can be inverted
-            model->setValue(INC, V_FOCUS, focus);
-            txSocket.send(model->getValue(ABS,V_HEADNR), FOCUS_SET_ABSOLUTE, model->getValue(ABS, V_FOCUS));
-            qCDebug(logicIo)<<"Focus| delta:"<< focus << ", value:"<<model->getValue(ABS,V_FOCUS);
+            if(model->getCamFlag(FocusInverted)){focus=(-focus);} //The direction of the focus can be inverted
+            model->setValue(Incremental, Focus, focus);
+            txSocket.send(model->getValue(Absolute,HeadNr), FOCUS_SET_ABSOLUTE, model->getValue(Absolute, Focus));
+            qCDebug(logicIo)<<"Focus| delta:"<< focus << ", value:"<<model->getValue(Absolute,Focus);
             break;
         case E_AUTOFOCUS:
             /*Trigger of the autofocus, send it right away*/
-            txSocket.send(model->getValue(ABS,V_HEADNR), SET_FOCUS_PUSH);
+            txSocket.send(model->getValue(Absolute,HeadNr), SET_FOCUS_PUSH);
             qCDebug(logicIo)<< "Autofocus pressed |";
             break;
 //        case E_AUTOFOCUS_ANSWER:
@@ -558,12 +558,13 @@ void Controller::processQeue(){
             break;
         case E_GOTO_PRESET:
             /*Move camera to preset position*/
-            txSocket.send(model->getValue(ABS,V_HEADNR), GOTO_PRESET, loadedEvent.data[0]+1,model->getValue(ABS,V_TRANS_SPEED));
+            txSocket.send(model->getValue(Absolute,HeadNr), GOTO_PRESET, loadedEvent.data[0]+1,model->getValue(Absolute,TransSpeed));
             break;
         case E_STORE_PRESET:
             /*Store preset from User Input Touchscreen*/
+            model->setCamFlag(PresetMoving,!model->getCamFlag(PresetMoving));
             presetbus.setLed(ACT_PRESET_COLOR,model->getActivePreset());
-            model->setCamFlag(F_PRST_IN_STORE,TRUE);                //set flag for button push
+            model->setCamFlag(StoringPreset,TRUE);                //set flag for button push
             presetbus.showStored(model->getUsedPreset(),model->getActivePreset()); //show used presets red and unused green, active preset int PresetColor
             qCDebug(logicIo)<< "User Preset store |";
             break;
@@ -571,27 +572,27 @@ void Controller::processQeue(){
         {
             /*Push of a button on the presetbus*/
             int previousPreset;
-            int headNr = model->getValue(ABS,V_HEADNR);
-            int transitionSpeed = model->getValue(ABS,V_TRANS_SPEED);
+            int headNr = model->getValue(Absolute,HeadNr);
+            int transitionSpeed = model->getValue(Absolute,TransSpeed);
             previousPreset=model->getActivePreset();        //get previous preset to detect if the same button was pushed a second time
             int activePreset = loadedEvent.data[0];
             model->setActivePreset(activePreset);    //get the new one
 
             /*If Scheduled preset positioning is on, abort it and go to the slected preset, then break*/
-            if(model->getCamFlag(F_SPP_ON)){
+            if(model->getCamFlag(SppEnabled)){
                 queueEvent(E_SPP_ABORT);
                 presetbus.setLed(PRESET_COLOR,activePreset);
                 txSocket.send(headNr, GOTO_PRESET, activePreset+1,transitionSpeed);
-                model->setCamFlag(F_PRESET_MOVE,true);
+                model->setCamFlag(PresetMoving,true);
                 qCDebug(logicIo) << "SPP aborted by key press|";
                 qCDebug(presetIo) << "Goto Preset | HeadNr:" << headNr<< " ,PresetNr:" << activePreset+1 << ", Transition speed:" << transitionSpeed ;
                 break;
             }
 
             /*User wants to store a preset, store it and break*/
-            if(model->getCamFlag(F_PRST_IN_STORE)){
+            if(model->getCamFlag(StoringPreset)){
                 model->setUsedPreset(activePreset);
-                model->setCamFlag(F_PRST_IN_STORE,FALSE);
+                model->setCamFlag(StoringPreset,FALSE);
                 presetbus.setLed(PRESET_COLOR,activePreset);
                 txSocket.send(headNr, STORE_PRESET, activePreset+1);
                 qCDebug(presetIo) << "Store Preset | HeadNr:" << headNr<< " ,PresetNr:" << activePreset+1 ;
@@ -599,15 +600,15 @@ void Controller::processQeue(){
             }
 
             /*Bounce mode is enabled but not started. If same button has been pressed two consecutive times, start it and break*/
-            if(model->getCamFlag(F_BOUNCE_ENABLE) && !model->getCamFlag(F_BOUNCING)){
+            if(model->getCamFlag(BounceEnabled) && !model->getCamFlag(Bouncing)){
                 if(previousPreset==activePreset){
                     presetbus.setLed(PRESET_COLOR,activePreset);
                     /*TeleSet seems to be obsolete, to do: ask, reimplement, test*/
                     //if (model->getCamFlag(F_BOUNCE_ABORTED)) {
                         /*If bounce was aborted, don't do a teleset, just restart it*/
-                        txSocket.send(headNr,BNCE_ZOOM_START,model->getValue(ABS,V_BOUNCE_ZOOM_SPEED)); //Restart it
+                        txSocket.send(headNr,BNCE_ZOOM_START,model->getValue(Absolute,BounceZoomSpeed)); //Restart it
                         //model->setCamFlag(F_BOUNCE_ABORTED,false);
-                        qCDebug(logicIo) << "Bounce restarted by key press (no TeleSet) |" << "HeadNr: " << headNr << "Zoom Speed:" << model->getValue(ABS, V_BOUNCE_ZOOM_SPEED);
+                        qCDebug(logicIo) << "Bounce restarted by key press (no TeleSet) |" << "HeadNr: " << headNr << "Zoom Speed:" << model->getValue(Absolute, BounceZoomSpeed);
                     //}
                    // else {
                         /*teleset and restart*/
@@ -616,7 +617,7 @@ void Controller::processQeue(){
                        // qCDebug(logicIo) << "Bounce started by key press (TeleSet fired) |" << "HeadNr: " << headNr << "Zoom Speed:" << model->getValue(ABS, V_BOUNCE_ZOOM_SPEED);
                     //}
 
-                    model->setCamFlag(F_BOUNCING,true);
+                    model->setCamFlag(Bouncing,true);
                     blinkTimer.start();
 
                     break;
@@ -625,12 +626,12 @@ void Controller::processQeue(){
             }
 
             /*Bounce mode enabled and started*/
-            if((model->getCamFlag(F_BOUNCING))){
-                model->setCamFlag(F_BOUNCING,false);
+            if((model->getCamFlag(Bouncing))){
+                model->setCamFlag(Bouncing,false);
                 bool anyBouncingActive = false;
                 /*Stop shared blink timer when nobody needs it*/
                     for (int i=0;i<NUMBER_OF_SLOTS;i++) {
-                        if (model->getCamFlag(i,F_BOUNCING)) {
+                        if (model->getCamFlag(i,Bouncing)) {
                             anyBouncingActive = true;
                         }
                        }
@@ -647,10 +648,10 @@ void Controller::processQeue(){
             }
 
             /*Fast transition flag is set. Recall preset with fastest transition rate and break*/
-            if(model->getCamFlag(F_FASTTRANS)){
+            if(model->getCamFlag(FastTransEnabled)){
                 presetbus.setLed(PRESET_COLOR,activePreset);
                 txSocket.send(headNr, GOTO_PRESET, activePreset+1,1);
-                model->setCamFlag(F_PRESET_MOVE,true);
+                model->setCamFlag(PresetMoving,true);
                 qCDebug(presetIo) << "Goto Preset | HeadNr:" << headNr<< " ,PresetNr:" << activePreset+1 << ", Transition speed: (FPM)";
                 break;
             }
@@ -658,7 +659,7 @@ void Controller::processQeue(){
             /*Normal recall of a Preset*/
             presetbus.setLed(PRESET_COLOR,activePreset);
             txSocket.send(headNr, GOTO_PRESET, activePreset+1,transitionSpeed);
-            model->setCamFlag(F_PRESET_MOVE,true);
+            model->setCamFlag(PresetMoving,true);
             qCDebug(presetIo) << "Goto Preset | HeadNr:" << headNr<< " ,PresetNr:" << activePreset+1 << ", Transition speed:" << transitionSpeed;
             break;
 
@@ -670,14 +671,14 @@ void Controller::processQeue(){
             from = loadedEvent.data[0];
             data = loadedEvent.data[1];
             for (int i=0;i<NUMBER_OF_SLOTS;i++) {
-                if (model->getValue(i,ABS,V_HEADNR) == from){
+                if (model->getValue(i,Absolute,HeadNr) == from){
                     if(!(i == model->getActiveCameraSlot())){
-                        if(model->getCamFlag(i,F_BOUNCING)){
-                            model->setCamFlag(i,F_BOUNCING,false);
+                        if(model->getCamFlag(i,Bouncing)){
+                            model->setCamFlag(i,Bouncing,false);
                             qCDebug(logicIo) << "Bounce stopped by external Preset change|" << "HeadNr: " << from;
                             }
-                        if (model->getCamFlag(i,F_SPP_ON)) {
-                            model->setCamFlag(i,F_SPP_ON,false);
+                        if (model->getCamFlag(i,SppEnabled)) {
+                            model->setCamFlag(i,SppEnabled,false);
                             qCDebug(logicIo) << "SPP stopped by external Preset change|" << "HeadNr: " << from;
                             }
 
@@ -697,8 +698,8 @@ void Controller::processQeue(){
         }
         case E_CAMERA_CHANGE:
         {
-            if(!(model->getCamFlag(F_PRESET_MOVE))){
-                txSocket.send(model->getValue(ABS,V_HEADNR), TILT_PAN, 5000, 5000);
+            if(!(model->getCamFlag(PresetMoving))){
+                txSocket.send(model->getValue(Absolute,HeadNr), TILT_PAN, 5000, 5000);
             }
             /*Push of a button on the camerabus*/
             camerabus.setLed(CAMERA_COLOR,loadedEvent.data[0]);
@@ -708,13 +709,13 @@ void Controller::processQeue(){
             model->updateView();
 
             /*Update the presetbus leds*/
-            if (model->getCamFlag(F_SPP_ON)){
+            if (model->getCamFlag(SppEnabled)){
                 presetbus.setLed(SPP_COLOR, model->getActivePreset());
             }
-            else if(model->getCamFlag(F_BOUNCING)){
+            else if(model->getCamFlag(Bouncing)){
                 presetbus.setLed(PRESET_COLOR,model->getActivePreset());
             }
-            else if(model->getCamFlag(F_PRST_IN_STORE)){
+            else if(model->getCamFlag(StoringPreset)){
                 presetbus.showStored(model->getUsedPreset(),model->getActivePreset());
             }
             else{
@@ -740,17 +741,17 @@ void Controller::processQeue(){
             from = loadedEvent.data[0];
             type = loadedEvent.data[1];
             for (int i=0;i<NUMBER_OF_SLOTS;i++) {
-                if (model->getValue(i,ABS,V_HEADNR) == from) {
+                if (model->getValue(i,Absolute,HeadNr) == from) {
                     /*Camera exists in one or more slots -> Clear cameraWaitingFlags*/
                     model->setCameraWaitingflag(i,false);
                 }
 
-                if (model->getValue(i,ABS,V_HEADNR) == from && !model->getCamFlag(i,F_CAMERA_KNOWN)) {
+                if (model->getValue(i,Absolute,HeadNr) == from && !model->getCamFlag(i,CameraFamiliar)) {
                     /*Camera exists in a slot & KNOWN flag is not set -> request camera settings*/
                     model->setCamType(i, type);     //Set camera type and load all min,max settings
                     requestCameraSettings(i);
 
-                    model->setCamFlag(i,F_CAMERA_KNOWN,true);
+                    model->setCamFlag(i,CameraFamiliar,true);
                     model->setUpView();     //grays out ui buttons for not supported camera settings, set yellow for requests
                     model->updateView();
                     qCDebug(logicIo) << "New camera registered | " << "HeadNr:" << from << "Cam Type:" << type ;
@@ -760,65 +761,65 @@ void Controller::processQeue(){
             break;
         case E_IRIS_CHANGE:
             /*Iris Change from RCP*/
-            alignSlots(V_IRIS);
+            alignSlots(Iris);
             /*Fast Iris mode for cam type 6*/
             if(model->getFastIris() && model->getCamtype()==6){
-                 model->setValue(INC,V_IRIS,loadedEvent.data[0]<<3);
+                 model->setValue(Incremental,Iris,loadedEvent.data[0]<<3);
             }
             else {
-               model->setValue(INC, V_IRIS, loadedEvent.data[0]);
+               model->setValue(Incremental, Iris, loadedEvent.data[0]);
             }
-            txSocket.send(model->getValue(ABS,V_HEADNR), IRIS_OPEN, model->getValue(ABS,V_IRIS));
-            qCDebug(logicIo) << "Iris Change from RCP | value:" << model->getValue(ABS,V_IRIS);
+            txSocket.send(model->getValue(Absolute,HeadNr), IRIS_OPEN, model->getValue(Absolute,Iris));
+            qCDebug(logicIo) << "Iris Change from RCP | value:" << model->getValue(Absolute,Iris);
             break;
         case E_PED_CHANGE:
             /*Black Level change from RCP*/
-            model->setValue(INC, V_PED, loadedEvent.data[0]);
-            alignSlots(V_PED);
-            txSocket.send(model->getValue(ABS,V_HEADNR), MASTER_PED_UP, model->getValue(ABS,V_PED));
-            qCDebug(logicIo) << "Master Black Change from RCP | value:" << model->getValue(ABS,V_PED);
+            model->setValue(Incremental, Ped, loadedEvent.data[0]);
+            alignSlots(Ped);
+            txSocket.send(model->getValue(Absolute,HeadNr), MASTER_PED_UP, model->getValue(Absolute,Ped));
+            qCDebug(logicIo) << "Master Black Change from RCP | value:" << model->getValue(Absolute,Ped);
             break;
         case E_WBLUE_CHANGE:
             /*Blue white chage from RCP*/
-            model->setValue(INC, V_W_BLUE, loadedEvent.data[0]);
-            alignSlots(V_W_BLUE);
-            txSocket.send(model->getValue(ABS,V_HEADNR), BLUE_GAIN_ADJ_UP, model->getValue(ABS,V_W_BLUE));
-            qCDebug(logicIo) << "W Blue Change from RCP | value:" << model->getValue(ABS,V_W_BLUE);
+            model->setValue(Incremental, WhiteBlue, loadedEvent.data[0]);
+            alignSlots(WhiteBlue);
+            txSocket.send(model->getValue(Absolute,HeadNr), BLUE_GAIN_ADJ_UP, model->getValue(Absolute,WhiteBlue));
+            qCDebug(logicIo) << "W Blue Change from RCP | value:" << model->getValue(Absolute,WhiteBlue);
             break;
         case E_WRED_CHANGE:
             /*Red white chage from RCP*/
-            model->setValue(INC, V_W_RED, loadedEvent.data[0]);
-            alignSlots(V_W_RED);
-            txSocket.send(model->getValue(ABS,V_HEADNR), RED_GAIN_ADJ_UP, model->getValue(ABS,V_W_RED));
-            qCDebug(logicIo) << "W Red Change from RCP | value:" << model->getValue(ABS,V_W_RED);
+            model->setValue(Incremental, WhiteRed, loadedEvent.data[0]);
+            alignSlots(WhiteRed);
+            txSocket.send(model->getValue(Absolute,HeadNr), RED_GAIN_ADJ_UP, model->getValue(Absolute,WhiteRed));
+            qCDebug(logicIo) << "W Red Change from RCP | value:" << model->getValue(Absolute,WhiteRed);
             break;
         case E_BBLUE_CHANGE:
             /*Blue black chage from RCP*/
-            model->setValue(INC, V_B_BLUE, loadedEvent.data[0]);
-            alignSlots(V_B_BLUE);
-            txSocket.send(model->getValue(ABS,V_HEADNR), BLUE_PED_UP, model->getValue(ABS,V_B_BLUE));
-            qCDebug(logicIo) << "B Blue Change from RCP | value:" << model->getValue(ABS,V_B_BLUE);
+            model->setValue(Incremental, BlackBlue, loadedEvent.data[0]);
+            alignSlots(BlackBlue);
+            txSocket.send(model->getValue(Absolute,HeadNr), BLUE_PED_UP, model->getValue(Absolute,BlackBlue));
+            qCDebug(logicIo) << "B Blue Change from RCP | value:" << model->getValue(Absolute,BlackBlue);
             break;
         case E_BRED_CHANGE:
             /*Red black chage from RCP*/
-            model->setValue(INC, V_B_RED, loadedEvent.data[0]);
-            alignSlots(V_B_RED);
-            txSocket.send(model->getValue(ABS,V_HEADNR), RED_PED_UP, model->getValue(ABS,V_B_RED));
-            qCDebug(logicIo) << "B Red Change from RCP | value:" << model->getValue(ABS,V_B_RED);
+            model->setValue(Incremental, BlackRed, loadedEvent.data[0]);
+            alignSlots(BlackRed);
+            txSocket.send(model->getValue(Absolute,HeadNr), RED_PED_UP, model->getValue(Absolute,BlackRed));
+            qCDebug(logicIo) << "B Red Change from RCP | value:" << model->getValue(Absolute,BlackRed);
             break;
         case E_GAIN_CHANGE:
             /*Gain chage from RCP*/
-            model->setValue(INC, V_GAIN, loadedEvent.data[0]);
-            alignSlots(V_GAIN);
-            txSocket.send(model->getValue(ABS,V_HEADNR), CAMERA_GAIN_UP, model->getValue(ABS,V_GAIN));
-            qCDebug(logicIo) << "Gain Change from RCP | value:" << model->getValue(ABS,V_GAIN);
+            model->setValue(Incremental, Gain, loadedEvent.data[0]);
+            alignSlots(Gain);
+            txSocket.send(model->getValue(Absolute,HeadNr), CAMERA_GAIN_UP, model->getValue(Absolute,Gain));
+            qCDebug(logicIo) << "Gain Change from RCP | value:" << model->getValue(Absolute,Gain);
             break;
         case E_SHUTTER_CHANGE:
             /*Shutter chage from RCP*/
-            model->setValue(INC, V_SHUTTER, loadedEvent.data[0]);
-            alignSlots(V_SHUTTER);
-            txSocket.send(model->getValue(ABS,V_HEADNR), SHUTTER_UP, model->getValue(ABS,V_SHUTTER));
-            qCDebug(logicIo) << "Shutter Change from RCP | value:" << model->getValue(ABS,V_SHUTTER);
+            model->setValue(Incremental, Shutter, loadedEvent.data[0]);
+            alignSlots(Shutter);
+            txSocket.send(model->getValue(Absolute,HeadNr), SHUTTER_UP, model->getValue(Absolute,Shutter));
+            qCDebug(logicIo) << "Shutter Change from RCP | value:" << model->getValue(Absolute,Shutter);
             break;
         case E_WRITE_SAVEFILE:
             /*Write savefile by user input on Touch*/
@@ -842,7 +843,7 @@ void Controller::processQeue(){
             break;
         case E_WIDESET:
             /*Widset for bounce mode from user input on touch*/
-            txSocket.send(model->getValue(ABS,V_HEADNR),BNCE_ZOOM_WIDE_SET);
+            txSocket.send(model->getValue(Absolute,HeadNr),BNCE_ZOOM_WIDE_SET);
             qCDebug(logicIo) << "Send WideSet in Bounce Mode |";
             break;
         case E_CAMERA_ANSWER:
@@ -853,13 +854,13 @@ void Controller::processQeue(){
 
             /*Write answer values to respective properties in model, if headnumber exists*/
             for (int i=0;i<NUMBER_OF_SLOTS;i++) {
-                if(model->getValue(i,ABS,V_HEADNR) == from){
+                if(model->getValue(i,Absolute,HeadNr) == from){
                     int property = model->getValueFromBBMCommand(command);
                     if(property > 0){  //there could be commandtypes without values
                         if (property == IRIS_OPEN) {
-                            model->setValue(i, NORM, model->getValueFromBBMCommand(command), data);
+                            model->setValue(i, Normalized, model->getValueFromBBMCommand(command), data);
                         } else {
-                            model->setValue(i, ABS, model->getValueFromBBMCommand(command), data);
+                            model->setValue(i, Absolute, model->getValueFromBBMCommand(command), data);
                         }
                        model->setRequestReceived(i,model->getValueFromBBMCommand(command));
 //                       if(!model->getCamFlag(i,F_RECEIVED_ALL)){
@@ -879,14 +880,14 @@ void Controller::processQeue(){
 
             /*update model, if headnumber exists in slots*/
             for (int i=0;i<NUMBER_OF_SLOTS;i++) {
-                if(model->getValue(i,ABS,V_HEADNR) == from){
+                if(model->getValue(i,Absolute,HeadNr) == from){
                     int property = model->getValueFromBBMCommand(command);
 
                     if(property > 0){  //there could be commandtypes without values
                         if (property == IRIS_OPEN) {
-                            model->setValue(i, NORM, model->getValueFromBBMCommand(command), data);
+                            model->setValue(i, Normalized, model->getValueFromBBMCommand(command), data);
                         } else {
-                            model->setValue(i, ABS, model->getValueFromBBMCommand(command), data);
+                            model->setValue(i, Absolute, model->getValueFromBBMCommand(command), data);
                         }
                     }
                     qCDebug(rxRcpIo) << "Answer from RCP | HeadNr:" << from << "Command:" << command << "Data:" << data;
@@ -898,9 +899,9 @@ void Controller::processQeue(){
             loadAutosave();       //todo: case if empty file or not exist
             //send PT SPEED , RAMP values to Head, request all camera settings
             for (int i=0;i<NUMBER_OF_SLOTS;i++) {
-                txSocket.send(model->getValue(i,ABS,V_HEADNR), RAMP, model->getValue(i,ABS,V_RAMP));
+                txSocket.send(model->getValue(i,Absolute,HeadNr), RAMP, model->getValue(i,Absolute,Ramp));
                 usleep(TX_T);
-                txSocket.send(model->getValue(i,ABS,V_HEADNR), PAN_TILT_SPEED, model->getValue(i,ABS,V_PT_SPEED));
+                txSocket.send(model->getValue(i,Absolute,HeadNr), PAN_TILT_SPEED, model->getValue(i,Absolute,PtSpeed));
                 usleep(TX_T);
                 requestCameraSettings(i);
             }
@@ -910,23 +911,23 @@ void Controller::processQeue(){
             break;
         case E_CALIB_HEAD:
             /*Calib Head from user input on touch*/
-            txSocket.send(model->getValue(ABS,V_HEADNR),CALIBRATE_HEAD);
+            txSocket.send(model->getValue(Absolute,HeadNr),CALIBRATE_HEAD);
             break;
         case E_SET_LOWER_LIMIT:
             /*lower limit from user input on touch*/
-            txSocket.send(model->getValue(ABS,V_HEADNR),TILT_LOWER_LIMIT);
+            txSocket.send(model->getValue(Absolute,HeadNr),TILT_LOWER_LIMIT);
             break;
         case E_SET_UPPER_LIMIT:
             /*upper limit from user input on touch*/
-            txSocket.send(model->getValue(ABS,V_HEADNR),TILT_UPPER_LIMIT);
+            txSocket.send(model->getValue(Absolute,HeadNr),TILT_UPPER_LIMIT);
             break;
         case E_CLEAR_LIMIT:
             /*clear limits from user input on touch*/
-            txSocket.send(model->getValue(ABS,V_HEADNR),TILT_CLEAR_LIMIT);
+            txSocket.send(model->getValue(Absolute,HeadNr),TILT_CLEAR_LIMIT);
             break;
         case E_BOUNCE_BLINK:
             /*Blik timer callback*/
-            if(model->getCamFlag(F_BOUNCING)){
+            if(model->getCamFlag(Bouncing)){
                 if(model->toggleBlink()){
                     presetbus.setLed(PRESET_COLOR, model->getActivePreset());
                 }
@@ -1028,12 +1029,12 @@ void Controller::processQeue(){
         case E_SPP_START:
             /*Sheduled Preset Positioning start from user input on touch*/
             from = model->getActiveCameraSlot();
-            headNr = model->getValue(ABS,V_HEADNR);
-            sppPreset = model->getValue(ABS,V_SPP1);
-            time = model->getValue(ABS,V_SPP_WAIT_TIME);
+            headNr = model->getValue(Absolute,HeadNr);
+            sppPreset = model->getValue(Absolute,Spp1);
+            time = model->getValue(Absolute,SppwWaitTime);
 
             /*Set goto1 state & spp_on flag*/
-            model->setCamFlag(from, F_SPP_ON, true);
+            model->setCamFlag(from, SppEnabled, true);
             model->setSppState(from, S_SPP_GOTO1);
 
             /*Configure timer with user wait time between positions*/
@@ -1044,7 +1045,7 @@ void Controller::processQeue(){
                 sppTimer[model->getActiveCameraSlot()].setInterval(time*1000*1000);
             }
             /*Send goto preset command, head will respond when position reached*/
-            txSocket.send(headNr, GOTO_PRESET, sppPreset+1,model->getValue(ABS,V_TRANS_SPEED));
+            txSocket.send(headNr, GOTO_PRESET, sppPreset+1,model->getValue(Absolute,TransSpeed));
             model->setActivePreset(sppPreset);
             presetbus.setLed(SPP_COLOR, sppPreset);
             qCDebug(logicIo)<< "SPP started by user |";
@@ -1060,24 +1061,24 @@ void Controller::processQeue(){
 
             /*Check if respective camera is in spp mode*/
             for (int i=0;i<NUMBER_OF_SLOTS;i++) {
-                if(headNr == model->getValue(i,ABS,V_HEADNR) ){      //if sender head matches any current slot head & spp flag is set
-                   model->setCamFlag(i,F_PRESET_MOVE,false);
-                   if(model->getCamFlag(i,F_SPP_ON)){
+                if(headNr == model->getValue(i,Absolute,HeadNr) ){      //if sender head matches any current slot head & spp flag is set
+                   model->setCamFlag(i,PresetMoving,false);
+                   if(model->getCamFlag(i,SppEnabled)){
                         /*Act according to current spp state*/
                         switch (model->getSppState(i)) {
                         case S_SPP_GOTO1:
                             /*Position 1 done, set state to wait1*/
-                            if(presetNr == model->getValue(i,ABS,V_SPP1)+1){
+                            if(presetNr == model->getValue(i,Absolute,Spp1)+1){
                                 model->setSppState(i, S_SPP_WAIT1);     //if reached, go to wait state 1
-                                model->getValue(i,ABS,V_SPP_WAIT_TIME) == 0 ? queueEvent(E_SPP_WAIT_DONE,i) : sppTimer[i].start();
+                                model->getValue(i,Absolute,SppwWaitTime) == 0 ? queueEvent(E_SPP_WAIT_DONE,i) : sppTimer[i].start();
                             qCDebug(logicIo)<< "SPP preset reached | Current state:" << S_SPP_GOTO1 << ", Next State:" << S_SPP_WAIT1 << ", Reached preset:" << presetNr;
                             }
                             break;
                         case S_SPP_GOTO2:
                             /*Position 2 done, set state to wait2*/
-                            if(presetNr == model->getValue(i,ABS,V_SPP2)+1){
+                            if(presetNr == model->getValue(i,Absolute,Spp2)+1){
                                 model->setSppState(i, S_SPP_WAIT2);     //if reached go to wait state 2
-                                model->getValue(i,ABS,V_SPP_WAIT_TIME) == 0 ? queueEvent(E_SPP_WAIT_DONE,i) : sppTimer[i].start();
+                                model->getValue(i,Absolute,SppwWaitTime) == 0 ? queueEvent(E_SPP_WAIT_DONE,i) : sppTimer[i].start();
                                 qCDebug(logicIo)<< "SPP preset reached | Current state:" << S_SPP_GOTO2 << ", Next State:" << S_SPP_WAIT2 << ", Reached preset:" << presetNr;
                             }
                             break;
@@ -1098,20 +1099,20 @@ void Controller::processQeue(){
             /*Scheduled Preset Positioning timer elapsed*/
             // from anywhere
             from = loadedEvent.data[0];                         // slotNr
-            headNr = model->getValue(from,ABS,V_HEADNR);
+            headNr = model->getValue(from,Absolute,HeadNr);
 
             /*Act according to current spp state*/
             switch (model->getSppState(from)) {
             case S_SPP_WAIT1:
                 /*Waittime after Position 1 done, set state to goto2*/
                 model->setSppState(from, S_SPP_GOTO2);
-                sppPreset = model->getValue(from,ABS,V_SPP2);
+                sppPreset = model->getValue(from,Absolute,Spp2);
                 qCDebug(logicIo)<< "SPP wait time elapsed | Current state:" << S_SPP_WAIT1 << ", Next State:" << S_SPP_GOTO2 ;
                 break;
             case S_SPP_WAIT2:
                 /*Waittime after Position 2 done, set state to goto1*/
                 model->setSppState(from, S_SPP_GOTO1);
-                sppPreset = model->getValue(from,ABS,V_SPP1);
+                sppPreset = model->getValue(from,Absolute,Spp1);
                 qCDebug(logicIo)<< "SPP wait time elapsed | Current state:" << S_SPP_WAIT2 << ", Next State:" << S_SPP_GOTO1 ;
                 break;
             default:
@@ -1121,9 +1122,9 @@ void Controller::processQeue(){
             /*Stop spp timer, goto respective preset*/
             sppTimer[from].stop();
             qCDebug(logicIo)<< "SPP wait Timer stopped| SlotNr:" << from;
-            model->setCamFlag(from,F_PRESET_MOVE,true);
-            txSocket.send(headNr, GOTO_PRESET, sppPreset+1, model->getValue(from,ABS,V_TRANS_SPEED) );
-            qCDebug(presetIo) << "Goto Preset | HeadNr:" << headNr<< " ,PresetNr:" << sppPreset+1 << ", Transition speed:" << model->getValue(ABS,V_TRANS_SPEED);
+            model->setCamFlag(from,PresetMoving,true);
+            txSocket.send(headNr, GOTO_PRESET, sppPreset+1, model->getValue(from,Absolute,TransSpeed) );
+            qCDebug(presetIo) << "Goto Preset | HeadNr:" << headNr<< " ,PresetNr:" << sppPreset+1 << ", Transition speed:" << model->getValue(Absolute,TransSpeed);
 
             model->setActivePreset(from, sppPreset);
             if(from == model->getActiveCameraSlot()){       // only set button led if according slot is active
@@ -1143,7 +1144,7 @@ void Controller::processQeue(){
             presetbus.setLed(PRESET_COLOR, model->getActivePreset());
 
             /*Clear spp flag, set state to idle*/
-            model->setCamFlag(from, F_SPP_ON, false);
+            model->setCamFlag(from, SppEnabled, false);
             model->setSppState(from, S_SPP_IDLE);
             break;
         case E_REQUEST_SETTINGS:
@@ -1159,7 +1160,7 @@ void Controller::processQeue(){
         case E_FAST_IRIS:
             /*Fast Iris mode from user input with push on rotary encoder button*/
             /*Can be activated when Iris field is selected and the button was pressed, only works with cam type 6 */
-            if(model->getCamtype()==6 && model->getRotaryField()==V_IRIS){
+            if(model->getCamtype()==6 && model->getRotaryField()==Iris){
                 if (model->getFastIris() == true) {
                     model->setFastIris(false);
                     qCDebug(logicIo) << "Fast Iris inactive |";
@@ -1172,7 +1173,7 @@ void Controller::processQeue(){
             /*A push on the rotary encoders button can also clear the used presets.
              * but only if store preset was pressed before and the used presets are shown*/
             else {
-                if (model->getCamFlag(F_PRST_IN_STORE)) {
+                if (model->getCamFlag(StoringPreset)) {
                     model->clearUsedPresets();
                     presetbus.showStored(0,model->getActivePreset());
                     qCDebug(logicIo) << "Preset session cleared|";
@@ -1191,18 +1192,18 @@ void Controller::processQeue(){
                 data = std::max(data, -INT16_MAX);
                 data = std::min(data, INT16_MAX);
                 data = model->getCamFlag(
-                    axis == kAxisPan   ? F_PAN_INVERT :
-                    axis == kAxisTilt  ? F_TILT_INVERT :
-                    axis == kAxisZoom  ? F_ZOOM_INVERT :
-                    axis == kAxisFocus ? F_FOCUS_INVERT :
-                                         F_TRAVELLING_INVERT
+                    axis == kAxisPan   ? PanInverted :
+                    axis == kAxisTilt  ? TiltInverted :
+                    axis == kAxisZoom  ? ZoomInverted :
+                    axis == kAxisFocus ? FocusInverted :
+                                         TravellingInverted
                 ) ? -data : data;
 
                 if (model->getControl(axis) == control)
                     model->setAxis(axis, absolute ? data : data / 256, absolute);
             }
             /* Sheduled Preset Positioning can be aborted by control input */
-            if (model->getCamFlag(F_SPP_ON)) {
+            if (model->getCamFlag(SppEnabled)) {
                 queueEvent(E_SPP_ABORT);
                 qCDebug(logicIo) << "SPP stopped by control input";
             }
@@ -1228,7 +1229,7 @@ void Controller::processQeue(){
                                 d[i++] = axes[axis];
                             }
                             if (sendTelegram)
-                                txSocket.send(model->getValue(ABS, V_HEADNR), PAN_TILT_ZOOM_FOCUS, d);
+                                txSocket.send(model->getValue(Absolute, HeadNr), PAN_TILT_ZOOM_FOCUS, d);
                         }
                         { /* travelling (and further axes in the future...) */
                             int d[4] = { AXIS_NO_VALUE_REL, AXIS_NO_VALUE_REL, AXIS_NO_VALUE_REL, AXIS_NO_VALUE_REL};
@@ -1239,7 +1240,7 @@ void Controller::processQeue(){
                                 d[i++] = axes[axis];
                             }
                             if (sendTelegram)
-                                txSocket.send(model->getValue(ABS, V_HEADNR), DOLLY_LIFT, d);
+                                txSocket.send(model->getValue(Absolute, HeadNr), DOLLY_LIFT, d);
                         }
 
                     } else {
@@ -1261,10 +1262,10 @@ void Controller::processQeue(){
                             panTiltUpdate = true;
                         }
                         if (panTiltUpdate)
-                            txSocket.send(model->getValue(i, ABS, V_HEADNR), TILT_PAN, x[i], y[i]);
+                            txSocket.send(model->getValue(i, Absolute, HeadNr), TILT_PAN, x[i], y[i]);
 
                         if (axes[kAxisZoom] != AXIS_NO_VALUE_REL)
-                            txSocket.send(model->getValue(ABS, V_HEADNR), ZOOM_FOCUS_SET, axes[kAxisZoom] + 127);
+                            txSocket.send(model->getValue(Absolute, HeadNr), ZOOM_FOCUS_SET, axes[kAxisZoom] + 127);
                     }
                 }
 
@@ -1275,24 +1276,24 @@ void Controller::processQeue(){
 
                         /* pan/tilt absolute */
                         if (axes[kAxisPan] != AXIS_NO_VALUE_ABS || axes[kAxisTilt] != AXIS_NO_VALUE_ABS)
-                            txSocket.send(model->getValue(ABS,V_HEADNR), PAN_TILT_SET_ABSOLUTE, axes[kAxisPan], axes[kAxisTilt]);
+                            txSocket.send(model->getValue(Absolute,HeadNr), PAN_TILT_SET_ABSOLUTE, axes[kAxisPan], axes[kAxisTilt]);
 
                         /* zoom/focus absolute */
                         if (axes[kAxisZoom] != AXIS_NO_VALUE_ABS || axes[kAxisFocus] != AXIS_NO_VALUE_ABS)
-                            txSocket.send(model->getValue(ABS,V_HEADNR), ZOOM_FOCUS_SET_ABSOLUTE, axes[kAxisZoom], axes[kAxisFocus]);
+                            txSocket.send(model->getValue(Absolute,HeadNr), ZOOM_FOCUS_SET_ABSOLUTE, axes[kAxisZoom], axes[kAxisFocus]);
 
                         /* travelling absolute */
                         if (axes[kAxisTravelling] != AXIS_NO_VALUE_ABS)
-                            txSocket.send(model->getValue(ABS,V_HEADNR), DOLLY_LIFT_SET_ABSOLUTE, axes[kAxisTravelling], AXIS_NO_VALUE_ABS);
+                            txSocket.send(model->getValue(Absolute,HeadNr), DOLLY_LIFT_SET_ABSOLUTE, axes[kAxisTravelling], AXIS_NO_VALUE_ABS);
 
                     } else {
 
                         /* focus */
                         if (axes[kAxisFocus] != AXIS_NO_VALUE_ABS) {
-                            int fmin = model->getMin(i, V_FOCUS);
-                            int fmax = model->getMax(i, V_FOCUS);
+                            int fmin = model->getMin(i, Focus);
+                            int fmax = model->getMax(i, Focus);
                             int f = (((int32_t)axes[kAxisFocus] + INT16_MAX) * (fmax - fmin)) / (2 * INT16_MAX);
-                            txSocket.send(model->getValue(ABS,V_HEADNR), FOCUS_SET_ABSOLUTE, f);
+                            txSocket.send(model->getValue(Absolute,HeadNr), FOCUS_SET_ABSOLUTE, f);
 
                             qDebug("old focus: %lx", f);
                         }
