@@ -72,7 +72,7 @@ RossInterface::RossInterface()
 
 }
 
-int RossInterface::init(char *ipAdress)
+int RossInterface::init(QString ipAdress)
 {
     xpt_adress.sin_port = htons(7788);
     numberOfInputs = 24;
@@ -89,7 +89,9 @@ int RossInterface::init(char *ipAdress)
             }
 
     xpt_adress.sin_family = AF_INET;
-    inet_aton(ipAdress, &xpt_adress.sin_addr);
+    QByteArray ba = ipAdress.toLocal8Bit();
+    char *ipAdress_c = ba.data();
+    inet_aton(ipAdress_c, &xpt_adress.sin_addr);
     bzero(&(xpt_adress.sin_zero), 8);
 
     return 0;
@@ -205,7 +207,7 @@ BmdInterface::BmdInterface()
 
 }
 
-int BmdInterface::init(char *ipAdress)
+int BmdInterface::init(QString ipAdress)
 {
     xpt_adress.sin_port = htons(9990);
     numberOfInputs = 40;
@@ -214,7 +216,9 @@ int BmdInterface::init(char *ipAdress)
     outputLabels.clear();
 
     xpt_adress.sin_family = AF_INET;
-    inet_aton(ipAdress, &xpt_adress.sin_addr);
+    QByteArray ba = ipAdress.toLocal8Bit();
+    char *ipAdress_c = ba.data();
+    inet_aton(ipAdress_c, &xpt_adress.sin_addr);
     bzero(&(xpt_adress.sin_zero), 8);
 
     return 0;

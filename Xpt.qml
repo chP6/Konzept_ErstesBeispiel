@@ -2,54 +2,15 @@ import QtQuick 2.9
 import QtQuick.Controls 2.2
 import QtQuick.Layouts 1.0
 import QtQuick.Controls.Material 2.2
-import QtQuick.VirtualKeyboard 2.1
-import QtQuick.VirtualKeyboard.Settings 2.2
-
+import com.bbm.config 1.0
 
 Page {
+    property int type: type
     width: 800
     height: 320
     title: "Xpt Control"
     id: page
     focusPolicy: Qt.ClickFocus
-
-    function nextField(object, value)
-    {
-        object.focus = true;
-        console.log("value is ", parseInt(value,10));
-    }
-
-    InputPanel {
-        id: inputPanel
-        z: 99
-        x: 0
-        y: -window.height
-        width: window.width
-
-
-        states: State {
-            name: "visible"
-            when: inputPanel.active
-            PropertyChanges {
-                target: inputPanel
-                y: 0
-            }
-        }
-        transitions: Transition {
-            from: ""
-            to: "visible"
-            reversible: true
-            ParallelAnimation {
-                NumberAnimation {
-                    properties: "y"
-
-                    duration: 250
-                    easing.type: Easing.InOutQuad
-                }
-            }
-        }
-    }
-
 
 
     Column{
@@ -62,199 +23,25 @@ Page {
         Label{
             text: "Source"
         }
-
-        Button{
-            id: xptSource1
-            text: myModel.xptLabels[t1.currentIndex]
-            onClicked: popup.open()
-
-            Label{
-                text: "1"
-                anchors.right: parent.left
-                anchors.rightMargin: 10
-                anchors.verticalCenter: parent.verticalCenter
-            }
-
-            Popup {
-                id: popup
-                width: 200
-                height: t1.height
-                modal: true
-                focus: true
-                closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
-                Tumbler {
-
-                    id: t1
-                    anchors.fill: parent
-                    model: myModel.xptLabels
-                    wrap: false
-                    currentIndex: myModel.xptSettings[0]
-                    onCurrentIndexChanged: myModel.xptSettings[0] = currentIndex
-
-                }
-
-            }
+        CustomTumbler{
+            slotNumber: 0
         }
-        Button{
-            id: xptSource2
-            text: myModel.xptLabels[t2.currentIndex]
-            onClicked: popup2.open()
-
-            Label{
-                text: "2"
-                anchors.right: parent.left
-                anchors.rightMargin: 10
-                anchors.verticalCenter: parent.verticalCenter
-            }
-
-            Popup {
-                id: popup2
-                width: 200
-                height: t2.height
-                modal: true
-                focus: true
-                closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
-
-                Tumbler {
-                    id: t2
-                    anchors.fill: parent
-                    model: myModel.xptLabels
-                    wrap: false
-                    currentIndex: myModel.xptSettings[1]
-                    onCurrentIndexChanged: myModel.xptSettings[1] = currentIndex
-                }
-
-            }
-
+        CustomTumbler{
+            slotNumber: 1
         }
-        Button{
-            id: xptSource3
-            text: myModel.xptLabels[t3.currentIndex]
-            onClicked: popup3.open()
-
-            Label{
-                text: "3"
-                anchors.right: parent.left
-                anchors.rightMargin: 10
-                anchors.verticalCenter: parent.verticalCenter
-            }
-
-            Popup {
-                id: popup3
-                width: 200
-                height: t3.height
-                modal: true
-                focus: true
-                closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
-
-                Tumbler {
-                    id: t3
-                    anchors.fill: parent
-                    model: myModel.xptLabels
-                    wrap: false
-                    currentIndex: myModel.xptSettings[2]
-                    onCurrentIndexChanged: myModel.xptSettings[2] = currentIndex
-                }
-
-            }
+        CustomTumbler{
+            slotNumber: 2
+        }
+        CustomTumbler{
+            slotNumber: 3
+        }
+        CustomTumbler{
+            slotNumber: 4
+        }
+        CustomTumbler{
+            slotNumber: 5
         }
 
-        Button{
-            id: xptSource4
-            text: myModel.xptLabels[t4.currentIndex]
-            onClicked: popup4.open()
-
-            Label{
-                text: "4"
-                anchors.right: parent.left
-                anchors.rightMargin: 10
-                anchors.verticalCenter: parent.verticalCenter
-            }
-
-            Popup {
-                id: popup4
-                width: 200
-                height: t4.height
-                modal: true
-                focus: true
-                closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
-
-                Tumbler {
-                    id: t4
-                    anchors.fill: parent
-                    model: myModel.xptLabels
-                    wrap: false
-                    currentIndex: myModel.xptSettings[3]
-                    onCurrentIndexChanged: myModel.xptSettings[3] = currentIndex
-                }
-
-            }
-        }
-
-        Button{
-            id: xptSource5
-            text: myModel.xptLabels[t5.currentIndex]
-            onClicked: popup5.open()
-
-            Label{
-                text: "5"
-                anchors.right: parent.left
-                anchors.rightMargin: 10
-                anchors.verticalCenter: parent.verticalCenter
-            }
-
-            Popup {
-                id: popup5
-                width: 200
-                height: t5.height
-                modal: true
-                focus: true
-                closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
-
-                Tumbler {
-                    id: t5
-                    anchors.fill: parent
-                    model: myModel.xptLabels
-                    wrap: false
-                    currentIndex: myModel.xptSettings[4]
-                    onCurrentIndexChanged: myModel.xptSettings[4] = currentIndex
-                }
-
-            }
-        }
-
-        Button{
-            id: xptSource6
-            text: myModel.xptLabels[t6.currentIndex]
-            onClicked: popup6.open()
-
-
-            Label{
-                text: "6"
-                anchors.right: parent.left
-                anchors.rightMargin: 10
-                anchors.verticalCenter: parent.verticalCenter
-            }
-
-            Popup {
-                id: popup6
-                width: 200
-                height: t6.height
-                modal: true
-                focus: true
-                y: parent.y - 2*height
-                closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
-                Tumbler {
-                    id: t6
-                    anchors.fill: parent
-                    model: myModel.xptLabels
-                    wrap: false
-                    currentIndex: myModel.xptSettings[5]
-                    onCurrentIndexChanged: myModel.xptSettings[5] = currentIndex
-                }
-
-            }
-        }
     }
 
     Column{
@@ -267,33 +54,8 @@ Page {
         Label{
             text: "Destination"
         }
-
-        Button{
-            id: xptDestination
-            text: myModel.xptLabels[t7.currentIndex]
-            onClicked: popup7.open()
-
-
-            Popup {
-                id: popup7
-                width: 200
-                height: 300
-                modal: true
-                focus: true
-                closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
-                Tumbler {
-
-                    id: t7
-                    anchors.fill: parent
-                    model: myModel.xptLabels
-                    wrap: false
-
-                    //                          currentIndex: myModel.xptSettings[0]
-                    //                          onCurrentIndexChanged: myModel.xptSettings[0] = currentIndex
-
-                }
-
-            }
+        CustomTumbler{
+            output: true
         }
     }
     Button{
@@ -307,6 +69,16 @@ Page {
         anchors.rightMargin: 25
         highlighted: true
         checkable: true
+        checked: xptBackend.connected
+        onClicked: xptBackend.connectXpt(checked)
+    }
+    Label{
+        anchors.top: xptConnect.bottom
+        anchors.topMargin: 15
+        anchors.right: xptConnect.right
+        visible: xptConnect.checked
+        text: xptBackend.connected ? "Connected to: " + xptBackend.ipAdress[0]+"."+xptBackend.ipAdress[1]+"."+xptBackend.ipAdress[2]+"."+xptBackend.ipAdress[3] :
+                                        "Connecting to: " + xptBackend.ipAdress[0]+"."+xptBackend.ipAdress[1]+"."+xptBackend.ipAdress[2]+"."+xptBackend.ipAdress[3]
     }
 
     Text {
@@ -319,11 +91,19 @@ Page {
     }
 
     ComboBox{
+
         id: xptType
         anchors.left: row1.left
         anchors.top: xptTypeLabel.bottom
         width: 200
-        model: ["BlackMagic","Ross"]
+        textRole: "text"
+        model: ListModel {
+            id: cbItems
+            ListElement { text: "BlackMagic"; type: Config.Blackmagic  }
+            ListElement { text: "Ross"; type: Config.Ross}
+        }
+        currentIndex: xptBackend.xptType
+        onCurrentIndexChanged: xptBackend.xptType = cbItems.get(currentIndex).type
     }
 
     Text {
@@ -342,41 +122,41 @@ Page {
 
         TextField{
             id:ip1
-            text: "192"
+            text: xptBackend.ipAdress[0]
             validator: IntValidator {bottom: 0; top: 255;}
             inputMethodHints: Qt.ImhDigitsOnly
             maximumLength: 3
-            onAccepted: nextField(ip2,text)
+            onAccepted: [ip2.focus = true, xptBackend.ipAdress[0] = text]
             Keys.onPressed: event.key === Qt.Key_Enter ? text : ip1.color = Material.foreground
             onTextEdited:  ip1.color = "red"
         }
         TextField{
             id:ip2
-            text: "168"
+            text: xptBackend.ipAdress[1]
             validator: IntValidator {bottom: 0; top: 255;}
             inputMethodHints: Qt.ImhDigitsOnly
             maximumLength: 3
-            onAccepted: nextField(ip3,text)
+            onAccepted: [ip3.focus = true, xptBackend.ipAdress[1] = text]
             Keys.onPressed: event.key === Qt.Key_Enter ? text : ip2.color = Material.foreground
             onTextEdited:  ip2.color = "red"
         }
         TextField{
             id:ip3
-            text: "1"
+            text: xptBackend.ipAdress[2]
             validator: IntValidator {bottom: 0; top: 255;}
             inputMethodHints: Qt.ImhDigitsOnly
             maximumLength: 3
-            onAccepted: nextField(ip4,text)
+            onAccepted: [ip4.focus = true, xptBackend.ipAdress[2] = text]
             Keys.onPressed: event.key === Qt.Key_Enter ? text : ip3.color = Material.foreground
             onTextEdited:  ip3.color = "red"
         }
         TextField{
             id:ip4
-            text: "100"
+            text: xptBackend.ipAdress[3]
             validator: IntValidator {bottom: 2; top: 254;}
             inputMethodHints: Qt.ImhDigitsOnly
             maximumLength: 3
-            onAccepted: nextField(page,text)
+            onAccepted: [page.focus = true, xptBackend.ipAdress[3] = text]
             Keys.onPressed: event.key === Qt.Key_Enter ? text : ip4.color = Material.foreground
             onTextEdited:  ip4.color = "red"
         }

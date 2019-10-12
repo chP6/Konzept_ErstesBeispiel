@@ -24,8 +24,10 @@ class Home : public QObject
     Q_PROPERTY(bool bounce READ bounce WRITE setBounce NOTIFY bounceChanged)
     Q_PROPERTY(bool sppStart READ sppStart WRITE setSppStart NOTIFY sppStartChanged)
     Q_PROPERTY(bool fpm READ fpm WRITE setFpm NOTIFY fpmChanged)
-
+    Q_PROPERTY(bool cameraConnected READ cameraConnected NOTIFY cameraConnectedChanged)
+    Q_PROPERTY(bool serverConnected READ serverConnected NOTIFY serverConnectedChanged)
 public:
+    Home();
     explicit Home(Model *model, Controller *controller);
     ~Home();
 
@@ -47,6 +49,8 @@ public:
     bool bounce();
     bool sppStart();
     bool fpm();
+    bool cameraConnected();
+    bool serverConnected();
 
 public slots:
 
@@ -69,18 +73,13 @@ signals:
     void bounceChanged();
     void sppStartChanged();
     void fpmChanged();
+    void cameraConnectedChanged();
+    void serverConnectedChanged();
 
 private:
     Model* model;
     Controller* controller;
 
-    bool m_presetMoving;
-
-    bool m_bounce;
-
-    bool m_sppStart;
-
-    bool m_fpm;
 
 private slots:
 

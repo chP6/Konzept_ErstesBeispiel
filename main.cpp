@@ -126,7 +126,10 @@ int main(int argc, char *argv[])
     View view(model,controller);
 
     qmlRegisterType<CameraView>("io.qt.examples.backend", 1, 0, "CameraBackend");
-    qmlRegisterType<CameraView>("io.qt.examples.backend", 1, 0, "HomeBackend");
+    qmlRegisterType<Home>("io.qt.examples.backend", 1, 0, "HomeBackend");
+    qmlRegisterType<XptControl>("io.qt.examples.backend", 1, 0, "XptBackend");
+    qmlRegisterType<Others>("io.qt.examples.backend", 1, 0, "OthersBackend");
+
 
     qmlRegisterUncreatableMetaObject(Config::staticMetaObject, // static meta object
                                      "com.bbm.config",          // import statement
@@ -135,6 +138,8 @@ int main(int argc, char *argv[])
                                      "Error: only enums");
     engine.rootContext()->setContextProperty("cameraBackend",&view.cameraBackend);
     engine.rootContext()->setContextProperty("homeBackend",&view.homeBackend);
+    engine.rootContext()->setContextProperty("xptBackend",&view.xptBackend);
+    engine.rootContext()->setContextProperty("othersBackend",&view.othersBackend);
 
     QQuickStyle::setStyle("Material");
     const QUrl url(QStringLiteral("qrc:/main.qml"));

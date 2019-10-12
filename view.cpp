@@ -1,6 +1,7 @@
 #include "view.h"
 
 
+
 View::View(Model& model, Controller& controller)
     : homeBackend(&model, &controller),cameraBackend(&model, &controller),
       othersBackend(&model, &controller), xptBackend(&model, &controller)
@@ -35,6 +36,8 @@ void View::on_modelUpdate()
 //    ui->controls->updateUi();
     cameraBackend.updateAll();
     homeBackend.updateAll();
+    xptBackend.updateAll();
+    othersBackend.updateAll();
 }
 
 void View::on_modelSetUp()
@@ -50,10 +53,9 @@ void View::on_sppUpdate(bool active)
 }
 
 
-void View::on_serverConnectionStatusChanged(bool connected)
+void View::on_serverConnectionStatusChanged()
 {
-    /*QtSlot: server connected indicator  - connected to Model: updateServerConnectionStatus()*/
-    //ui->home->serverConnectionChanged(connected);
+    homeBackend.serverConnectedChanged();
 }
 
 void View::on_cameraConnectionStatusChanged(bool connected)
@@ -65,7 +67,7 @@ void View::on_cameraConnectionStatusChanged(bool connected)
 
 void View::on_xptConnectionStatusChanged(bool connected)
 {
-
+    xptBackend.connectedChanged(connected);
     /*QtSlot: xpt connected indicator  - connected to Model: updateXptConnectionStatus()*/
     //ui->xptControl->xptStatusChanged(connected);
 }
@@ -101,7 +103,7 @@ void View::on_modelUpdateProperty(properties_t property)
     switch (property) {
     case Ped: cameraBackend.blackLevelChanged(); break;
     case Iris: cameraBackend.irisChanged();break;
-    case GammaTable: cameraBackend.gammaChanged();break;
+    case GammaTable: cameraBackend.gammaTableChanged();break;
     case Gamma: cameraBackend.gammaChanged();break;
     case KneePoint: cameraBackend.kneePointChanged();break;
     case Color: cameraBackend.saturationChanged();break;
@@ -122,6 +124,8 @@ void View::on_modelUpdateProperty(properties_t property)
     case Spp2: homeBackend.spp2Changed();break;
     case SppwWaitTime: homeBackend.sppWaitTimeChanged();break;
     case HeadNr: homeBackend.headNrChanged();break;
+    case Mirror: othersBackend.mirrorChanged();break;
+    case HeadPower: othersBackend.headPowerChanged();break;
     default: break;
     }
 
@@ -134,6 +138,7 @@ void View::on_modelUpdateFlag(flags_t flag)
     case BounceEnabled: homeBackend.bounceChanged(); break;
     case PresetMoving: homeBackend.presetMovingChanged();break;
     case FastTransEnabled: homeBackend.fpmChanged(); break;
+    case CameraConnected: homeBackend.cameraConnectedChanged();break;
     case PanInverted:  break;
     case TiltInverted: break;
     case ZoomInverted: break;

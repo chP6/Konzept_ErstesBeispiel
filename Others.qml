@@ -2,12 +2,25 @@ import QtQuick 2.9
 import QtQuick.Controls 2.2
 import QtQuick.Layouts 1.0
 import QtQuick.Controls.Material 2.2
+import io.qt.examples.backend 1.0
+import Qt.labs.settings 1.0
+import com.bbm.config 1.0
 
 Page {
     width: 800
     height: 400
     title: "Others"
     id: page
+
+    Settings{
+        id: settings
+        category: "userStyle"
+        //fileName: "/opt/userStyle"
+        property alias accent: page.accent
+        property alias theme: page.theme
+        property alias comboboxCurrentIndex: combobox.currentIndex
+        property alias themeSwitchStatus: themeSwitch.checked
+    }
 
     property bool clickable: true
     property int accent: accent
@@ -41,37 +54,32 @@ Page {
         Button{
             id:btSetUpperLimit
             text: "Set Upper Limit"
+            onClicked: othersBackend.setUpperLimit()
         }
 
         Button{
             id:btSetLowerLimit
             text: "Set Lower Limit"
+            onClicked: othersBackend.setColor(Material.color(page.accent))//othersBackend.setLowerLimit()
         }
 
         Button{
             id:btClearLimit
             text: "Clear Limit"
+            onClicked: othersBackend.clearLimits()
         }
 
         Button{
             id: btCalibrate
             text: "Calibreate"
+            onClicked: othersBackend.calibrateHead()
         }
-//        Rectangle{
-//            id:spacer1
-//            height: 30
-//            width: 30
-//            color: "transparent"
-//        }
 
         CustomDial{
             id:dialHeadPower
-            anchors.horizontalCenter: btCalibrate.horizontalCenter
             name: "HeadPower"
-            from: 0
-            to: 3
-            checkable: true
-            autoExclusive: true
+            backend: othersBackend.headPower
+            field: Config.HeadPower
             ButtonGroup.group:buttonGroup
         }
 
@@ -95,16 +103,19 @@ Page {
             Button{
                 id:btRequestValues
                 text: "Request Values"
+                onClicked: othersBackend.requestValues()
             }
 
             Button{
                 id:btSaveFile
                 text: "Save File"
+                onClicked: othersBackend.saveSaveFile()
             }
 
             Button{
                 id:btLoadFile
                 text: "Load File"
+                onClicked: console.warn(Material.color(page.accent)) //othersBackend.loadSaveFile()
             }
             Button{
                 id: btErrorWindow
@@ -112,20 +123,11 @@ Page {
                 onClicked: errorWindow.open()
             }
 
-//            Rectangle{
-//                id:spacer2
-//                height: 30
-//                width: 30
-//                color: "transparent"
-//            }
-
             CustomDial{
                 id:dialMrror
                 name: "Mirror"
-                from: 0
-                to: 3
-                checkable: true
-                autoExclusive: true
+                backend: othersBackend.mirror
+                field: Config.Mirror
                 ButtonGroup.group:buttonGroup
             }
 
@@ -164,7 +166,6 @@ Page {
 
             ComboBox{
                 id:combobox
-                currentIndex: 6
                 textRole: "text"
                    model: ListModel {
                        id: cbItems
@@ -185,11 +186,11 @@ Page {
                        ListElement { text: "Pink" ; accent: Material.Pink }
                        ListElement { text: "Purple" ; accent: Material.Purple }
                        ListElement { text: "Red" ; accent: Material.Red }
-                       ListElement { text: "ShadeA700" ; accent: Material.ShadeA700 }
                        ListElement { text: "Teal" ; accent: Material.Teal }
                        ListElement { text: "Yellow" ; accent: Material.Yellow }
                    }
                 onCurrentIndexChanged: accent = cbItems.get(currentIndex).accent
+
         }
 
             Switch{

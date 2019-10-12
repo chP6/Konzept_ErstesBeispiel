@@ -33,7 +33,7 @@ public:
 
     xptinterface();
     virtual ~xptinterface();
-    virtual int init(char* ipAdress) = 0;
+    virtual int init(QString ipAdress) = 0;
     virtual int sendChange(int source, int destination) = 0;
     virtual int checkConnection() = 0;
     virtual int connectToXpt() = 0;
@@ -67,7 +67,7 @@ signals:
 class BmdInterface : public xptinterface {
 public:
     BmdInterface();
-    int init(char *ipAdress);
+    int init(QString ipAdress);
     int connectToXpt();
     int sendChange(int source, int destination);
     int checkConnection();
@@ -80,7 +80,7 @@ protected:
 class RossInterface : public xptinterface {
 public:
     RossInterface();
-    int init(char *ipAdress);
+    int init(QString ipAdress);
     int connectToXpt();
     int sendChange(int source, int destination);
     int checkConnection();

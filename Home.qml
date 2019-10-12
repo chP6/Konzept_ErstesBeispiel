@@ -362,8 +362,8 @@ Page {
               anchors.verticalCenter: lbServer.verticalCenter
               anchors.right: parent.right
               anchors.rightMargin: 20
-              //visible: myModel.serverStatus
-              //onVisibleChanged: serverOk.visible ? serverBusy.visible = false : serverBusy.visible = true
+              visible: homeBackend.serverConnected
+              onVisibleChanged: serverOk.visible ? serverBusy.visible = false : serverBusy.visible = true
 
           }
           BusyIndicator{
@@ -392,8 +392,8 @@ Page {
               text: "Ok"
               anchors.verticalCenter: lbCamera.verticalCenter
               anchors.horizontalCenter: serverOk.horizontalCenter
-              //visible: myModel.cameraStatus
-              //onVisibleChanged: cameraOk.visible ? cameraBusy.visible = false : cameraBusy.visible = true
+              visible: homeBackend.cameraConnected
+              onVisibleChanged: cameraOk.visible ? cameraBusy.visible = false : cameraBusy.visible = true
           }
 
           BusyIndicator{

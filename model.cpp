@@ -532,7 +532,7 @@ int Model::setWatchdogWaitingflag(bool waiting){
         if(watchdogWaitingForAnswerFlag){
             /*Already waiting since last Watchdog ping sent*/
             if(serverConnected){
-                emit updateServerConnectionStatus(false);       //signal: connection lost
+                emit updateServerConnectionStatus();       //signal: connection lost
             }
             serverConnected = false;
             return -1;      // error, already waiting for answer -> connection lost
@@ -547,7 +547,7 @@ int Model::setWatchdogWaitingflag(bool waiting){
         /*Server answer received, clear waiting flag*/
         watchdogWaitingForAnswerFlag = false;
         if(!serverConnected){
-            emit updateServerConnectionStatus(true);        //signal: connected
+            emit updateServerConnectionStatus();        //signal: connected
         }
         serverConnected = true;
         return 0;           // ok, clear flag
@@ -561,9 +561,9 @@ int Model::setCameraWaitingflag(int slotNr, bool waiting){
         if (cameraWaitingForAnswerStack[slotNr]<=0) {
             /*Stack empty, signal disconnect if connection status not already disconnected*/
             if(cameras[slotNr].flags[CameraConnected]){
-                if(slotNr == getActiveCameraSlot()){
-                    emit updateCameraConnectionStatus(false);
-                }
+//                if(slotNr == getActiveCameraSlot()){
+//                    emit updateCameraConnectionStatus(false);
+//                }
                 cameras[slotNr].flags[CameraConnected] = false;
                 //cameras[slotNr].flags[F_CAMERA_KNOWN] = false;
             }
@@ -576,15 +576,20 @@ int Model::setCameraWaitingflag(int slotNr, bool waiting){
         /*Answer received. Fill stack, send connected signal if connection status not already ok*/
         cameraWaitingForAnswerStack[slotNr] = 2;
         if(!cameras[slotNr].flags[CameraConnected]){
-            if(slotNr == getActiveCameraSlot()){
-                emit updateCameraConnectionStatus(true);        //signal: connected
-            }
+//            if(slotNr == getActiveCameraSlot()){
+//                emit updateCameraConnectionStatus(true);        //signal: connected
+//            }
         }
         cameras[slotNr].flags[CameraConnected] = true;
         return 0;           // ok, clear flag
     }
     return 0;
     //qDebug("stack: %d",cameraWaitingForAnswerStack[slotNr]);
+}
+
+bool Model::getServerStatus()
+{
+    return serverConnected;
 }
 
 /**/
@@ -654,10 +659,9 @@ int Model::toggleBlink(){
 void Model::setXptConnected(bool flag)
 {
   if(xptConnect != flag){
-      xptConnect=flag;
-      emit updateXptConnectionStatus(xptConnect);
+      xptConnect=flag;      
   }
-
+  emit updateXptConnectionStatus(xptConnect);
 }
 
 /**/
@@ -680,6 +684,12 @@ void Model::setXptSlotSource(int source)
    }
        emit updateView();
 
+}
+
+void Model::setXptSlotSource(int slot, int source)
+{
+    cameras[slot].xptSource = source;
+    //emit updateView();
 }
 
 /**/
@@ -776,11 +786,15 @@ int Model::getXptIpField(int field)
     return xptFields[field];
 }
 
-/**/
-char *Model::getXptIpAdress()
+void Model::setXptIpAdress(QString ipAdress)
 {
-    sprintf(xptIpAddress,"%d.%d.%d.%d",xptFields[0],xptFields[1],xptFields[2],xptFields[3]);
-    return &xptIpAddress[0];
+    xptIpAddress = ipAdress;
+}
+
+/**/
+QString Model::getXptIpAdress()
+{
+    return xptIpAddress;
 }
 
 /**/

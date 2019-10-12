@@ -1,5 +1,10 @@
 #include "home.h"
 
+Home::Home()
+{
+
+}
+
 Home::Home(Model *model, Controller *controller){
     this->model = model;
     this->controller = controller;
@@ -119,6 +124,8 @@ void Home::updateAll()
     emit bounceChanged();
     emit sppStartChanged();
     emit fpmChanged();
+    emit cameraConnectedChanged();
+    emit serverConnectedChanged();
 }
 
 bool Home::presetMoving()
@@ -139,6 +146,16 @@ bool Home::sppStart()
 bool Home::fpm()
 {
     return model->getCamFlag(FastTransEnabled);
+}
+
+bool Home::cameraConnected()
+{
+    return model->getCamFlag(CameraConnected);
+}
+
+bool Home::serverConnected()
+{
+    return model->getServerStatus();
 }
 
 void Home::setBounce(bool bounce)

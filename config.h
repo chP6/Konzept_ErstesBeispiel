@@ -192,6 +192,12 @@ namespace Config
         NotReady
     } display_t;
 
+    typedef enum XptTypes {
+        Blackmagic,
+        Ross
+    } xptTypes_t;
+        Q_ENUM_NS(XptTypes)
+
     typedef enum {
         Absolute,
         Incremental,
@@ -199,7 +205,7 @@ namespace Config
         Normalized
     } value_t;
 
-    typedef enum {
+    typedef enum Flag {
         StoringPreset,
         Bouncing,
         SppEnabled,
@@ -216,6 +222,7 @@ namespace Config
         FocusInverted,
         TravellingInverted
     } flags_t;
+        Q_ENUM_NS(Flag)
 
     enum Dial{
         Min,
@@ -234,6 +241,11 @@ namespace Config
                 a == Offset ? "" :
                 a == NotReady ? "notReady" :
                     "";
+    }
+    static const char* xptStr(xptTypes_t a) {
+        return a == Blackmagic ? "BlackMagic" :
+                a == Ross ? "Ross" :
+                    "unknown";
     }
 }
 

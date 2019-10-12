@@ -11,6 +11,7 @@
 #include <QDebug>
 #include "logging.h"
 
+
 //#include "view.h" //nix gut, circular dependency -> forward declaration.
 //class View;         //Make sure each header can be included on its own.
 using namespace Config;
@@ -45,7 +46,7 @@ signals:
     void updateViewProperty(properties_t property);
     void updateViewFlag(flags_t flag);
     void setUpView();
-    void updateServerConnectionStatus(bool connected);
+    void updateServerConnectionStatus();
     void updateCameraConnectionStatus(bool connected);
     void updateXptConnectionStatus(bool connected);
     void updateXptEnableStatus(bool connected);
@@ -91,6 +92,7 @@ public:
     bool getCamFlag(int slotNr, flags_t flag);
     int setWatchdogWaitingflag(bool waiting);
     int setCameraWaitingflag(int slotNr, bool waiting);
+    bool getServerStatus();
     properties_t getRotaryField();
     void setRotaryField(properties_t field, int destination);
     int getRotaryDestination();
@@ -116,6 +118,7 @@ public:
     void setXptConnected(bool flag);
     bool getXptConnected();
     void setXptSlotSource(int source);
+    void setXptSlotSource(int slot, int source);
     int getXptSlotSource(int slotNr);
     void setXptDestination(int destination);
     int getXptDestination();
@@ -123,7 +126,8 @@ public:
     int getXptSlot();
     void setXptIpField(int type,int field,int value);
     int getXptIpField(int field);
-    char* getXptIpAdress();
+    QString getXptIpAdress();
+    void setXptIpAdress(QString ipAdress);
     void setXptNumberOfInputs(int inputs);
     int getXptNumberOfInputs();
     void setXptNumberOfOutputs(int outputs);
@@ -164,6 +168,8 @@ private:
     bool reqPendingArr[MAX_NUMBER_OF_CMDS];
     int currReqHeadNr;
 
+
+
     /* used for normalizing, source: arduino.cc */
     long map(long x, long in_min, long in_max, long out_min, long out_max) {
       return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
@@ -177,9 +183,9 @@ private:
     bool xptEnabled=false;
     int xptDestination=0;
     int xptSlot;
-    int xptNumberOfInputs;
-    int xptNumberOfOutputs;
-    char xptIpAddress[20];
+    int xptNumberOfInputs=8;
+    int xptNumberOfOutputs=8;
+    QString xptIpAddress = "192.168.103.14";
     int xptFields[4];
     QList<QString> xptInputLabels;
     QList<QString> xptOutputLabels;

@@ -7,5 +7,6 @@
         <file>Home.qml</file>
         <file>Others.qml</file>
         <file>Xpt.qml</file>
+        <file>CustomTumbler.qml</file>
     </qresource>
 </RCC>

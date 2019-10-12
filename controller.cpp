@@ -138,6 +138,7 @@ void Controller::settingsWrite(QSettings &savefile){
     savefile.setValue("xptNumberOfInputs",model->getXptNumberOfInputs());
     savefile.setValue("xptNumberOfOutputs",model->getXptNumberOfOutputs());
     savefile.setValue("xptDestination",model->getXptDestination());
+    savefile.setValue("xptIpAdress",model->getXptIpAdress());
     savefile.endGroup();
 
     for (int i=0;i<NUMBER_OF_SLOTS;i++) {
@@ -176,6 +177,7 @@ void Controller::settingsLoad(QSettings &savefile, bool send){
         model->setXptIpField(Absolute,3,savefile.value("xptIpField4").toInt());
         model->setXptNumberOfInputs(savefile.value("xptNumberOfInputs").toInt());
         model->setXptNumberOfOutputs(savefile.value("xptNumberOfOutputs").toInt());
+        model->setXptIpAdress(savefile.value("xptIpAdress").toString());
         savefile.endGroup();
 
     for (int i=0;i<NUMBER_OF_SLOTS;i++) {
