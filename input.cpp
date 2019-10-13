@@ -1,7 +1,5 @@
 #include "input.h"
 #include "events.h"
-#include "config.h"
-
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -100,10 +98,10 @@ int XYZJoystick::getEvent(std::vector<int> &data) {
         if (readEvent(event)) {
             if (event.type == EV_ABS) {
                 switch (event.code) {
-                case ABS_X: data.push_back(kControlJoystickX); break;
-                case ABS_Y: data.push_back(kControlJoystickY); break;
-                case ABS_Z: data.push_back(kControlJoystickZ); break;
-                default:    data.push_back(kControlNone);      break;
+                case ABS_X: data.push_back(KControlJoystickX); break;
+                case ABS_Y: data.push_back(KControlJoystickY); break;
+                case ABS_Z: data.push_back(KControlJoystickZ); break;
+                default:    data.push_back(KControlNone);      break;
                 }
                 data.push_back((event.value - 2047) * 16); // -32'767..32'767
                 return E_CONTROL_INPUT;
@@ -127,11 +125,11 @@ int ZoomFocusJoystick::getEvent(std::vector<int> &data) {
         if (readEvent(event)) {
             if (event.type == EV_ABS) {
                 if (event.code == ABS_Y) {
-                    data.push_back(kControlZoomRocker);
+                    data.push_back(KControlZoomRocker);
                     data.push_back(event.value);
                     return E_CONTROL_INPUT;
                 } else if (event.code == ABS_X) {
-                    data.push_back(kControlFocusWheel);
+                    data.push_back(KControlFocusWheel);
                     data.push_back(event.value);
                     return E_CONTROL_INPUT;
                 }

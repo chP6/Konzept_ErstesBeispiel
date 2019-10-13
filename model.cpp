@@ -26,7 +26,7 @@ Model::Model()
         }
 
         // clear axis input values
-        for (int j = 0; j < kAxisMax; j++) {
+        for (int j = 0; j < KAxisMax; j++) {
             cameras[i].axes[j].absolute = AXIS_NO_VALUE_ABS;
             cameras[i].axes[j].relative = AXIS_NO_VALUE_REL;
         }
@@ -46,11 +46,11 @@ Model::Model()
     // emit updateView(); -> not possible yet, signals not routed at this point -> do in controller
 
     /* default control/axis mapping */
-    controls[kAxisPan] = kControlJoystickX;
-    controls[kAxisTilt] = kControlJoystickY;
-    controls[kAxisZoom] = kControlJoystickZ;
-    controls[kAxisFocus] = kControlFocusWheel;
-    controls[kAxisTravelling] = kControlZoomRocker;
+    controls[KAxisPan] = KControlJoystickX;
+    controls[KAxisTilt] = KControlJoystickY;
+    controls[KAxisZoom] = KControlJoystickZ;
+    controls[KAxisFocus] = KControlFocusWheel;
+    controls[KAxisTravelling] = KControlZoomRocker;
 }
 
 /*Add error to error list*/
@@ -473,7 +473,7 @@ QString Model::getDialState(properties_t property)
     if(!cameras[activeCameraSlot].remainingTelegrams.empty()){
        it = std::find(cameras[activeCameraSlot].remainingTelegrams.begin(), cameras[activeCameraSlot].remainingTelegrams.end(), property);
     }
-    return it != cameras[activeCameraSlot].remainingTelegrams.end() ?  dialStateStr(status) :  dialStateStr(status);
+    return it != cameras[activeCameraSlot].remainingTelegrams.end() ?  dialStateStr(NotReady) :  dialStateStr(status);
 
 }
 
@@ -867,6 +867,28 @@ QList<QString> Model::getXptOutputLables()
     return xptOutputLabels;
 }
 
+QList<int> Model::getInputs()
+{
+    return inputs;
+}
+
+QList<int> Model::getOutputs()
+{
+    return outputs;
+}
+
+void Model::setInputs(QList<int> inputs)
+{
+    this->inputs.clear();
+    this->inputs = inputs;
+}
+
+void Model::getInputs(QList<int> outputs)
+{
+    this->outputs.clear();
+    this->outputs = outputs;
+}
+
 /**/
 void Model::setXptType(int type)
 {
@@ -1003,11 +1025,11 @@ void Model::clearRemainingTelegrams(int slotNr)
 void Model::setControl(axis_t axis, control_t control)
 {
     switch (axis) {
-    case kAxisPan:
-    case kAxisTilt:
-    case kAxisZoom:
-    case kAxisFocus:
-    case kAxisTravelling:
+    case KAxisPan:
+    case KAxisTilt:
+    case KAxisZoom:
+    case KAxisFocus:
+    case KAxisTravelling:
         controls[axis] = control;
         break;
     }
@@ -1016,15 +1038,15 @@ void Model::setControl(axis_t axis, control_t control)
 control_t Model::getControl(axis_t axis)
 {
     switch (axis) {
-    case kAxisPan:
-    case kAxisTilt:
-    case kAxisZoom:
-    case kAxisFocus:
-    case kAxisTravelling:
+    case KAxisPan:
+    case KAxisTilt:
+    case KAxisZoom:
+    case KAxisFocus:
+    case KAxisTravelling:
         return controls[axis];
     }
 
-    return kControlNone;
+    return KControlNone;
 }
 
 void Model::setAxis(axis_t axis, int16_t value, bool absolute) {
@@ -1036,11 +1058,11 @@ void Model::setAxis(axis_t axis, int16_t value, bool absolute) {
         cameras[activeCameraSlot].axes[axis].relative = value;
 }
 
-bool Model::getAxisUpdates(int slotNr, int16_t (&axes)[kAxisMax], bool absolute) {
+bool Model::getAxisUpdates(int slotNr, int16_t (&axes)[KAxisMax], bool absolute) {
     bool newValue = false;
     std::unique_lock<std::mutex> lock(cameras[slotNr].mtx);
 
-    for (int axis = 0; axis < kAxisMax; axis++) {
+    for (int axis = 0; axis < KAxisMax; axis++) {
         if (absolute) {
             axes[axis] = cameras[slotNr].axes[axis].absolute;
             if (axes[axis] != AXIS_NO_VALUE_ABS) {

@@ -4,6 +4,8 @@
 #include <vector>
 #include <map>
 #include <utility>
+#include "config.h"
+using namespace Config;
 
 class InputDevice {
 public:

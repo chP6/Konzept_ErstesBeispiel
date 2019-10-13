@@ -1,4 +1,5 @@
-//#include "controls.h"
+
+#include "controls.h"
 //#include "ui_controls.h"
 //#include <QDebug>
 //#include <QString>
@@ -130,3 +131,105 @@
 //{
 //    model->setCamFlag(F_TRAVELLING_INVERT, checked);
 //}
+
+Controls::Controls()
+{
+
+}
+
+Controls::Controls(Model *model, Controller *controller)
+{
+    this->model = model;
+    this->controller = controller;
+}
+
+Controls::~Controls()
+{
+
+}
+
+void Controls::updateAll()
+{
+    QMetaMethod method;
+    QMetaObject meta = *this->metaObject();
+    for(int i = meta.methodOffset(); i< meta.methodCount(); i++){
+      method = meta.method(i);
+     QMetaMethod::MethodType type =  method.methodType();
+     if(type == QMetaMethod::Signal){
+          method.invoke(this);
+     }
+    }
+}
+
+bool Controls::invertPan()
+{
+   return model->getCamFlag(PanInverted);
+}
+
+bool Controls::invertTilt()
+{
+    return model->getCamFlag(TiltInverted);
+}
+
+bool Controls::invertZoom()
+{
+    return model->getCamFlag(ZoomInverted);
+}
+
+bool Controls::invertFocus()
+{
+    return model->getCamFlag(FocusInverted);
+}
+
+bool Controls::invertTravelling()
+{
+    return  model->getCamFlag(TravellingInverted);
+}
+
+void Controls::setControl(int axis, int control)
+{
+    model->setControl(axis_t(axis),control_t(control));
+}
+
+int Controls::getControl(int axis)
+{
+  int control = model->getControl(axis_t(axis));
+  return  control;
+}
+
+QList<int> Controls::control()
+{
+    QList<int> list;
+    for (axis_t axes : {KAxisPan, KAxisTilt, KAxisZoom, KAxisFocus, KAxisTravelling}) {
+        list.append(model->getControl(axes));
+    }
+    return list;
+}
+
+
+void Controls::setInvertPan(bool invertPan)
+{
+    model->setCamFlag(PanInverted,invertPan);
+}
+
+void Controls::setInvertTilt(bool invertTilt)
+{
+    model->setCamFlag(TiltInverted, invertTilt);
+}
+
+void Controls::setInvertZoom(bool invertZoom)
+{
+    model->setCamFlag(ZoomInverted, invertZoom);
+}
+
+void Controls::setInvertFocus(bool invertFocus)
+{
+    model->setCamFlag(FocusInverted, invertFocus);
+}
+
+void Controls::setInvertTravelling(bool invertTravelling)
+{
+    model->setCamFlag(TravellingInverted, invertTravelling);
+}
+
+

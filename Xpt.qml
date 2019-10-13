@@ -12,6 +12,10 @@ Page {
     id: page
     focusPolicy: Qt.ClickFocus
 
+    property bool clickable: true
+    function click(){
+      cameraBackend.setField(Config.None);
+    }
 
     Column{
         id: col1

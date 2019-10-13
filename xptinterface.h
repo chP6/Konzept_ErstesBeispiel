@@ -85,6 +85,9 @@ public:
     int sendChange(int source, int destination);
     int checkConnection();
 
+private:
+    int numberOfBanks = 4;
+
 protected:
     SrvAnswer processMessages(QList<QByteArray> &message);
     SrvAnswer receive();

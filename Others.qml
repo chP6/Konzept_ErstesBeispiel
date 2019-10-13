@@ -30,6 +30,9 @@ Page {
         if(buttonGroup.checkedButton){
             buttonGroup.checkedButton.clicked();
         }
+        else{
+            buttonGroup.buttons[0].checked = true;
+        }
     }
 
     ButtonGroup {
@@ -60,7 +63,7 @@ Page {
         Button{
             id:btSetLowerLimit
             text: "Set Lower Limit"
-            onClicked: othersBackend.setColor(Material.color(page.accent))//othersBackend.setLowerLimit()
+            onClicked: othersBackend.setLowerLimit()
         }
 
         Button{
@@ -115,7 +118,7 @@ Page {
             Button{
                 id:btLoadFile
                 text: "Load File"
-                onClicked: console.warn(Material.color(page.accent)) //othersBackend.loadSaveFile()
+                onClicked: othersBackend.loadSaveFile()
             }
             Button{
                 id: btErrorWindow
@@ -189,7 +192,7 @@ Page {
                        ListElement { text: "Teal" ; accent: Material.Teal }
                        ListElement { text: "Yellow" ; accent: Material.Yellow }
                    }
-                onCurrentIndexChanged: accent = cbItems.get(currentIndex).accent
+                onCurrentIndexChanged: [accent = cbItems.get(currentIndex).accent, othersBackend.setColor(Material.color(page.accent))]
 
         }
 

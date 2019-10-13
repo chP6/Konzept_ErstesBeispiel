@@ -247,44 +247,49 @@ namespace Config
                 a == Ross ? "Ross" :
                     "unknown";
     }
+    typedef enum Axis {
+        KAxisPan,
+        KAxisTilt,
+        KAxisZoom,
+        KAxisFocus,
+        KAxisTravelling,
+        KAxisMax
+    } axis_t;
+    Q_ENUM_NS(Axis)
+
+    typedef enum Control {
+        KControlNone,
+        KControlJoystickX,
+        KControlJoystickY,
+        KControlJoystickZ,
+        KControlZoomRocker,
+        KControlFocusWheel
+    } control_t;
+    Q_ENUM_NS(Control)
+
+    static const char* axisStr(axis_t a) {
+        return a == KAxisPan ? "Pan" :
+                a == KAxisTilt ? "Tilt" :
+                a == KAxisZoom ? "Zoom" :
+                a == KAxisFocus ? "Focus" :
+                a == KAxisTravelling ? "Travelling" :
+                    "unknown";
+    }
+
+    static const char* controlStr(control_t c) {
+        return c == KControlNone ? "none" :
+                c == KControlJoystickX ? "Joystick Left/Right" :
+                c == KControlJoystickY ? "Joystick Up/Down" :
+                c == KControlJoystickZ ? "Joystick Rotation" :
+                c == KControlZoomRocker ? "Zoom Rocker" :
+                c == KControlFocusWheel ? "Focus Wheel" :
+                    "unknown";
+    }
 }
 
-typedef enum {
-    kAxisPan,
-    kAxisTilt,
-    kAxisZoom,
-    kAxisFocus,
-    kAxisTravelling,
-    kAxisMax
-} axis_t;
 
-typedef enum {
-    kControlNone,
-    kControlJoystickX,
-    kControlJoystickY,
-    kControlJoystickZ,
-    kControlZoomRocker,
-    kControlFocusWheel
-} control_t;
 
-static const char* axisStr(axis_t a) {
-    return a == kAxisPan ? "Pan" :
-            a == kAxisTilt ? "Tilt" :
-            a == kAxisZoom ? "Zoom" :
-            a == kAxisFocus ? "Focus" :
-            a == kAxisTravelling ? "Travelling" :
-                "unknown";
-}
 
-static const char* controlStr(control_t c) {
-    return c == kControlNone ? "none" :
-            c == kControlJoystickX ? "Joystick Left/Right" :
-            c == kControlJoystickY ? "Joystick Up/Down" :
-            c == kControlJoystickZ ? "Joystick Rotation" :
-            c == kControlZoomRocker ? "Zoom Rocker" :
-            c == kControlFocusWheel ? "Focus Wheel" :
-                "unknown";
-}
 
 #define AXES_UPDATE_INTERVAL_MS 20 /* update axis values every 20ms (50Hz) */
 

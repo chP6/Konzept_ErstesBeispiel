@@ -4,7 +4,7 @@
 
 View::View(Model& model, Controller& controller)
     : homeBackend(&model, &controller),cameraBackend(&model, &controller),
-      othersBackend(&model, &controller), xptBackend(&model, &controller)
+      othersBackend(&model, &controller), xptBackend(&model, &controller), controlsBackend(&model, &controller)
 {
     this->controller = &controller;
     this->model = &model;
@@ -38,6 +38,7 @@ void View::on_modelUpdate()
     homeBackend.updateAll();
     xptBackend.updateAll();
     othersBackend.updateAll();
+    controlsBackend.updateAll();
 }
 
 void View::on_modelSetUp()
@@ -139,11 +140,11 @@ void View::on_modelUpdateFlag(flags_t flag)
     case PresetMoving: homeBackend.presetMovingChanged();break;
     case FastTransEnabled: homeBackend.fpmChanged(); break;
     case CameraConnected: homeBackend.cameraConnectedChanged();break;
-    case PanInverted:  break;
-    case TiltInverted: break;
-    case ZoomInverted: break;
-    case FocusInverted: break;
-    case TravellingInverted: break;
+    case PanInverted: controlsBackend.invertPanChanged();  break;
+    case TiltInverted: controlsBackend.invertTiltChanged();break;
+    case ZoomInverted: controlsBackend.invertZoomChanged(); break;
+    case FocusInverted: controlsBackend.invertFocusChanged(); break;
+    case TravellingInverted: controlsBackend.invertTravellingChanged(); break;
     default: break;
     }
 }

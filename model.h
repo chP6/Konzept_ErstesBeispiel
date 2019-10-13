@@ -31,7 +31,7 @@ struct camera_s{
   struct axes_t {
       int16_t relative;
       int16_t absolute;
-  } axes[kAxisMax];
+  } axes[KAxisMax];
 };
 
 
@@ -138,6 +138,10 @@ public:
     void setXptOutputLables(QList<QString> outputLables);
     QList<QString> getXptInputLables();
     QList<QString> getXptOutputLables();
+    QList<int> getInputs();
+    QList<int> getOutputs();
+    void setInputs(QList<int> inputs);
+    void getInputs(QList<int> outputs);
     void setXptType(int type);
     int getXptType();
     bool getFastIris();
@@ -147,7 +151,8 @@ public:
     control_t getControl(axis_t axis);
 
     void setAxis(axis_t axis, int16_t value, bool absolute);
-    bool getAxisUpdates(int slotNr, int16_t (&axes)[kAxisMax], bool absolute);
+    bool getAxisUpdates(int slotNr, int16_t (&axes)[KAxisMax], bool absolute);
+    unsigned int color = 0x550050;
 
 private:
     QStringList errorList;
@@ -176,7 +181,7 @@ private:
     }
 
     /* control/axis mapping */
-    control_t controls[kAxisMax];
+    control_t controls[KAxisMax];
 
     /*XPT handling */
     bool xptConnect=false;
@@ -189,6 +194,8 @@ private:
     int xptFields[4];
     QList<QString> xptInputLabels;
     QList<QString> xptOutputLabels;
+    QList<int> inputs;
+    QList<int> outputs;
     int xptType;
     bool fastIris=false;
 

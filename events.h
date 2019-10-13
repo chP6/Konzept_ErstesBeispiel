@@ -48,6 +48,7 @@
 
 #define E_CONTROL_INPUT         44
 #define E_SEND_AXES_UPDATES     45
+#define E_COLOR_CHANGED         46
 
 #define E_STORE_PRESET_DEBUG        102
 #define E_GOTO_PRESET               101

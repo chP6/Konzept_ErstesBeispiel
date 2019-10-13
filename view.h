@@ -11,6 +11,7 @@
 #include "cameraview.h"
 #include "xptcontrol.h"
 #include "others.h"
+#include "controls.h"
 
 class View : public QObject
 {
@@ -47,6 +48,7 @@ public:
     CameraView cameraBackend;
     Others othersBackend;
     XptControl xptBackend;
+    Controls controlsBackend;
 
 private:
 

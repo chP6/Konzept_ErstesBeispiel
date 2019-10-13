@@ -44,6 +44,7 @@ int xptinterface::getNumberOfOutputs()
     return numberOfOutputs;
 }
 
+
 int xptinterface::changeIP(char *ipAdress)
 {
     connect_err = inet_aton(ipAdress, &xpt_adress.sin_addr);
@@ -75,12 +76,18 @@ RossInterface::RossInterface()
 int RossInterface::init(QString ipAdress)
 {
     xpt_adress.sin_port = htons(7788);
-    numberOfInputs = 24;
+    numberOfInputs = 24+numberOfBanks*numberOfInputs;
     numberOfOutputs = 8;
     inputLabels.clear();
     /*Ross is alway the same, doesen't send labels etc.*/
         for (int i = 0;i<numberOfInputs;i++) {
             inputLabels.append(QString::number(i+1));
+        }
+        for (int i = 0;i<numberOfBanks;i++) {
+            for (int j=0;j<numberOfInputs;j++) {
+                inputLabels.append("CC"+QString::number(i)+" : "+QString::number(j));
+            }
+
         }
 
     outputLabels.clear();
@@ -127,8 +134,16 @@ int RossInterface::connectToXpt()
 int RossInterface::sendChange(int source, int destination)
 {
     memset(txBuffer,0,sizeof(txBuffer));
+    if (source < numberOfInputs) {
+        sprintf(txBuffer,"XPT AUX:%d:IN:%d\n",destination+1,source+1);
+    } else
+    {
+        int bank = (source - numberOfInputs) / numberOfInputs + 1;
+        int macro = numberOfInputs*bank - source;
+        sprintf(txBuffer,"CC: %d:%d\n",bank, macro);
+    }
 
-    sprintf(txBuffer,"XPT AUX:%d:IN:%d\n",destination+1,source+1); //send change ross doesn't confirm
+     //send change ross doesn't confirm
     //if(connect_err < 0){
       //  return -1;
         //    }
@@ -191,12 +206,12 @@ xptinterface::SrvAnswer RossInterface::receive()
          qCDebug(xptIo)<< "Received message from Ross device | Message:" << input;
          QList<QByteArray> message = appendInput(input);    //put input in a message separated by line feed
 
-         if(!message.empty()){
+        // if(!message.empty()){
              xptinterface::SrvAnswer result = processMessages(message); //do something according to message
              qCDebug(xptIo)<< "Ross message processed";
              return result;
-         }
-         return xptinterface::Error;
+         //}
+        // return xptinterface::Error;
 }
 
 

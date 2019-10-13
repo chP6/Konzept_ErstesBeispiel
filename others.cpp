@@ -82,8 +82,9 @@ void Others::updateAll()
 
 void Others::setColor(QColor color)
 {
-        m_color = color;
         qCDebug(logicIo)<< "Color Name" << color.name() << "Color hex" << QString::number(color.rgb(),16);
+        model->color = color.rgb();
+        controller->queueEvent(E_COLOR_CHANGED);
 }
 
 

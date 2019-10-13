@@ -24,6 +24,8 @@ int main(int argc, char *argv[])
 {
    qRegisterMetaType<properties_t>("properties_t");
    qRegisterMetaType<flags_t>("flags_t");
+   qRegisterMetaType<axis_t>("axis_t");
+   qRegisterMetaType<control_t>("control_t");
 
     qputenv("QT_IM_MODULE", QByteArray("qtvirtualkeyboard"));
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
@@ -129,6 +131,7 @@ int main(int argc, char *argv[])
     qmlRegisterType<Home>("io.qt.examples.backend", 1, 0, "HomeBackend");
     qmlRegisterType<XptControl>("io.qt.examples.backend", 1, 0, "XptBackend");
     qmlRegisterType<Others>("io.qt.examples.backend", 1, 0, "OthersBackend");
+    qmlRegisterType<Controls>("io.qt.examples.backend", 1, 0, "ControlsBackend");
 
 
     qmlRegisterUncreatableMetaObject(Config::staticMetaObject, // static meta object
@@ -140,8 +143,9 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("homeBackend",&view.homeBackend);
     engine.rootContext()->setContextProperty("xptBackend",&view.xptBackend);
     engine.rootContext()->setContextProperty("othersBackend",&view.othersBackend);
-
+    engine.rootContext()->setContextProperty("controlsBackend",&view.controlsBackend);
     QQuickStyle::setStyle("Material");
+
     const QUrl url(QStringLiteral("qrc:/main.qml"));
 //    QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
 //                     &app, [url](QObject *obj, const QUrl &objUrl) {

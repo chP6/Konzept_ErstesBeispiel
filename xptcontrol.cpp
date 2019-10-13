@@ -71,12 +71,22 @@ void XptControl::connectXpt(bool checked)
 
 void XptControl::updateAll()
 {
-    emit inputLabelsChanged();
-    emit xptSourcesChanged();
-    emit outputLabelsChanged();
-    emit xptDestinationChanged();
-    emit ipAdressChanged();
-    emit xptTypeChanged();
+    QMetaMethod method;
+    QMetaObject meta = *this->metaObject();
+    for(int i = meta.methodOffset(); i< meta.methodCount(); i++){
+      method = meta.method(i);
+     QMetaMethod::MethodType type =  method.methodType();
+     if(type == QMetaMethod::Signal){
+          method.invoke(this);
+     }
+    }
+
+//    emit inputLabelsChanged();
+//    emit xptSourcesChanged();
+//    emit outputLabelsChanged();
+//    emit xptDestinationChanged();
+//    emit ipAdressChanged();
+//    emit xptTypeChanged();
 }
 
 bool XptControl::connected()

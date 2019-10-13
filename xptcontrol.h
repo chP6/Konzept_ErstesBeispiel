@@ -7,6 +7,7 @@
 #include "config.h"
 #include "events.h"
 #include <QObject>
+#include <QMetaMethod>
 
 class XptControl : public QObject
 {

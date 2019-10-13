@@ -63,7 +63,7 @@ Controller::Controller(Model& model)
     }
 
     /*Set the Leds after initialization*/
-    camerabus.setLed(CAMERA_COLOR,model.getActiveCameraSlot());
+    camerabus.setLed(model.color,model.getActiveCameraSlot());
     presetbus.setLed(PRESET_COLOR,model.getActivePreset());
 
     /*Set up a timer for the leds in the buttons to blink when necessary*/
@@ -124,7 +124,7 @@ void Controller::settingsWrite(QSettings &savefile){
 
     /* control Settings */
     savefile.beginGroup("controls");
-    for (axis_t axis : { kAxisPan, kAxisTilt, kAxisZoom, kAxisFocus, kAxisTravelling })
+    for (axis_t axis : { KAxisPan, KAxisTilt, KAxisZoom, KAxisFocus, KAxisTravelling })
         savefile.setValue("controlAxis" + QString::number((int)axis), model->getControl(axis));
     savefile.endGroup();
 
@@ -139,6 +139,7 @@ void Controller::settingsWrite(QSettings &savefile){
     savefile.setValue("xptNumberOfOutputs",model->getXptNumberOfOutputs());
     savefile.setValue("xptDestination",model->getXptDestination());
     savefile.setValue("xptIpAdress",model->getXptIpAdress());
+    savefile.setValue("color",model->color);
     savefile.endGroup();
 
     for (int i=0;i<NUMBER_OF_SLOTS;i++) {
@@ -164,7 +165,7 @@ void Controller::settingsWrite(QSettings &savefile){
 void Controller::settingsLoad(QSettings &savefile, bool send){
     /* control Settings */
     savefile.beginGroup("controls");
-    for (axis_t axis : { kAxisPan, kAxisTilt, kAxisZoom, kAxisFocus, kAxisTravelling })
+    for (axis_t axis : { KAxisPan, KAxisTilt, KAxisZoom, KAxisFocus, KAxisTravelling })
         model->setControl(axis, (control_t)savefile.value("controlAxis" + QString::number((int)axis)).toInt());
     savefile.endGroup();
 
@@ -178,6 +179,7 @@ void Controller::settingsLoad(QSettings &savefile, bool send){
         model->setXptNumberOfInputs(savefile.value("xptNumberOfInputs").toInt());
         model->setXptNumberOfOutputs(savefile.value("xptNumberOfOutputs").toInt());
         model->setXptIpAdress(savefile.value("xptIpAdress").toString());
+        model->color = savefile.value("color").toUInt();
         savefile.endGroup();
 
     for (int i=0;i<NUMBER_OF_SLOTS;i++) {
@@ -704,7 +706,7 @@ void Controller::processQeue(){
                 txSocket.send(model->getValue(Absolute,HeadNr), TILT_PAN, 5000, 5000);
             }
             /*Push of a button on the camerabus*/
-            camerabus.setLed(CAMERA_COLOR,loadedEvent.data[0]);
+            camerabus.setLed(model->color,loadedEvent.data[0]);
             model->setActiveCameraSlot(loadedEvent.data[0]);
             /*Update the view*/
             model->setUpView();
@@ -1185,19 +1187,19 @@ void Controller::processQeue(){
 
         case E_CONTROL_INPUT: {
             control_t control = (control_t)loadedEvent.data[0];
-            for (axis_t axis : { kAxisPan, kAxisTilt, kAxisZoom, kAxisFocus, kAxisTravelling }) {
+            for (axis_t axis : { KAxisPan, KAxisTilt, KAxisZoom, KAxisFocus, KAxisTravelling }) {
                 /* bool absolute: currently only focus axis is absolute,
                  * but this shall be configurable in the future */
-                bool absolute = axis == kAxisFocus;
+                bool absolute = axis == KAxisFocus;
 
                 int data = loadedEvent.data[1];
                 data = std::max(data, -INT16_MAX);
                 data = std::min(data, INT16_MAX);
                 data = model->getCamFlag(
-                    axis == kAxisPan   ? PanInverted :
-                    axis == kAxisTilt  ? TiltInverted :
-                    axis == kAxisZoom  ? ZoomInverted :
-                    axis == kAxisFocus ? FocusInverted :
+                    axis == KAxisPan   ? PanInverted :
+                    axis == KAxisTilt  ? TiltInverted :
+                    axis == KAxisZoom  ? ZoomInverted :
+                    axis == KAxisFocus ? FocusInverted :
                                          TravellingInverted
                 ) ? -data : data;
 
@@ -1214,7 +1216,7 @@ void Controller::processQeue(){
         case E_SEND_AXES_UPDATES: {
 
             for (int i = 0; i < NUMBER_OF_SLOTS; i++) {
-                int16_t axes[kAxisMax];
+                int16_t axes[KAxisMax];
                 bool useNewTelegrams = true;
 
                 /* check axes updates on absolute values */
@@ -1225,7 +1227,7 @@ void Controller::processQeue(){
                         { /* pan, tilt, zoom & focus */
                             int d[4] = { AXIS_NO_VALUE_REL, AXIS_NO_VALUE_REL, AXIS_NO_VALUE_REL, AXIS_NO_VALUE_REL};
                             int i = 0; bool sendTelegram = false;
-                                for (axis_t axis : { kAxisPan, kAxisTilt, kAxisZoom, kAxisFocus }) {
+                                for (axis_t axis : { KAxisPan, KAxisTilt, KAxisZoom, KAxisFocus }) {
                                 if (axes[axis] != AXIS_NO_VALUE_REL)
                                     sendTelegram = true;
                                 d[i++] = axes[axis];
@@ -1236,7 +1238,7 @@ void Controller::processQeue(){
                         { /* travelling (and further axes in the future...) */
                             int d[4] = { AXIS_NO_VALUE_REL, AXIS_NO_VALUE_REL, AXIS_NO_VALUE_REL, AXIS_NO_VALUE_REL};
                             int i = 0; bool sendTelegram = false;
-                            for (axis_t axis : { kAxisTravelling }) {
+                            for (axis_t axis : { KAxisTravelling }) {
                                 if (axes[axis] != AXIS_NO_VALUE_REL)
                                     sendTelegram = true;
                                 d[i++] = axes[axis];
@@ -1255,19 +1257,19 @@ void Controller::processQeue(){
                         static int x[NUMBER_OF_SLOTS] = {};
                         static int y[NUMBER_OF_SLOTS] = {};
 
-                        if (axes[kAxisPan] != AXIS_NO_VALUE_REL) {
-                            x[i] = ((axes[kAxisPan] * 5000) / 127) + 5000;
+                        if (axes[KAxisPan] != AXIS_NO_VALUE_REL) {
+                            x[i] = ((axes[KAxisPan] * 5000) / 127) + 5000;
                             panTiltUpdate = true;
                         }
-                        if (axes[kAxisTilt] != AXIS_NO_VALUE_REL) {
-                            y[i] = ((axes[kAxisTilt] * 5000) / 127) + 5000;
+                        if (axes[KAxisTilt] != AXIS_NO_VALUE_REL) {
+                            y[i] = ((axes[KAxisTilt] * 5000) / 127) + 5000;
                             panTiltUpdate = true;
                         }
                         if (panTiltUpdate)
                             txSocket.send(model->getValue(i, Absolute, HeadNr), TILT_PAN, x[i], y[i]);
 
-                        if (axes[kAxisZoom] != AXIS_NO_VALUE_REL)
-                            txSocket.send(model->getValue(Absolute, HeadNr), ZOOM_FOCUS_SET, axes[kAxisZoom] + 127);
+                        if (axes[KAxisZoom] != AXIS_NO_VALUE_REL)
+                            txSocket.send(model->getValue(Absolute, HeadNr), ZOOM_FOCUS_SET, axes[KAxisZoom] + 127);
                     }
                 }
 
@@ -1277,24 +1279,24 @@ void Controller::processQeue(){
                     if (useNewTelegrams) {
 
                         /* pan/tilt absolute */
-                        if (axes[kAxisPan] != AXIS_NO_VALUE_ABS || axes[kAxisTilt] != AXIS_NO_VALUE_ABS)
-                            txSocket.send(model->getValue(Absolute,HeadNr), PAN_TILT_SET_ABSOLUTE, axes[kAxisPan], axes[kAxisTilt]);
+                        if (axes[KAxisPan] != AXIS_NO_VALUE_ABS || axes[KAxisTilt] != AXIS_NO_VALUE_ABS)
+                            txSocket.send(model->getValue(Absolute,HeadNr), PAN_TILT_SET_ABSOLUTE, axes[KAxisPan], axes[KAxisTilt]);
 
                         /* zoom/focus absolute */
-                        if (axes[kAxisZoom] != AXIS_NO_VALUE_ABS || axes[kAxisFocus] != AXIS_NO_VALUE_ABS)
-                            txSocket.send(model->getValue(Absolute,HeadNr), ZOOM_FOCUS_SET_ABSOLUTE, axes[kAxisZoom], axes[kAxisFocus]);
+                        if (axes[KAxisZoom] != AXIS_NO_VALUE_ABS || axes[KAxisFocus] != AXIS_NO_VALUE_ABS)
+                            txSocket.send(model->getValue(Absolute,HeadNr), ZOOM_FOCUS_SET_ABSOLUTE, axes[KAxisZoom], axes[KAxisFocus]);
 
                         /* travelling absolute */
-                        if (axes[kAxisTravelling] != AXIS_NO_VALUE_ABS)
-                            txSocket.send(model->getValue(Absolute,HeadNr), DOLLY_LIFT_SET_ABSOLUTE, axes[kAxisTravelling], AXIS_NO_VALUE_ABS);
+                        if (axes[KAxisTravelling] != AXIS_NO_VALUE_ABS)
+                            txSocket.send(model->getValue(Absolute,HeadNr), DOLLY_LIFT_SET_ABSOLUTE, axes[KAxisTravelling], AXIS_NO_VALUE_ABS);
 
                     } else {
 
                         /* focus */
-                        if (axes[kAxisFocus] != AXIS_NO_VALUE_ABS) {
+                        if (axes[KAxisFocus] != AXIS_NO_VALUE_ABS) {
                             int fmin = model->getMin(i, Focus);
                             int fmax = model->getMax(i, Focus);
-                            int f = (((int32_t)axes[kAxisFocus] + INT16_MAX) * (fmax - fmin)) / (2 * INT16_MAX);
+                            int f = (((int32_t)axes[KAxisFocus] + INT16_MAX) * (fmax - fmin)) / (2 * INT16_MAX);
                             txSocket.send(model->getValue(Absolute,HeadNr), FOCUS_SET_ABSOLUTE, f);
 
                             qDebug("old focus: %lx", f);
@@ -1302,6 +1304,11 @@ void Controller::processQeue(){
                     }
                 }
             }
+            break;
+        }
+
+        case E_COLOR_CHANGED:{
+            camerabus.setLed(model->color,model->getActiveCameraSlot());
             break;
         }
 
