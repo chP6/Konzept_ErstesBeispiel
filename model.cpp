@@ -629,7 +629,8 @@ void Model::setXptSlotSource(int source)
 /**/
 int Model::getXptSlotSource(int slotNr)
 {
-    return  cameras[slotNr].xptSource;
+
+    return  cameras[slotNr].xptSource < xptNumberOfInputs ? cameras[slotNr].xptSource : xptNumberOfInputs-1;
 }
 
 /**/
@@ -647,10 +648,15 @@ void Model::setXptDestination(int destination)
 
 }
 
+void Model::setXptDestinationAbs(int destination)
+{
+    xptDestination = destination;
+}
+
 /**/
 int Model::getXptDestination()
 {
-    return xptDestination;
+    return xptDestination < xptNumberOfOutputs ? xptDestination : xptNumberOfOutputs-1;
 }
 
 /**/

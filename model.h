@@ -101,6 +101,7 @@ public:
     void setXptSlotSource(int source);
     int getXptSlotSource(int slotNr);
     void setXptDestination(int destination);
+    void setXptDestinationAbs(int destination);
     int getXptDestination();
     void setXptSlot(int slot);
     int getXptSlot();

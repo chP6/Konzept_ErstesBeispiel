@@ -75,19 +75,25 @@ RossInterface::RossInterface()
 int RossInterface::init(char *ipAdress)
 {
     xpt_adress.sin_port = htons(7788);
-    numberOfInputs = 24;
+    inputs = 24;
+    numberOfInputs = inputs+numberOfBanks*inputs;
     numberOfOutputs = 8;
     inputLabels.clear();
     /*Ross is alway the same, doesen't send labels etc.*/
-        for (int i = 0;i<numberOfInputs;i++) {
-            inputLabels.append(QString::number(i+1));
-        }
+    for (int i = 0;i<inputs;i++) {
+               inputLabels.append(QString::number(i+1));
+           }
+           for (int i = 0;i<numberOfBanks;i++) {
+               for (int j=0;j<inputs;j++) {
+                   inputLabels.append("CC"+QString::number(i+1)+" : "+QString::number(j));
+               }
 
-    outputLabels.clear();
-        for (int i=0;i<numberOfOutputs;i++) {
-            outputLabels.append(QStringLiteral("Aux %1").arg(i+1));
-            }
+           }
 
+     outputLabels.clear();
+     for (int i=0;i<numberOfOutputs;i++) {
+          outputLabels.append(QStringLiteral("Aux %1").arg(i+1));
+       }
     xpt_adress.sin_family = AF_INET;
     inet_aton(ipAdress, &xpt_adress.sin_addr);
     bzero(&(xpt_adress.sin_zero), 8);
@@ -125,11 +131,18 @@ int RossInterface::connectToXpt()
 int RossInterface::sendChange(int source, int destination)
 {
     memset(txBuffer,0,sizeof(txBuffer));
-
-    sprintf(txBuffer,"XPT AUX:%d:IN:%d\n",destination+1,source+1); //send change ross doesn't confirm
+      if (source < inputs) {
+          sprintf(txBuffer,"XPT AUX:%d:IN:%d\n",destination+1,source+1);
+      } else
+      {
+          int bank = (source - inputs) / inputs + 1;
+          int macro = source- inputs*bank;
+          sprintf(txBuffer,"CC %d:%d\n",bank, macro);
+      }
     //if(connect_err < 0){
       //  return -1;
         //    }
+    qCDebug(logicIo)<< "sending" << txBuffer;
     send_err = send(sockfd,txBuffer,strlen(txBuffer),MSG_NOSIGNAL);
     if (send_err < 0) {
         return -1;
