@@ -176,6 +176,7 @@ void Controller::settingsLoad(QSettings &savefile, bool send){
         model->setXptIpField(ABS,3,savefile.value("xptIpField4").toInt());
         model->setXptNumberOfInputs(savefile.value("xptNumberOfInputs").toInt());
         model->setXptNumberOfOutputs(savefile.value("xptNumberOfOutputs").toInt());
+        model->setXptDestinationAbs(savefile.value("xptDestination").toInt());
         savefile.endGroup();
 
     for (int i=0;i<NUMBER_OF_SLOTS;i++) {
