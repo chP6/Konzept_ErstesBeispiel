@@ -1,9 +1,14 @@
-#ifndef INPUT_H
+﻿#ifndef INPUT_H
 #define INPUT_H
 
 #include <vector>
 #include <map>
 #include <utility>
+#include <linux/i2c-dev.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include "hotplug.h"
 
 class InputDevice {
 public:
@@ -32,7 +37,7 @@ public:
     Keyboard(const char* fileName, const std::map<int, std::pair<int, std::vector<int>>> keymap);
     int getEvent(std::vector<int> &data) override;
 
-private:
+protected:
     const std::map<int /* key */, std::pair<int /* event */, std::vector<int> /* data */>> m_keymap;
 };
 
@@ -46,6 +51,30 @@ class ZoomFocusJoystick : public InputDevice {
 public:
     ZoomFocusJoystick(const char* fileName);
     int getEvent(std::vector<int> &data) override;
+};
+
+class I2cRotaryEncoder : public InputDevice {
+public:
+    I2cRotaryEncoder(const char* fileName, const std::map<int, std::pair<int, uint8_t>> keymap);
+    ~I2cRotaryEncoder() override;
+    int init(struct pollfd *fd) override;
+    int getEvent(std::vector<int> &data) override;
+private:
+    int8_t readI2cBus(uint8_t adress);
+    int m_i2c_fd;
+    const std::map<int /* key */, std::pair<int /* event */, uint8_t /* adress */>> m_keymap;
+
+};
+
+class UsbOcp : public InputDevice {
+public:
+    UsbOcp(const char* fileName, const std::map<int, std::vector<int>> keymap);
+    ~UsbOcp() override;
+    int init(struct pollfd *fd) override;
+    int getEvent(std::vector<int> &data) override;
+private:
+    const std::map<int /* key */, std::vector<int>> m_keymap;
+    Hotplug *m_hotplugService = nullptr;
 };
 
 #endif

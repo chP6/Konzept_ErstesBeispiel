@@ -24,7 +24,7 @@ int InputDevice::init(struct pollfd *fd) {
         m_fd->fd = open(m_fileName, O_RDONLY);
         if (m_fd->fd < 0) {
             qDebug("failed to open %s: %s", m_fileName, strerror(errno));
-            return -1;
+            return  -1;
         }
         if (ioctl(m_fd->fd, EVIOCGRAB, 1)) {
             qDebug("failed to grab %s: %s", m_fileName, strerror(errno));
@@ -139,4 +139,141 @@ int ZoomFocusJoystick::getEvent(std::vector<int> &data) {
         }
     }
     return E_NULLEVENT;
+}
+
+
+
+/* ------------------------------------------------------------------------- */
+
+
+UsbOcp::UsbOcp(const char *fileName, const std::map<int, std::vector<int> >  keymap)
+    : InputDevice(fileName), m_keymap(keymap) {}
+
+UsbOcp::~UsbOcp()
+{
+    if (m_fd)
+        close(m_fd->fd);
+    if(m_hotplugService)
+        delete m_hotplugService;
+}
+
+int UsbOcp::init(pollfd *fd)
+{
+    if (fd) {
+        m_fd = fd;
+        m_fd->fd = open(m_fileName, O_RDONLY);
+        m_fd->events = POLLIN | POLLPRI;
+        if (m_fd->fd < 0) {
+            qDebug("failed to open %s: %s", m_fileName, strerror(errno));
+            m_hotplugService = new Hotplug(m_fileName);
+            int hot_fd = m_hotplugService->init();
+            if(hot_fd < 0){
+                return  -1;
+            }
+            m_fd->fd = hot_fd;
+            return 0;
+        }
+        if (ioctl(m_fd->fd, EVIOCGRAB, 1)) {
+            qDebug("failed to grab %s: %s", m_fileName, strerror(errno));
+            close(m_fd->fd);
+            return -1;
+        }
+
+    }
+    return 0;
+}
+
+int UsbOcp::getEvent(std::vector<int> &data)
+{
+    if (eventReceived()) {
+
+        if(m_hotplugService){
+            m_hotplugService->readEvent();
+            m_fd->fd = open(m_fileName, O_RDONLY);
+        }
+
+        struct input_event event;
+        if (readEvent(event)) {
+            if (event.type == EV_KEY && event.value == 1 &&
+                    m_keymap.find(event.code) != m_keymap.end()) {
+                    data = m_keymap.at(event.code);
+                    return E_USB_OCP_CHANGE;
+            }
+        }
+    }
+    return E_NULLEVENT;
+}
+
+/* ------------------------------------------------------------------------- */
+
+I2cRotaryEncoder::I2cRotaryEncoder(const char* fileName, const std::map<int, std::pair<int, uint8_t>> keymap)
+    : InputDevice(fileName), m_keymap(keymap){}
+
+I2cRotaryEncoder::~I2cRotaryEncoder()
+{
+    close(m_i2c_fd);
+}
+
+
+int I2cRotaryEncoder::init(pollfd *fd)
+{
+    if (fd) {
+        m_fd = fd;
+        m_fd->fd = open(m_fileName, O_RDONLY);
+        if (m_fd->fd < 0) {
+            qDebug("failed to open %s: %s", m_fileName, strerror(errno));
+            return  -1;
+        }
+        if (ioctl(m_fd->fd, EVIOCGRAB, 1)) {
+            qDebug("failed to grab %s: %s", m_fileName, strerror(errno));
+            close(m_fd->fd);
+            return -1;
+        }
+        m_fd->events = POLLIN | POLLPRI;
+
+        m_i2c_fd = open("/dev/i2c-1", O_RDWR);
+        if(m_i2c_fd < 0){
+           qDebug("failed to open i2c Bus: %s",strerror(errno));
+           return  -1;
+       }
+
+    }
+    return 0;
+}
+
+
+
+int I2cRotaryEncoder::getEvent(std::vector<int> &data)
+{
+    if (eventReceived()) {
+        struct input_event event;
+        if (readEvent(event)) {
+            if (event.type == EV_KEY && event.value == 1 &&
+                m_keymap.find(event.code) != m_keymap.end()) {
+                data.push_back(readI2cBus(m_keymap.at(event.code).second));
+                return m_keymap.at(event.code).first;
+            }
+        }
+    }
+    return E_NULLEVENT;
+}
+
+
+int8_t I2cRotaryEncoder::readI2cBus(uint8_t adress)
+{
+    char obuf[1] = {0};char ibuf[1] = {0};
+    if (ioctl(m_i2c_fd, I2C_SLAVE,adress)) {
+        qDebug("failed to change slave adress on i2c Bus, %s",strerror(errno));
+        return 0;
+    }
+    if (write(m_i2c_fd,obuf,1) < 0 ) {
+        qDebug("failed to write to i2c Bus, %s",strerror(errno));
+        return 0;
+    }
+    if (read(m_i2c_fd,ibuf,1) < 0) {
+        qDebug("failed to read from i2c Bus, %s",strerror(errno));
+        return 0;
+    }
+    int8_t value = int8_t(ibuf[0]);
+    return (value < -80 || value > 80) ? 0 : value;
 }
