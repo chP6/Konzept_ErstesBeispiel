@@ -25,57 +25,58 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
+    controls.cpp \
+    hotplug.cpp \
     logging.cpp \
-        main.cpp \
+    input.cpp \
+    main.cpp \
     model.cpp \
     controller.cpp \
     poller.cpp \
     eventqueue.cpp \
-    serverwatchdog.cpp \
-    bbmjoystick.cpp \
     networkinterface.cpp \
     telegrambuilder.cpp \
     errorwindow.cpp \
     udplistener.cpp \
-    rotary.cpp \
     tastenfeld.cpp \
-    ocp.cpp \
     home.cpp \
     view.cpp \
     cameraview.cpp \
     others.cpp \
     generictimer.cpp \
+    watchdog.cpp \
     xptcontrol.cpp \
     xptinterface.cpp
 
 
 HEADERS += \
+    controls.h \
+    hotplug.h \
     logging.h \
+    input.h \
     model.h \
     controller.h \
     poller.h \
     events.h \
     eventqueue.h \
-    serverwatchdog.h \
-    bbmjoystick.h \
     bbmcommandtypes.h \
     networkinterface.h \
     telegrambuilder.h \
     errorwindow.h \
     udplistener.h \
-    rotary.h \
     tastenfeld.h \
     config.h \
-    ocp.h \
     home.h \
     view.h \
     cameraview.h \
     others.h \
     generictimer.h \
+    watchdog.h \
     xptcontrol.h \
     xptinterface.h
 
 FORMS += \
+    controls.ui \
     errorwindow.ui \
     home.ui \
     view.ui \

@@ -29,6 +29,7 @@ void View::setModelController(Model& model, Controller& controller){
     ui->cameraView->setModelController(this->model, this->controller);
     ui->others->setModelController(this->model, this->controller);
     ui->xptControl->setModelController(this->model,this->controller);
+    ui->controls->setModelController(this->model, this->controller);
 }
 
 void View::signalHandler(int signum)
@@ -46,6 +47,7 @@ void View::on_modelUpdate()
     ui->cameraView->updateUi();
     ui->others->updateUi();
     ui->xptControl->updateUi();
+    ui->controls->updateUi();
 }
 
 void View::on_modelSetUp()
@@ -137,4 +139,8 @@ void View::on_btOthers_clicked()
 
 }
 
-
+void View::on_btControls_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(4);
+    ui->controls->stackChanged();
+}

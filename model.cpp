@@ -12,6 +12,7 @@ Model::Model()
     y = 0;
     xptNumberOfInputs = 8;
     xptNumberOfOutputs = 8;
+    activeCameraSlot = 0;
 
     memset(cameras,0,sizeof(cameras));
     /*set all cameras to type 1 (CODGER)*/
@@ -22,6 +23,12 @@ Model::Model()
         /*set all flags to flase*/
         for (int j=0;j<NUMBER_OF_FLAGS;j++) {
             cameras[i].flags[j] = false;
+        }
+
+        // clear axis input values
+        for (int j = 0; j < kAxisMax; j++) {
+            cameras[i].axes[j].absolute = AXIS_NO_VALUE_ABS;
+            cameras[i].axes[j].relative = AXIS_NO_VALUE_REL;
         }
     }
 /*
@@ -37,6 +44,13 @@ Model::Model()
 
 
     // emit updateView(); -> not possible yet, signals not routed at this point -> do in controller
+
+    /* default control/axis mapping */
+    controls[kAxisPan] = kControlJoystickX;
+    controls[kAxisTilt] = kControlJoystickY;
+    controls[kAxisZoom] = kControlJoystickZ;
+    controls[kAxisFocus] = kControlFocusWheel;
+    controls[kAxisTravelling] = kControlZoomRocker;
 }
 
 /*Add error to error list*/
@@ -160,7 +174,6 @@ void Model::setCamTypeWithDefValues(int slotNr, int type)
             for(int j=0;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=c1Values[i][j];}
         }
         for(int k=1;k<COLUM_ENTRIES;k++){cameras[slotNr].values[0][k]=c1Values[0][k];}  //headNr without actual value
-        cameras[slotNr].textTable=&c1TextTable[0][0];
         break;
         
     case 2:
@@ -169,7 +182,6 @@ void Model::setCamTypeWithDefValues(int slotNr, int type)
             for(int j=0;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=c2Values[i][j];}
         }
         for(int k=1;k<COLUM_ENTRIES;k++){cameras[slotNr].values[0][k]=c2Values[0][k];}  //headNr without actual value
-        cameras[slotNr].textTable=&c2TextTable[0][0];
         break;
         
     case 4:
@@ -177,7 +189,6 @@ void Model::setCamTypeWithDefValues(int slotNr, int type)
             for(int j=0;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=ursaValues[i][j];}
         }
         for(int k=1;k<COLUM_ENTRIES;k++){cameras[slotNr].values[0][k]=ursaValues[0][k];}  //headNr without actual value
-        cameras[slotNr].textTable=&ursaTextTable[0][0];
         break;
 
     case 5:
@@ -186,7 +197,6 @@ void Model::setCamTypeWithDefValues(int slotNr, int type)
             for(int j=0;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=rValues[i][j];}
         }
         for(int k=1;k<COLUM_ENTRIES;k++){cameras[slotNr].values[0][k]=rValues[0][k];}  //headNr without actual value
-        cameras[slotNr].textTable=&rTextTable[0][0];
         break;
     case 6:
         /*RAVEN*/
@@ -199,9 +209,9 @@ void Model::setCamTypeWithDefValues(int slotNr, int type)
         cameras[slotNr].values[V_ND_FILTER][2]=3;
         cameras[slotNr].values[V_ND_FILTER][3]=TEXT;
         cameras[slotNr].values[V_ND_FILTER][4]=4;
-        cameras[slotNr].textTable=&rTextTable[0][0];
         break;
     }
+    setTextTable(slotNr, type);
     cameras[slotNr].camType=type;
 }
 
@@ -229,7 +239,6 @@ void Model::setCamTypeWithDefBorders(int slotNr, int type)
                 //cameras[slotNr].values[i][VAL]=c1Values[i][VAL];
             }
         }
-        cameras[slotNr].textTable=&c1TextTable[0][0];
         break;
     case 2:
         /*Fill in default values (min, max etc..), but not actual value*/
@@ -242,7 +251,6 @@ void Model::setCamTypeWithDefBorders(int slotNr, int type)
                 cameras[slotNr].values[i][VAL]=c2Values[i][VAL];
             }
         }
-        cameras[slotNr].textTable=&c2TextTable[0][0];
         break;
 
     case 4:
@@ -255,7 +263,6 @@ void Model::setCamTypeWithDefBorders(int slotNr, int type)
                 cameras[slotNr].values[i][VAL]=ursaValues[i][VAL];
             }
         }
-        cameras[slotNr].textTable=&ursaTextTable[0][0];
         break;
 
     case 5:
@@ -269,7 +276,6 @@ void Model::setCamTypeWithDefBorders(int slotNr, int type)
                 cameras[slotNr].values[i][VAL]=rValues[i][VAL];
             }
         }
-        cameras[slotNr].textTable=&rTextTable[0][0];
         break;
     case 6:
         /*Fill in default values (min, max etc..), but not actual value*/
@@ -287,9 +293,9 @@ void Model::setCamTypeWithDefBorders(int slotNr, int type)
         cameras[slotNr].values[V_ND_FILTER][2]=3;
         cameras[slotNr].values[V_ND_FILTER][3]=TEXT;
         cameras[slotNr].values[V_ND_FILTER][4]=4;
-        cameras[slotNr].textTable=&rTextTable[0][0];
         break;
     }
+    setTextTable(slotNr, type);
     cameras[slotNr].camType=type;
 }
 
@@ -315,6 +321,10 @@ void Model::setValue(int type, int property, int value)
         cameras[activeCameraSlot].values[property][VAL]=value;
         emit updateView();
         break;
+    case NORM:
+        /*Set normalized value*/
+        cameras[activeCameraSlot].values[property][VAL] = map(value, 0, 255, cameras[activeCameraSlot].values[property][MIN], cameras[activeCameraSlot].values[property][MAX]);
+        emit updateView();
     case INC:
         /*Incremental change, prevent out of bound*/
         cameras[activeCameraSlot].values[property][VAL]+=value;
@@ -377,6 +387,9 @@ int Model::getValue(int type, int property)
     case ABS:
         /*Return absolute value*/
         return cameras[activeCameraSlot].values[property][VAL];
+    case NORM:
+        /*Return normalized value*/
+        return map(cameras[activeCameraSlot].values[property][VAL], cameras[activeCameraSlot].values[property][MIN], cameras[activeCameraSlot].values[property][MAX], 0, 255);
     case DISP:
         /*Return value to show in GUI*/
         switch (cameras[activeCameraSlot].values[property][TYP]) {
@@ -433,8 +446,11 @@ int Model::getValue(int slotNr, int type, int property)
 /*Text getter*/
 QString Model::getTextValue(int property)
 {
-    return *(cameras[activeCameraSlot].textTable+(cameras[activeCameraSlot].values[property][4]*15)+ \
-            (cameras[activeCameraSlot].values[property][0]-cameras[activeCameraSlot].values[property][1]));
+    QString ret = 0;
+    if (cameras[activeCameraSlot].textTable)
+        ret = cameras[activeCameraSlot].textTable[property * 256 + cameras[activeCameraSlot].values[property][0]-cameras[activeCameraSlot].values[property][1]];
+
+    return ret != 0 ? ret : "n/a";
 }
 
 /*Minimum getter*/
@@ -447,6 +463,16 @@ int Model::getMin(int property)
 int Model::getMax(int property)
 {
     return cameras[activeCameraSlot].values[property][MAX];
+}
+
+int Model::getMin(int slotNr, int property)
+{
+    return cameras[slotNr].values[property][MIN];
+}
+
+int Model::getMax(int slotNr, int property)
+{
+    return cameras[slotNr].values[property][MAX];
 }
 
 /*Camera flag setter*/
@@ -585,6 +611,9 @@ void Model::setTextTable(int slotNr, int type){
     case 6:
         cameras[slotNr].textTable=&rTextTable[0][0];
         break;
+    default:
+        cameras[slotNr].textTable=0;
+        break;
     }
 }
 
@@ -629,7 +658,8 @@ void Model::setXptSlotSource(int source)
 /**/
 int Model::getXptSlotSource(int slotNr)
 {
-    return  cameras[slotNr].xptSource;
+
+    return  cameras[slotNr].xptSource < xptNumberOfInputs ? cameras[slotNr].xptSource : xptNumberOfInputs-1;
 }
 
 /**/
@@ -647,10 +677,15 @@ void Model::setXptDestination(int destination)
 
 }
 
+void Model::setXptDestinationAbs(int destination)
+{
+    xptDestination = destination;
+}
+
 /**/
 int Model::getXptDestination()
 {
-    return xptDestination;
+    return xptDestination < xptNumberOfOutputs ? xptDestination : xptNumberOfOutputs-1;
 }
 
 /**/
@@ -930,4 +965,60 @@ void Model::clearRemainingTelegrams(int slotNr)
     cameras[slotNr].remainingTelegrams.clear();
 }
 
+void Model::setControl(axis_t axis, control_t control)
+{
+    switch (axis) {
+    case kAxisPan:
+    case kAxisTilt:
+    case kAxisZoom:
+    case kAxisFocus:
+    case kAxisTravelling:
+        controls[axis] = control;
+        break;
+    }
+}
 
+control_t Model::getControl(axis_t axis)
+{
+    switch (axis) {
+    case kAxisPan:
+    case kAxisTilt:
+    case kAxisZoom:
+    case kAxisFocus:
+    case kAxisTravelling:
+        return controls[axis];
+    }
+
+    return kControlNone;
+}
+
+void Model::setAxis(axis_t axis, int16_t value, bool absolute) {
+    std::unique_lock<std::mutex> lock(cameras[activeCameraSlot].mtx);
+
+    if (absolute)
+        cameras[activeCameraSlot].axes[axis].absolute = value;
+    else
+        cameras[activeCameraSlot].axes[axis].relative = value;
+}
+
+bool Model::getAxisUpdates(int slotNr, int16_t (&axes)[kAxisMax], bool absolute) {
+    bool newValue = false;
+    std::unique_lock<std::mutex> lock(cameras[slotNr].mtx);
+
+    for (int axis = 0; axis < kAxisMax; axis++) {
+        if (absolute) {
+            axes[axis] = cameras[slotNr].axes[axis].absolute;
+            if (axes[axis] != AXIS_NO_VALUE_ABS) {
+                cameras[slotNr].axes[axis].absolute = AXIS_NO_VALUE_ABS;
+                newValue = true;
+            }
+        } else {
+            axes[axis] = cameras[slotNr].axes[axis].relative;
+            if (axes[axis] != AXIS_NO_VALUE_REL) {
+                cameras[slotNr].axes[axis].relative = AXIS_NO_VALUE_REL;
+                newValue = true;
+            }
+        }
+    }
+    return newValue;
+}

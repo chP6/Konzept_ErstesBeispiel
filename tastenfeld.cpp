@@ -17,7 +17,6 @@
 
 Tastenfeld::Tastenfeld()
 {
-
 }
 
 
@@ -26,93 +25,22 @@ Tastenfeld::~Tastenfeld()
 {
 
     close(spi_fd);
-    /*close files*/
-    for(unsigned int i=0;i<(sizeof(button)/sizeof(button[0]));i++){
-
-        close(button[i]);
-    }
-    /*unexport sys*/
-    switch(button_bus){
-
-        case UPPER_ROW:
-            gpioUnExport(TASTE1);
-            gpioUnExport(TASTE2);
-            gpioUnExport(TASTE3);
-            gpioUnExport(TASTE4);
-            gpioUnExport(TASTE5);
-            gpioUnExport(TASTE6);
-        break;
-
-        case LOWER_ROW:
-            gpioUnExport(TASTE7);
-            gpioUnExport(TASTE8);
-            gpioUnExport(TASTE9);
-            gpioUnExport(TASTE10);
-            gpioUnExport(TASTE11);
-            gpioUnExport(TASTE12);
-
-        break;
-
-    }
-
 }
 
 void Tastenfeld::setRow(int row){
     /*distinguish between SPI Chip Selects*/
     switch (row) {
     case UPPER_ROW:
-        spi_bus=SPI1;       //path is /dev/spidev0.1
-        button_bus=row;     //store for object
+        spi_bus=SPI0;       //path is /dev/spidev0.1
         break;
     case LOWER_ROW:
-        spi_bus=SPI0;       //path is /dev/spidev0.0
-        button_bus=row;     //store for object
+        spi_bus=SPI1;       //path is /dev/spidev0.0
         break;
     }
 }
 
 
 
-int Tastenfeld::init(){
-
-    switch(button_bus){
-    /*Export buttons in sysfs*/
-        case UPPER_ROW:
-            button_err=button[0]=gpioExport(TASTE1);
-                if(button_err<0){return -1;}
-            button_err=button[1]=gpioExport(TASTE2);
-                if(button_err<0){return -1;}
-            button_err=button[2]=gpioExport(TASTE3);
-                if(button_err<0){return -1;}
-            button_err=button[3]=gpioExport(TASTE4);
-                if(button_err<0){return -1;}
-            button_err=button[4]=gpioExport(TASTE5);
-                if(button_err<0){return -1;}
-            button_err=button[5]=gpioExport(TASTE6);
-                if(button_err<0){return -1;}
-        break;
-
-        case LOWER_ROW:
-            button_err=button[0]=gpioExport(TASTE7);
-                if(button_err<0){return -1;}
-            button_err=button[1]=gpioExport(TASTE8);
-                if(button_err<0){return -1;}
-            button_err=button[2]=gpioExport(TASTE9);
-                if(button_err<0){return -1;}
-            button_err=button[3]=gpioExport(TASTE10);
-                if(button_err<0){return -1;}
-            button_err=button[4]=gpioExport(TASTE11);
-                if(button_err<0){return -1;}
-            button_err=button[5]=gpioExport(TASTE12);
-                if(button_err<0){return -1;}
-
-        break;
-
-    }
-    /*Mode 0*/
-
-    return 0;
-}
 
 int Tastenfeld::initSpi(){
     /*Init Spi for LEDs*/
@@ -137,45 +65,12 @@ int Tastenfeld::initSpi(){
    return 0;
 }
 
-int Tastenfeld::gpioExport(int gpio){
 
-    char buffer[60];
-    /*export*/
-    sprintf(buffer,"echo '%d' %s",gpio,EXPORT);
-    system(buffer);
-    memset(buffer,0,sizeof(buffer));
-
-    /*GPIO In*/
-    sprintf(buffer,"echo 'in' >%s%d%s",SYSPATH,gpio,DIRECTION);
-    system(buffer);
-    memset(buffer,0,sizeof(buffer));
-
-    /*Trigger on falling edge*/
-    sprintf(buffer,"echo 'falling' >%s%d%s",SYSPATH,gpio,EDGE);
-    system(buffer);
-    memset(buffer,0,sizeof(buffer));
-
-    /*Open /sys/class/gpio/gpio'nr'/value*/
-    sprintf(buffer,"%s%d%s",SYSPATH,gpio,VALUE);
-    int fd = open(buffer,O_RDONLY);
-    memset(buffer,0,sizeof(buffer));
-    return fd;
-}
-
-void Tastenfeld::gpioUnExport(int gpio){
-
-    char buffer[60];
-    /*echo 'gpioNr' >/sys/class/gpio/unexport*/
-    sprintf(buffer,"echo '%d' %s",gpio,UNEXPORT);
-    system(buffer);
-    memset(buffer,0,sizeof(buffer));
-
-}
 
 void Tastenfeld::mapTx(unsigned int blue, unsigned int red, unsigned int green, int button)
 {
     /*invert direction*/
-    button=5-button;
+    button=7-button;
     /*The PWM Chip requires 12Bit per color per button, means 36 bit per button*/
     /*The buttons are mapped as follows*/
 
@@ -183,8 +78,9 @@ void Tastenfeld::mapTx(unsigned int blue, unsigned int red, unsigned int green, 
     *         | bb | br | rr | gg | g  | b  | bb | rr | rg | gg | ...
       Tx byte | 0  | 1  | 2  | 4  |     5   |  6 |  7 |  8 |  9 | ...*/
 
+    std::swap(red, green);
     /*An odd button number needs to be treated differently than an even button number*/
-    static char button_map[]= {0,4,9,13,18,22,27};
+    static char button_map[]= {0,4,9,13,18,22,27,31};
     //static char button_map[]= {0,4,9,15,20,25,30};
         if(button % 2 == 0){				//Buttonnumber even
             /*mapping*/
@@ -266,19 +162,6 @@ int Tastenfeld::showStored(int usedPresets, int activePreset)
 }
 
 
-
-int Tastenfeld::readButton(int buttonNr){
-    char buffer[2];
-    /*read value from file*/
-    button_err=read(button[buttonNr],buffer,1);
-    if(button_err<0){
-        return button_err;
-    }
-    /*repositioning of the cursor*/
-    lseek(button[buttonNr],0,SEEK_SET);
-    button_err=atoi(buffer);
-    return button_err;
-}
 
 
 
