@@ -180,6 +180,8 @@ void Controller::settingsLoad(QSettings &savefile, bool send){
         model->setXptNumberOfOutputs(savefile.value("xptNumberOfOutputs").toInt());
         model->setXptIpAdress(savefile.value("xptIpAdress").toString());
         model->color = savefile.value("color").toUInt();
+        model->setXptDestinationAbs(savefile.value("xptDestination").toInt());
+
         savefile.endGroup();
 
     for (int i=0;i<NUMBER_OF_SLOTS;i++) {
@@ -763,68 +765,7 @@ void Controller::processQeue(){
             }
             qCDebug(rxWatchdogIo) << "Watchdog received from Camera | "<< "HeadNr:" << from << "Cam Type:" << type << "Time:"<< QTime::currentTime().toString();;
             break;
-        case E_IRIS_CHANGE:
-            /*Iris Change from RCP*/
-            alignSlots(Iris);
-            /*Fast Iris mode for cam type 6*/
-            if(model->getFastIris() && model->getCamtype()==6){
-                 model->setValue(Incremental,Iris,loadedEvent.data[0]<<3);
-            }
-            else {
-               model->setValue(Incremental, Iris, loadedEvent.data[0]);
-            }
-            txSocket.send(model->getValue(Absolute,HeadNr), IRIS_OPEN, model->getValue(Absolute,Iris));
-            qCDebug(logicIo) << "Iris Change from RCP | value:" << model->getValue(Absolute,Iris);
-            break;
-        case E_PED_CHANGE:
-            /*Black Level change from RCP*/
-            model->setValue(Incremental, Ped, loadedEvent.data[0]);
-            alignSlots(Ped);
-            txSocket.send(model->getValue(Absolute,HeadNr), MASTER_PED_UP, model->getValue(Absolute,Ped));
-            qCDebug(logicIo) << "Master Black Change from RCP | value:" << model->getValue(Absolute,Ped);
-            break;
-        case E_WBLUE_CHANGE:
-            /*Blue white chage from RCP*/
-            model->setValue(Incremental, WhiteBlue, loadedEvent.data[0]);
-            alignSlots(WhiteBlue);
-            txSocket.send(model->getValue(Absolute,HeadNr), BLUE_GAIN_ADJ_UP, model->getValue(Absolute,WhiteBlue));
-            qCDebug(logicIo) << "W Blue Change from RCP | value:" << model->getValue(Absolute,WhiteBlue);
-            break;
-        case E_WRED_CHANGE:
-            /*Red white chage from RCP*/
-            model->setValue(Incremental, WhiteRed, loadedEvent.data[0]);
-            alignSlots(WhiteRed);
-            txSocket.send(model->getValue(Absolute,HeadNr), RED_GAIN_ADJ_UP, model->getValue(Absolute,WhiteRed));
-            qCDebug(logicIo) << "W Red Change from RCP | value:" << model->getValue(Absolute,WhiteRed);
-            break;
-        case E_BBLUE_CHANGE:
-            /*Blue black chage from RCP*/
-            model->setValue(Incremental, BlackBlue, loadedEvent.data[0]);
-            alignSlots(BlackBlue);
-            txSocket.send(model->getValue(Absolute,HeadNr), BLUE_PED_UP, model->getValue(Absolute,BlackBlue));
-            qCDebug(logicIo) << "B Blue Change from RCP | value:" << model->getValue(Absolute,BlackBlue);
-            break;
-        case E_BRED_CHANGE:
-            /*Red black chage from RCP*/
-            model->setValue(Incremental, BlackRed, loadedEvent.data[0]);
-            alignSlots(BlackRed);
-            txSocket.send(model->getValue(Absolute,HeadNr), RED_PED_UP, model->getValue(Absolute,BlackRed));
-            qCDebug(logicIo) << "B Red Change from RCP | value:" << model->getValue(Absolute,BlackRed);
-            break;
-        case E_GAIN_CHANGE:
-            /*Gain chage from RCP*/
-            model->setValue(Incremental, Gain, loadedEvent.data[0]);
-            alignSlots(Gain);
-            txSocket.send(model->getValue(Absolute,HeadNr), CAMERA_GAIN_UP, model->getValue(Absolute,Gain));
-            qCDebug(logicIo) << "Gain Change from RCP | value:" << model->getValue(Absolute,Gain);
-            break;
-        case E_SHUTTER_CHANGE:
-            /*Shutter chage from RCP*/
-            model->setValue(Incremental, Shutter, loadedEvent.data[0]);
-            alignSlots(Shutter);
-            txSocket.send(model->getValue(Absolute,HeadNr), SHUTTER_UP, model->getValue(Absolute,Shutter));
-            qCDebug(logicIo) << "Shutter Change from RCP | value:" << model->getValue(Absolute,Shutter);
-            break;
+
         case E_WRITE_SAVEFILE:
             /*Write savefile by user input on Touch*/
             writeSavefile();
@@ -1303,6 +1244,17 @@ void Controller::processQeue(){
                         }
                     }
                 }
+            }
+            break;
+        }
+        case E_USB_OCP_CHANGE:{
+            /*Chage from USB RCP*/
+            properties_t property = properties_t(loadedEvent.data[0]);
+            if(model->getTxCommand(property) > 0 && model->getValue(Absolute,property) > 0){
+                model->setValue(Incremental, property, loadedEvent.data[1]);
+                alignSlots(property);
+                txSocket.send(model->getValue(Absolute,HeadNr), model->getTxCommand(property), model->getValue(Absolute,property));
+                qCDebug(logicIo) << "Change from RCP | property:"<< property <<"value:" << model->getValue(Absolute,property);
             }
             break;
         }

@@ -1,7 +1,15 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+
 #include <QObject>
+
+#include "events.h"
+#include <vector>
+#include <map>
+#include <utility>
+#include <linux/input.h>
+
 
 /*colors*/
 #define PRESET_COLOR 0x555555
@@ -288,7 +296,39 @@ namespace Config
 }
 
 
-
+const std::map<int, std::pair<int, std::vector<int>>>  keyboardmap =
+{                                           /* key      event             data */
+                                           { KEY_1,  { E_CAMERA_CHANGE, { 0 }}},
+                                           { KEY_2,  { E_CAMERA_CHANGE, { 1 }}},
+                                           { KEY_3,  { E_CAMERA_CHANGE, { 2 }}},
+                                           { KEY_4,  { E_CAMERA_CHANGE, { 3 }}},
+                                           { KEY_5,  { E_CAMERA_CHANGE, { 4 }}},
+                                           { KEY_6,  { E_CAMERA_CHANGE, { 5 }}},
+                                           { KEY_F1, { E_PRESET_CHANGE, { 0 }}},
+                                           { KEY_F2, { E_PRESET_CHANGE, { 1 }}},
+                                           { KEY_F3, { E_PRESET_CHANGE, { 2 }}},
+                                           { KEY_F4, { E_PRESET_CHANGE, { 3 }}},
+                                           { KEY_F5, { E_PRESET_CHANGE, { 4 }}},
+                                           { KEY_F6, { E_PRESET_CHANGE, { 5 }}} };
+const std::map<int, std::vector<int>> ocpmap =
+{
+                                        /* key      value   data */
+                                       { KEY_A,  { Config::Iris,    1 }},
+                                       { KEY_B,  { Config::Iris,   -1 }},
+                                       { KEY_C,  { Config::Ped,     1 }},
+                                       { KEY_D,  { Config::Ped,    -1 }},
+                                       { KEY_E,  { Config::BlackRed,   1 }},
+                                       { KEY_F,  { Config::BlackRed,  -1 }},
+                                       { KEY_G,  { Config::BlackBlue,  1 }},
+                                       { KEY_H,  { Config::BlackBlue, -1 }},
+                                       { KEY_I,  { Config::WhiteRed,   1 }},
+                                       { KEY_J,  { Config::WhiteRed,  -1 }},
+                                       { KEY_K,  { Config::WhiteBlue,  1 }},
+                                       { KEY_L,  { Config::WhiteBlue, -1 }},
+                                       { KEY_M,  { Config::Gain,    1 }},
+                                       { KEY_N,  { Config::Gain,   -1 }},
+                                       { KEY_O,  { Config::Shutter, 1 }},
+                                       { KEY_P,  { Config::Shutter,-1 }},};
 
 
 #define AXES_UPDATE_INTERVAL_MS 20 /* update axis values every 20ms (50Hz) */

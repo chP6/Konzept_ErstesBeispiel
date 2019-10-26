@@ -13,6 +13,8 @@
 #include <QList>
 #include <fcntl.h>
 #include <QObject>
+#include <QtDebug>
+#include "logging.h"
 
 #define MAXDATASIZE 2048
 
@@ -86,7 +88,8 @@ public:
     int checkConnection();
 
 private:
-    int numberOfBanks = 4;
+    int numberOfBanks=4;
+    int inputs;
 
 protected:
     SrvAnswer processMessages(QList<QByteArray> &message);
