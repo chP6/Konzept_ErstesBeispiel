@@ -2,7 +2,6 @@
 #define POLLER_H
 
 #include "watchdog.h"
-#include "bbmjoystick.h"
 #include "rotary.h"
 #include "tastenfeld.h"
 #include "hotplug.h"
