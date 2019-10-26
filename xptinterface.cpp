@@ -1,169 +1,22 @@
 #include "xptinterface.h"
 #include <sys/socket.h>
 #include <QDebug>
+#include "logging.h"
 
-
-
-
-
-XptInterface::XptInterface()
+xptinterface::xptinterface()
 {
 
 }
 
-int XptInterface::init(XptType type, char *ipAdress)
+xptinterface::~xptinterface()
 {
-
-    switch (type) {
-    case XptInterface::BalckMagic:
-        xptType = XptInterface::BalckMagic;
-        xpt_adress.sin_port = htons(BMDPORT);
-        numberOfInputs = 40;
-        numberOfOutputs = 40;
-        inputLabels.clear();
-        outputLabels.clear();
-        break;
-    case XptInterface::Ross:
-        xptType = XptInterface::Ross;
-        xpt_adress.sin_port = htons(ROSSPORT);
-        numberOfInputs = 24;
-        numberOfOutputs = 8;
-        inputLabels.clear();
-        for (int i = 0;i<numberOfInputs;i++) {
-            inputLabels.append(QString::number(i+1));
-        }
-
-        outputLabels.clear();
-        for (int i=0;i<numberOfOutputs;i++) {
-            outputLabels.append(QStringLiteral("Aux %1").arg(i+1));
-        }
-        break;
-    }
-
-    xpt_adress.sin_family = AF_INET;
-    inet_aton(ipAdress, &xpt_adress.sin_addr);
-    bzero(&(xpt_adress.sin_zero), 8);
-
-    return 0;
 
 }
 
-int XptInterface::connectToXpt()
+
+int xptinterface::disconnect()
 {
-    struct timeval tv;
-            tv.tv_usec=100000;
-
-    sockfd=socket(AF_INET,SOCK_STREAM,0);
-    setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (struct timeval *)&tv,sizeof(struct timeval));
-    setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, (struct timeval *)&tv,sizeof(struct timeval));
-
-    if(sockfd<0){
-        return -1;
-    }
-    connect_err = ::connect(sockfd,(struct sockaddr *)&xpt_adress,sizeof(struct sockaddr));
-        if(connect_err < 0)
-        {
-            return -1;
-        }
-
-        switch (xptType) {
-            case XptInterface::BalckMagic:
-                {
-                XptInterface::SrvAnswer answer=bmdReceive();
-                    if (answer==XptInterface::Preamble) {
-                        answer=bmdReceive();
-                        if (answer==XptInterface::ACK) {
-                            return 1;
-                                }
-                                        }
-                    else if (answer == XptInterface::ACK) {
-                        return 1;
-                        }
-                    else {
-                        return -1;
-                       }
-            break;
-            }
-            case XptInterface::Ross:
-                emit inputLabelsChanged();
-                return 1; //see what happens when connected to ross
-        }
-
-    return -1;
-}
-XptInterface::SrvAnswer XptInterface::bmdReceive()
-{
-    recv_err=recv(sockfd, rxbuffer, MAXDATASIZE,0);     //receive xpt dump
-         if (recv_err < 0) {
-             return XptInterface::Error;
-             }
-
-         QByteArray input;
-         input.append(rxbuffer);
-         qDebug()<<input;
-         QList<QByteArray> message = appendInput(input);
-
-         if(!message.empty()){
-             XptInterface::SrvAnswer result = processBmdMessages(message);
-             qDebug()<<"message processed";
-             return result;
-         }
-         return XptInterface::Error;
-}
-
-XptInterface::SrvAnswer XptInterface::processRossMessages(QList<QByteArray> &message)
-{
-    if (message.length() < 1) {
-        return XptInterface::Error;
-    }
-    QByteArray header;
-
-  /*  while(!message.empty()){
-        header = message.first();
-        message.pop_front();
-        if(header.left(3) == "XPT"){
-            message.clear();
-            qDebug()<<"found Answer";
-            return XptInterface::ACK;
-        }
-     }
-    message.clear();
-    return XptInterface::Error;*/
-
-   if(!message.empty()){
-       message.clear();     //to do: see what it sends exactely
-       return XptInterface::ACK;
-   }
-   else {
-       return XptInterface::Error;
-   }
-
-}
-
-XptInterface::SrvAnswer XptInterface::rossReceive()
-{
-    recv_err=recv(sockfd, rxbuffer, MAXDATASIZE, 0);     //receive xpt dump
-         if (recv_err < 0) {
-             return XptInterface::Error;
-             }
-
-         QByteArray input;
-         input.append(rxbuffer);
-         qDebug()<<input;
-         QList<QByteArray> message = appendInput(input);
-
-
-
-         if(!message.empty()){
-             XptInterface::SrvAnswer result = processRossMessages(message);
-             qDebug()<<"message processed";
-             return result;
-         }
-         return XptInterface::Error;
-}
-
-int XptInterface::disconnect()
-{
+    /*close socket*/
     connect_err=close(sockfd);
     if(connect_err<0){
         return  -1;
@@ -171,99 +24,382 @@ int XptInterface::disconnect()
     return 0;
 }
 
-XptInterface::SrvAnswer XptInterface::processBmdMessages(QList<QByteArray> &message)
+QList<QString> xptinterface::getOutputLabels()
 {
+    return outputLabels;
+}
+
+QList<QString> xptinterface::getInputLabels()
+{
+    return inputLabels;
+}
+
+int xptinterface::getNumberOfInputs()
+{
+    return numberOfInputs;
+}
+
+int xptinterface::getNumberOfOutputs()
+{
+    return numberOfOutputs;
+}
+
+int xptinterface::changeIP(char *ipAdress)
+{
+    connect_err = inet_aton(ipAdress, &xpt_adress.sin_addr);
+    if (connect_err < 0) {
+        return -1;
+    }
+
+    return 0;
+}
+
+QList<QByteArray> xptinterface::appendInput(QByteArray &input)
+{
+    QList<QByteArray> message;
+    QList<QByteArray> lines = input.split('\n');
+    Q_FOREACH(QByteArray line, lines)
+    {
+            message.append(line);
+    }
+    return message;
+}
+
+/*************************************************************************/
+
+RossInterface::RossInterface()
+{
+
+}
+
+int RossInterface::init(char *ipAdress)
+{
+    xpt_adress.sin_port = htons(7788);
+    inputs = 24;
+    numberOfInputs = inputs+numberOfBanks*inputs;
+    numberOfOutputs = 8;
+    inputLabels.clear();
+    /*Ross is alway the same, doesen't send labels etc.*/
+    for (int i = 0;i<inputs;i++) {
+               inputLabels.append(QString::number(i+1));
+           }
+           for (int i = 0;i<numberOfBanks;i++) {
+               for (int j=0;j<inputs;j++) {
+                   inputLabels.append("CC"+QString::number(i+1)+" : "+QString::number(j));
+               }
+
+           }
+
+     outputLabels.clear();
+     for (int i=0;i<numberOfOutputs;i++) {
+          outputLabels.append(QStringLiteral("Aux %1").arg(i+1));
+       }
+    xpt_adress.sin_family = AF_INET;
+    inet_aton(ipAdress, &xpt_adress.sin_addr);
+    bzero(&(xpt_adress.sin_zero), 8);
+
+    return 0;
+}
+
+int RossInterface::connectToXpt()
+{
+    struct timeval tv;
+            tv.tv_usec=100000;
+    /*Create a tcp socket*/
+    sockfd=socket(AF_INET,SOCK_STREAM,0);
+    /*prevent blocking when connection is lost, eg cable plugged out*/
+    setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (struct timeval *)&tv,sizeof(struct timeval));
+    setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, (struct timeval *)&tv,sizeof(struct timeval));
+
+    if(sockfd<0){
+        return -1;
+    }
+    /*connect to the prepared xpt in init*/
+    connect_err = ::connect(sockfd,(struct sockaddr *)&xpt_adress,sizeof(struct sockaddr));
+        if(connect_err < 0)
+        {
+            return -1;
+        }
+
+    /*ross doesn't send a dump*/
+    emit inputLabelsChanged(); //update the input label on touchscreen
+    return 1;
+
+
+}
+
+int RossInterface::sendChange(int source, int destination)
+{
+    memset(txBuffer,0,sizeof(txBuffer));
+      if (source < inputs) {
+          sprintf(txBuffer,"XPT AUX:%d:IN:%d\n",destination+1,source+1);
+      } else
+      {
+          int bank = (source - inputs) / inputs + 1;
+          int macro = source- inputs*bank;
+          sprintf(txBuffer,"CC %d:%d\n",bank, macro);
+      }
+    //if(connect_err < 0){
+      //  return -1;
+        //    }
+    qCDebug(logicIo)<< "sending" << txBuffer;
+    send_err = send(sockfd,txBuffer,strlen(txBuffer),MSG_NOSIGNAL);
+    if (send_err < 0) {
+        return -1;
+            }
+
+    return  0;
+}
+
+int RossInterface::checkConnection()
+{
+    memset(txBuffer,0,sizeof(txBuffer));
+    memset(rxbuffer,0,sizeof(rxbuffer));
+
+    sprintf(txBuffer,"HELP\n");
+    /*send ping*/
+    send_err = send(sockfd,txBuffer,strlen(txBuffer),MSG_NOSIGNAL);
+    if (send_err < 0) {
+        return -1;
+        }
+    /*receive answer*/
+    xptinterface::SrvAnswer answer=receive();
+        if (answer==xptinterface::ACK) {
+            return 1;
+        }
+        else {
+            return -1;
+        }
+}
+
+xptinterface::SrvAnswer RossInterface::processMessages(QList<QByteArray> &message)
+{
+    /*Nothing in Message*/
     if (message.length() < 1) {
-        return XptInterface::Error;
+        return xptinterface::Error;
+    }
+
+    /*Everything is good as long something is in the message*/
+   if(!message.empty()){
+       message.clear();
+       return xptinterface::ACK;
+   }
+   else {
+       return xptinterface::Error;
+   }
+}
+
+xptinterface::SrvAnswer RossInterface::receive()
+{
+    /*receive xpt answer*/
+    recv_err=recv(sockfd, rxbuffer, MAXDATASIZE, 0);
+         if (recv_err < 0) {
+             return xptinterface::Error;
+             }
+
+         QByteArray input;
+         input.append(rxbuffer);    //put buffer in a Byte Array from Qt
+         qCDebug(xptIo)<< "Received message from Ross device | Message:" << input;
+         QList<QByteArray> message = appendInput(input);    //put input in a message separated by line feed
+
+         if(!message.empty()){
+             xptinterface::SrvAnswer result = processMessages(message); //do something according to message
+             qCDebug(xptIo)<< "Ross message processed";
+             return result;
+         }
+         return xptinterface::Error;
+}
+
+
+/*******************************************************************************/
+
+BmdInterface::BmdInterface()
+{
+
+}
+
+int BmdInterface::init(char *ipAdress)
+{
+    xpt_adress.sin_port = htons(9990);
+    numberOfInputs = 40;
+    numberOfOutputs = 40;
+    inputLabels.clear();
+    outputLabels.clear();
+
+    xpt_adress.sin_family = AF_INET;
+    inet_aton(ipAdress, &xpt_adress.sin_addr);
+    bzero(&(xpt_adress.sin_zero), 8);
+
+    return 0;
+}
+
+int BmdInterface::connectToXpt()
+{
+    struct timeval tv;
+            tv.tv_usec=100000;
+    /*Create a tcp socket*/
+    sockfd=socket(AF_INET,SOCK_STREAM,0);
+    /*prevent blocking when connection is lost, eg cable plugged out*/
+    setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (struct timeval *)&tv,sizeof(struct timeval));
+    setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, (struct timeval *)&tv,sizeof(struct timeval));
+
+    if(sockfd<0){
+        return -1;
+    }
+    /*connect to the prepared xpt in init*/
+    connect_err = ::connect(sockfd,(struct sockaddr *)&xpt_adress,sizeof(struct sockaddr));
+        if(connect_err < 0)
+        {
+            return -1;
+        }
+        /*receive initial dump of BMD device*/
+            xptinterface::SrvAnswer answer=receive();
+            /*catch the preamble line*/
+                if (answer==xptinterface::Preamble) {
+                    /*receive the rest of the dump, inpul labels etc.*/
+                    answer=receive();
+                    if (answer==xptinterface::ACK) {
+                        /*cath ack and return 1, all good*/
+                        return 1;
+                            }
+                                    }
+                else if (answer == xptinterface::ACK) {
+                    /*if no dump was sent, just look after ack*/
+                    return 1;
+                    }
+
+        return -1;
+}
+
+int BmdInterface::sendChange(int source, int destination)
+{
+    memset(txBuffer,0,sizeof(txBuffer));
+
+    sprintf(txBuffer,"VIDEO OUTPUT ROUTING:\n%d %d\n\n",destination,source); //send change xpt should send ack
+
+    send_err = send(sockfd,txBuffer,strlen(txBuffer),MSG_NOSIGNAL);
+    if (send_err < 0) {
+        return -1;
+            }
+
+    return  0;
+}
+
+int BmdInterface::checkConnection()
+{
+    //clear buffers
+    memset(txBuffer,0,sizeof(txBuffer));
+    memset(rxbuffer,0,sizeof(rxbuffer));
+
+    sprintf(txBuffer,"PING:\n\n");
+    /*send a ping*/
+    send_err = send(sockfd,txBuffer,strlen(txBuffer),MSG_NOSIGNAL);
+    if (send_err < 0) {
+        return -1;
+        }
+    /*receive answer*/
+    xptinterface::SrvAnswer answer=receive();
+        if (answer==xptinterface::ACK) {
+            return 1;
+        }
+        else {
+            return -1;
+        }
+}
+
+xptinterface::SrvAnswer BmdInterface::processMessages(QList<QByteArray> &message)
+{
+    /*Message shouldn't be empty*/
+    if (message.length() < 1) {
+        return xptinterface::Error;
     }
     QByteArray header;
     int processedMessages=0;
 
 while(!message.empty()){
-    header = message.first();
-    message.pop_front();                //erster Eintrag löschen
+    header = message.first();               //Store first entry of message into header
+    message.pop_front();                    //delete first entry of message
 
-    if (header.startsWith("ACK")) {
+    if (header.startsWith("ACK")) {         //ACK received
 
-        processedMessages++;
+        processedMessages++;                //Message processed
     }
-    else if (header.startsWith("NACK")) {
-        processedMessages++;
+    else if (header.startsWith("NACK")) {   //NACK received
+        processedMessages++;                //Message processed
     }
-    else if (header.startsWith("VIDEOHUB DEVICE:")) {
+    else if (header.startsWith("VIDEOHUB DEVICE:")) { //This is something from the initial dump. Means the following information is about the Number of I/O
         Q_FOREACH(QByteArray line, message) {
-            message.pop_front();
-            if(line.startsWith("Video inputs:")){
+            message.pop_front();                    //delete first line of the message
+            if(line.startsWith("Video inputs:")){   //look after Video inputs
                 int index = line.indexOf(':');
-                QByteArray inputs = line.right(line.length()-(index+2));
+                QByteArray inputs = line.right(line.length()-(index+2)); //find the number
                 bool ok;
-                numberOfInputs = inputs.toInt(&ok, 10);
+                numberOfInputs = inputs.toInt(&ok, 10);                 //store new value if number is correct
                 if(!ok){
-                    numberOfInputs=40;
+                    numberOfInputs=40;              //if number is not correct store the default value of 40 inputs
                 }
 
             }
-            if(line.startsWith("Video outputs:")){
+            if(line.startsWith("Video outputs:")){                         //look after Video inputs
                 int index = line.indexOf(':');
-               QByteArray outputs = line.right(line.length()-(index+2));
+               QByteArray outputs = line.right(line.length()-(index+2));   //find the number
                bool ok;
-               numberOfOutputs = outputs.toInt(&ok, 10);
+               numberOfOutputs = outputs.toInt(&ok, 10);                    //store new value if number is correct
                if(!ok){
-                   numberOfOutputs=40;
+                   numberOfOutputs=40;                                      //if number is not correct store the default value of 40 outputs
                }
             }
-            if(line.isEmpty()){
-                qDebug()<<"break";
+            if(line.isEmpty()){                   //entries after VIDEOHUB DEVICE: are processed, leave FOREACH
                 break;
 
             }
         }
-        processedMessages++;
+        processedMessages++;                      //Messages have been processed
     }
-    else if (header.startsWith("INPUT LABELS:")) {
+    else if (header.startsWith("INPUT LABELS:")) { //This is something from the initial dump or whenever a label has changed. Means the following information is about Input labels
         QByteArray line;
-        int endOfmessage=message.indexOf("");
-        if(!inputLabels.empty())
+        int endOfmessage=message.indexOf("");           //end of the input label list
+        if(!inputLabels.empty())                        //replace a label if it has changed
             for(int i=0;i<endOfmessage;i++){
-                line=message.first();
+                line=message.first();                   //take first line
                 bool ok;
-                int index = line.left(1).toInt(&ok,10);
+                int index = line.left(1).toInt(&ok,10); //find the number of the input
                 if(ok){
-                    inputLabels[index]=line.right(line.length()-2);
+                    inputLabels[index]=line.right(line.length()-2); //replace it with the corresponding label
                     }
-                message.pop_front();
+                message.pop_front();                    // delete line go on with next line
         }
-        else{
+        else{                                           //all new labels from initial dump
             inputLabels.clear();
-            line = message.first();
-            inputLabels.append(line.right(line.length()-2));
-        for (int i =0 ; i<numberOfInputs-1 ; i++) {
+            line = message.first();                     //take first entry
+            inputLabels.append(line.right(line.length()-2)); //add first label
+        for (int i =0 ; i<numberOfInputs-1 ; i++) {         // do it for all following labels
             message.pop_front();
             line=message.first();
             inputLabels.append(line.right(line.length()-2));
         }
         }
         processedMessages++;
-        emit inputLabelsChanged();
+        emit inputLabelsChanged();                      //update view
     }
-    else if (header.startsWith("OUTPUT LABELS:")) {
+    else if (header.startsWith("OUTPUT LABELS:")) { //This is something from the initial dump or whenever a label has changed. Means the following information is about Output labels
         QByteArray line;
-        int endOfmessage=message.indexOf("");
-        if(!outputLabels.empty())
+        int endOfmessage=message.indexOf("");           //end of the input label list
+        if(!outputLabels.empty())                       //replace a label if it has changed
             for(int i=0;i<endOfmessage;i++){
-                line=message.first();
+                line=message.first();                   //take first line
                 bool ok;
-                int index = line.left(1).toInt(&ok,10);
+                int index = line.left(1).toInt(&ok,10); //find the number of the output
                 if(ok){
-                    outputLabels[index]=line.right(line.length()-2);
+                    outputLabels[index]=line.right(line.length()-2); //replace it with the corresponding label
                     }
-                message.pop_front();
+                message.pop_front();                    // delete line go on with next line
         }
-        else{
+        else{                                           //all new labels from initial dump
             outputLabels.clear();
-            line = message.first();
-            outputLabels.append(line.right(line.length()-2));
-        for (int i =0 ; i<endOfmessage ; i++) {
+            line = message.first();                     //take first entry
+            outputLabels.append(line.right(line.length()-2)); //add first label
+        for (int i =0 ; i<endOfmessage ; i++) {         // do it for all following labels
             message.pop_front();
             line=message.first();
             outputLabels.append(line.right(line.length()-2));
@@ -272,154 +408,41 @@ while(!message.empty()){
         processedMessages++;
         emit inputLabelsChanged();
     }
-    else if (header.startsWith("PROTOCOL PREAMBLE:")) {
+    else if (header.startsWith("PROTOCOL PREAMBLE:")) { // detect preamble
 
-        if (message.length()<10) {
-            return XptInterface::Preamble;
+        if (message.length()<10) {          // return when nothing else follows
+            return xptinterface::Preamble;
         }
         processedMessages++;
     }
 
 }
     if(!processedMessages){
-        return XptInterface::Error;
+        return xptinterface::Error;
     }
     else {
-        return XptInterface::ACK;
+        return xptinterface::ACK;
     }
 
 }
 
-QList<QByteArray> XptInterface::appendInput(QByteArray &input)
+xptinterface::SrvAnswer BmdInterface::receive()
 {
-    QList<QByteArray> message;
-    QList<QByteArray> lines = input.split('\n');
-    Q_FOREACH(QByteArray line, lines)
-    {
-       /* if ((line.length() == 1 && line.at(0) == '\r') || line.length() == 0) {
-            message.clear();
-            return message;
-        } else {*/
-            message.append(line);
-        //}
-    }
-    return message;
+    /*receive xpt answer*/
+       recv_err=recv(sockfd, rxbuffer, MAXDATASIZE,0);
+         if (recv_err < 0) {
+             return xptinterface::Error;
+             }
 
+       QByteArray input;
+       input.append(rxbuffer);    //put buffer in a Byte Array from Qt
+       qCDebug(xptIo)<< "Received message from BMD device | Message:" << input;
+       QList<QByteArray> message = appendInput(input); //put input in a message separated by line feed
+
+         if(!message.empty()){
+             xptinterface::SrvAnswer result = processMessages(message); //do something according to message
+             qCDebug(xptIo)<< "BMD message processed";
+             return result;
+         }
+         return xptinterface::Error;
 }
-
-
-
-int XptInterface::getNumberOfInputs()
-{
-    return numberOfInputs;
-}
-
-int XptInterface::getNumberOfOutputs()
-{
-    return numberOfOutputs;
-}
-
-QList<QString> XptInterface::getOutputLabels()
-{
-    return outputLabels;
-}
-
-QList<QString> XptInterface::getInputLabels()
-{
-    return inputLabels;
-}
-
-void XptInterface::setXptType(XptInterface::XptType type)
-{
-    if (xptType != type) {
-        xptType = type;
-    }
-}
-
-
-int XptInterface::changeIP(char *ipAdress)
-{
-   connect_err = inet_aton(ipAdress, &xpt_adress.sin_addr);
-   if (connect_err < 0) {
-       return -1;
-   }
-
-   return 0;
-}
-
-int XptInterface::sendChange(int source, int destination)
-{
-    memset(txBuffer,0,sizeof(txBuffer));
-
-    switch (xptType) {
-    case XptInterface::BalckMagic:
-
-            sprintf(txBuffer,"VIDEO OUTPUT ROUTING:\n%d %d\n\n",destination,source);
-          //  if(connect_err < 0){
-            //    return -1;
-              //      }
-            send_err = send(sockfd,txBuffer,strlen(txBuffer),MSG_NOSIGNAL);
-            if (send_err < 0) {
-                return -1;
-                    }
-
-            return  0;
-
-    case XptInterface::Ross:
-        sprintf(txBuffer,"XPT AUX:%d:IN:%d\n",destination+1,source+1);
-        //if(connect_err < 0){
-          //  return -1;
-            //    }
-        send_err = send(sockfd,txBuffer,strlen(txBuffer),MSG_NOSIGNAL);
-        if (send_err < 0) {
-            return -1;
-                }
-
-        return  0;
-    }
-
-}
-
-int XptInterface::checkConnection()
-{
-    memset(txBuffer,0,sizeof(txBuffer));
-    memset(rxbuffer,0,sizeof(rxbuffer));
-
-        switch (xptType) {
-        case XptInterface::BalckMagic:
-        {
-            sprintf(txBuffer,"PING:\n\n");
-            send_err = send(sockfd,txBuffer,strlen(txBuffer),MSG_NOSIGNAL);
-            if (send_err < 0) {
-                return -1;
-                }
-
-            XptInterface::SrvAnswer answer=bmdReceive();
-                if (answer==XptInterface::ACK) {
-                    return 1;
-                }
-                else {
-                    return -1;
-                }
-        }
-        case XptInterface::Ross:
-            sprintf(txBuffer,"HELP\n");
-            send_err = send(sockfd,txBuffer,strlen(txBuffer),MSG_NOSIGNAL);
-            if (send_err < 0) {
-                return -1;
-                }
-
-            XptInterface::SrvAnswer answer=rossReceive();
-                if (answer==XptInterface::ACK) {
-                    return 1;
-                }
-                else {
-                    return -1;
-                }
-
-        }
-
-
-
-}
-

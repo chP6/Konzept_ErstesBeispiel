@@ -1,9 +1,15 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include "events.h"
+#include <vector>
+#include <map>
+#include <utility>
+#include <linux/input.h>
+
 /*colors*/
-#define PRESET_COLOR 0xFFFFFF
-#define CAMERA_COLOR 0xFF00F0
+#define PRESET_COLOR 0x555555
+#define CAMERA_COLOR 0x550050
 #define SPP_COLOR    0x2483D6
 #define ACT_PRESET_COLOR 0x00FF00
 
@@ -40,8 +46,8 @@
 #define BITS_PER_W 8
 #define SPI_SPEED 2500000
 
-/*Debounce Time in us*/
-#define DEBOUNCE_T 20 //in us
+/*Time in us*/
+#define DEBOUNCE_T 20
 #define CREEP_T    100000
 #define TX_T       150000
 
@@ -97,27 +103,29 @@
 #define REQUESTABLE           1
 #define ARRIVED               1
 
-#define NUMBER_OF_FLAGS       14
+#define NUMBER_OF_FLAGS       15
 /*flags*/
 #define F_PRST_IN_STORE       0
 #define F_BOUNCING            1
 #define F_SPP_ON              2
 #define F_FASTTRANS           3
 #define F_BOUNCE_ENABLE       4
-#define F_KNOWN               5
+#define F_CAMERA_KNOWN        5
 #define F_CONNECTED           6
-#define F_X_INVERT            7
-#define F_Y_INVERT            8
-#define F_Z_INVERT            9
-#define F_FOCUSINVERT         10
-#define F_PRESET_MOVE         11
-#define F_RECEIVED_ALL        12
-#define F_BOUNCE_ABORTED      13
+#define F_PRESET_MOVE         7
+#define F_RECEIVED_ALL        8
+#define F_BOUNCE_ABORTED      9
+#define F_PAN_INVERT          10
+#define F_TILT_INVERT         11
+#define F_ZOOM_INVERT         12
+#define F_FOCUS_INVERT        13
+#define F_TRAVELLING_INVERT   14
 
 /*set,get types*/
 #define ABS                 1
 #define INC                 2
 #define DISP                3
+#define NORM                4
 
 
 #define INTERNAL            0
@@ -140,5 +148,81 @@
 #define S_SPP_GOTO2           2
 #define S_SPP_WAIT1           3
 #define S_SPP_WAIT2           4
+
+typedef enum {
+    kAxisPan,
+    kAxisTilt,
+    kAxisZoom,
+    kAxisFocus,
+    kAxisTravelling,
+    kAxisMax
+} axis_t;
+
+typedef enum {
+    kControlNone,
+    kControlJoystickX,
+    kControlJoystickY,
+    kControlJoystickZ,
+    kControlZoomRocker,
+    kControlFocusWheel
+} control_t;
+
+static const char* axisStr(axis_t a) {
+    return a == kAxisPan ? "Pan" :
+            a == kAxisTilt ? "Tilt" :
+            a == kAxisZoom ? "Zoom" :
+            a == kAxisFocus ? "Focus" :
+            a == kAxisTravelling ? "Travelling" :
+                "unknown";
+}
+
+static const char* controlStr(control_t c) {
+    return c == kControlNone ? "none" :
+            c == kControlJoystickX ? "Joystick Left/Right" :
+            c == kControlJoystickY ? "Joystick Up/Down" :
+            c == kControlJoystickZ ? "Joystick Rotation" :
+            c == kControlZoomRocker ? "Zoom Rocker" :
+            c == kControlFocusWheel ? "Focus Wheel" :
+                "unknown";
+}
+
+const std::map<int, std::pair<int, std::vector<int>>>  keyboardmap =
+{                                           /* key      event             data */
+                                           { KEY_1,  { E_CAMERA_CHANGE, { 0 }}},
+                                           { KEY_2,  { E_CAMERA_CHANGE, { 1 }}},
+                                           { KEY_3,  { E_CAMERA_CHANGE, { 2 }}},
+                                           { KEY_4,  { E_CAMERA_CHANGE, { 3 }}},
+                                           { KEY_5,  { E_CAMERA_CHANGE, { 4 }}},
+                                           { KEY_6,  { E_CAMERA_CHANGE, { 5 }}},
+                                           { KEY_F1, { E_PRESET_CHANGE, { 0 }}},
+                                           { KEY_F2, { E_PRESET_CHANGE, { 1 }}},
+                                           { KEY_F3, { E_PRESET_CHANGE, { 2 }}},
+                                           { KEY_F4, { E_PRESET_CHANGE, { 3 }}},
+                                           { KEY_F5, { E_PRESET_CHANGE, { 4 }}},
+                                           { KEY_F6, { E_PRESET_CHANGE, { 5 }}} };
+const std::map<int, std::vector<int>> ocpmap =
+{
+                                        /* key      value   data */
+                                       { KEY_A,  { V_IRIS,    1 }},
+                                       { KEY_B,  { V_IRIS,   -1 }},
+                                       { KEY_C,  { V_PED,     1 }},
+                                       { KEY_D,  { V_PED,    -1 }},
+                                       { KEY_E,  { V_B_RED,   1 }},
+                                       { KEY_F,  { V_B_RED,  -1 }},
+                                       { KEY_G,  { V_B_BLUE,  1 }},
+                                       { KEY_H,  { V_B_BLUE, -1 }},
+                                       { KEY_I,  { V_W_RED,   1 }},
+                                       { KEY_J,  { V_W_RED,  -1 }},
+                                       { KEY_K,  { V_W_BLUE,  1 }},
+                                       { KEY_L,  { V_W_BLUE, -1 }},
+                                       { KEY_M,  { V_GAIN,    1 }},
+                                       { KEY_N,  { V_GAIN,   -1 }},
+                                       { KEY_O,  { V_SHUTTER, 1 }},
+                                       { KEY_P,  { V_SHUTTER,-1 }},};
+
+#define AXES_UPDATE_INTERVAL_MS 20 /* update axis values every 20ms (50Hz) */
+
+#define AXIS_NO_VALUE_REL (INT8_MIN)
+#define AXIS_NO_VALUE_ABS (INT16_MIN)
 
 #endif // CONFIG_H

@@ -7,6 +7,8 @@ Telegrambuilder::Telegrambuilder()
 
 }
 
+
+/*Encodes BBMNet telegrams*/
 // Byte 6...9 Data -> [5...8]
 void Telegrambuilder::encode(bool request, int bbm_dev_no, int bbm_command, std::vector<int> data, uint8_t* telegram){
 
@@ -15,15 +17,17 @@ void Telegrambuilder::encode(bool request, int bbm_dev_no, int bbm_command, std:
     datagram[2]=SYNCHRO;
     datagram[3]=uint8_t(bbm_dev_no);
     datagram[4]=uint8_t(bbm_command);
-    datagram[5]= 0;             //default, weil meist 0
+    datagram[5]= 0;             //default, mostly 0
     datagram[6]= 0;
     datagram[7]= 0;
     datagram[8]= 0;
   //datagram[9]= chkSum;
 
+    /*Telegram is a request*/
     if(request){
         datagram[1]=TYPEI_REQUEST;
     }
+    /*Telegram is a command*/
     else{
         switch (bbm_command) {
         case TILT_PAN:
@@ -45,7 +49,7 @@ void Telegrambuilder::encode(bool request, int bbm_dev_no, int bbm_command, std:
             datagram[8] = uint8_t(data[0]);
             break;
         case ZOOM_SET_ABSOLUTE:
-            // only for answer?
+            // only for answer ??
             // all zeros
             break;
         case FOCUS_SET_ABSOLUTE:
@@ -192,6 +196,25 @@ void Telegrambuilder::encode(bool request, int bbm_dev_no, int bbm_command, std:
         case KNEE_POINT:
             datagram[8] = uint8_t(data[0]);
             break;
+
+        case PAN_TILT_ZOOM_FOCUS:
+        case DOLLY_LIFT:
+            datagram[5] = uint8_t(data[0]);
+            datagram[6] = uint8_t(data[1]);
+            datagram[7] = uint8_t(data[2]);
+            datagram[8] = uint8_t(data[3]);
+            break;
+
+        case PAN_TILT_SET_ABSOLUTE:
+        case ZOOM_FOCUS_SET_ABSOLUTE:
+        case DOLLY_LIFT_SET_ABSOLUTE:
+        case RESERVED_SET_ABSOLUTE:
+            datagram[5] = uint8_t((data[0]>>8));
+            datagram[6] = uint8_t(data[0]);
+            datagram[7] = uint8_t((data[1]>>8));
+            datagram[8] = uint8_t(data[1]);
+            break;
+
         default:
             break;
         }
@@ -204,18 +227,19 @@ void Telegrambuilder::encode(bool request, int bbm_dev_no, int bbm_command, std:
     }
 }
 
-
+/*Decodes BBMNet telegrams*/
 void Telegrambuilder::decode(uint8_t* telegram, struct answer_s& answer){
     int temp;
     answer.type = telegram[1];
     answer.command = telegram[4];
     answer.from = telegram[3];
 
-    //watchdog answer from server
+    /*Watchdog answer from server*/
     if(answer.from == SERVER){
         //NOP
     }
-    else{ //watchdog answer from camera/head
+     /*Watchdog answer from camera/head*/
+    else{
         switch (answer.command) {
         case TILT_PAN:
 
@@ -332,13 +356,13 @@ void Telegrambuilder::decode(uint8_t* telegram, struct answer_s& answer){
 }
 
 
-
-uint8_t Telegrambuilder::calc_chksum(){     // quersumme bytes 4-8
+/*Calculates telegram checksum*/
+uint8_t Telegrambuilder::calc_chksum(){     // cross total bytes 4-8
     chkSum = 0;
     for(int i=3;i<9;i++)
         {
             chkSum+=datagram[i];
         }
-    chkSum=(chkSum ^ 0xff);     // XOR -> 2er Komplement
+    chkSum=(chkSum ^ 0xff);                 // XOR -> two's complement
     return chkSum;
 }

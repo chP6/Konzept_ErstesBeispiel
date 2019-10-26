@@ -8,11 +8,106 @@
 #include <sstream>
 #include "config.h"
 #include <QFile>
+#include "logging.h"
+#include <QCommandLineParser>
+#include <sched.h>
+#include <csignal>
+#include <QThread>
+#include <QCursor>
 
 
 int main(int argc, char *argv[])
 {
+
     QApplication a(argc, argv);
+    //a.quit();
+     pthread_t this_thread = pthread_self ();
+     struct sched_param params;
+     params.sched_priority = 75;
+     pthread_setschedparam (this_thread, SCHED_FIFO, &params);
+
+
+    QCoreApplication::setApplicationName("BBMNet RCP/OCP Dual Controller");
+    QCoreApplication::setApplicationVersion("5.1");
+
+    /*add a parser to grab commandline options for logging*/
+    QCommandLineParser parser;
+    parser.setApplicationDescription("Logging options");
+    parser.addHelpOption();     //add -h --help option
+    parser.addVersionOption();  //add -v --version option
+
+    /*add -a --all option to the parser to log everything*/
+    QCommandLineOption logAll(QStringList() << "a" << "all", QCoreApplication::translate("main", "log everything"));
+       parser.addOption(logAll);
+    /*add -p --preset option to the parser to log preset traffic*/
+    QCommandLineOption logPreset(QStringList() << "p" << "preset", QCoreApplication::translate("main", "log preset traffic"));
+          parser.addOption(logPreset);
+    /*add -x --xpt option to the parser to log xpt traffic*/
+    QCommandLineOption logXpt(QStringList() << "x" << "xpt", QCoreApplication::translate("main", "log xpt traffic"));
+         parser.addOption(logXpt);
+    /*add -l --logic option to the parser to log logic traffic*/
+    QCommandLineOption logLogic(QStringList() << "l" << "logic", QCoreApplication::translate("main", "log internal logic events"));
+        parser.addOption(logLogic);
+    /*add -e --extcont option to the parser to log traffic from adjacent rcp/ocp*/
+    QCommandLineOption logExtRCP(QStringList() << "e" << "extcont", QCoreApplication::translate("main", "log traffic from adjacent rcp/ocp"));
+        parser.addOption(logExtRCP);
+    /*add -r --rx option to the parser to log traffic from camera heads in the net*/
+    QCommandLineOption logRx(QStringList() << "r" << "rx", QCoreApplication::translate("main", "log incoming traffic from camera heads"));
+        parser.addOption(logRx);
+    /*add -t --tx option to the parser to log traffic from the programm itself*/
+    QCommandLineOption logTx(QStringList() << "t" << "tx", QCoreApplication::translate("main", "log outgoing traffic from controller"));
+        parser.addOption(logTx);
+    /*add -w --watchdog option to the parser to log watchdog traffic*/
+    QCommandLineOption logWatchdog(QStringList() << "w" << "watchdog", QCoreApplication::translate("main", "log watchdog traffic"));
+        parser.addOption(logWatchdog);
+    /*add -i --inquiry option to the parser to log inquiry traffic*/
+    QCommandLineOption logInquiry(QStringList() << "i" << "inquiry", QCoreApplication::translate("main", "log inquiry traffic"));
+        parser.addOption(logInquiry);
+
+    parser.process(a);
+    QByteArray filter;
+    filter.append("*.debug=false\n");   //disable any debugging
+
+    if (parser.isSet(logPreset)) {
+        filter.append("preset.io=true\n"); //enable preset logging
+    }
+    if (parser.isSet(logXpt)) {
+        filter.append("xpt.io=true\n"); //enable xpt logging
+    }
+    if (parser.isSet(logLogic)) {
+        filter.append("logic.io=true\n"); //enable logic debugging
+    }
+    if (parser.isSet(logExtRCP)) {
+        filter.append("rxRcp.io=true\n"); //enable adjacent rcp/ocp logging
+    }
+    if (parser.isSet(logRx)) {
+        filter.append("rxHead.io=true\n"); //enable rx  logging
+    }
+    if (parser.isSet(logTx)) {
+        filter.append("txHead.io=true\n"); //enable tx logging
+    }
+    if (parser.isSet(logWatchdog)) {
+        filter.append("txWatchdog.io=true\n"); //enable tx Watchdocg logging
+        filter.append("rxWatchdog.io=true\n"); //enable rx Watchdocg logging
+    }
+    if (parser.isSet(logInquiry)) {
+        filter.append("request.io=true\n"); //enable inquirylogging
+    }
+    if (parser.isSet(logAll)) {
+        filter.clear(); //override all
+        filter.append("*.debug=false\n");   //disable any debugging
+        filter.append("preset.io=true\n");  //enable preset logging
+        filter.append("xpt.io=true\n");     //enable xpt logging
+        filter.append("logic.io=true\n");   //enable logic debugging
+        filter.append("rxRcp.io=true\n");   //enable adjacent rcp/ocp logging
+        filter.append("rxHead.io=true\n");  //enable rx logging
+        filter.append("txHead.io=true\n");  //enable tx logging
+        filter.append("txWatchdog.io=true\n"); //enable tx Watchdocg logging
+        filter.append("rxWatchdog.io=true\n"); //enable rx Watchdocg logging
+        filter.append("request.io=true\n"); //enable inquirylogging
+    }
+    /*add filter to logger*/
+    QLoggingCategory::setFilterRules(filter);
 
     View view;
     Model model;
@@ -39,13 +134,13 @@ int main(int argc, char *argv[])
     QObject::connect(&model, &Model::receiveAllNew,
                      &view, &View::on_newRequest);
 
-
     Controller controller(model);
-    //start queue was here
 
     QObject::connect(&controller, &Controller::clearLoadButon,
                      &view, &View::on_loadButtonCleared);
 
+    QObject::connect(&a, &QApplication::aboutToQuit,
+                     &controller, &Controller::onAppQuit);
 
     view.setModelController(model, controller);
     view.show();
@@ -53,11 +148,18 @@ int main(int argc, char *argv[])
     Poller poller(controller);
     controller.setPoller(poller);
     UdpListener udpListener(controller);
-
-
     controller.startQueueProcessThread();
     poller.startListener();
     udpListener.startListener();
+    QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
 
-    return a.exec();
+    a.exec();
+    poller.stopListener();
+    if(poller.t3.joinable()){ poller.t3.join();}
+    controller.stopQueueProcessThread();
+    if(controller.t1.joinable()){controller.t1.join();}
+    udpListener.stopListener();
+    //if(udpListener.t2.joinable()){udpListener.t2.join();}
+    printf("bye bye \n");
+    exit(0);
 }

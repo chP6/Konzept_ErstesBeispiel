@@ -11,8 +11,8 @@
 
 
 
-#define SAVEFILE_PATH   "/opt/savefile"
-#define AUTOSAVE_PATH   "/opt/autosave"
+#define SAVEFILE_PATH   "/mnt/userdata/autosave/savefile"
+#define AUTOSAVE_PATH   "/mnt/userdata/autosave/autosave"
 
 class Model;        //forward declaration
 class Poller;        //forward declaration
@@ -25,11 +25,15 @@ signals:
     void clearLoadButon();
 public slots:
     void onXptLableChanged();
+    void onAppQuit();
 public:
+    bool applicationRunning=false;
+    std::thread t1;
     Controller(Model& model);
     void setModel(Model& model);
     void setPoller(Poller& poller);
     void startQueueProcessThread();
+    void stopQueueProcessThread();
     void queueEvent(int evt);
     void queueEvent(int evt, int dataA);
     void queueEvent(int evt, int dataA, int dataB);
@@ -60,16 +64,12 @@ private:
     Networkinterface txSocket;
     Tastenfeld presetbus;
     Tastenfeld camerabus;
-    XptInterface xptSocket;
+    xptinterface *xptSocket;
     GenericTimer blinkTimer, sppTimer[NUMBER_OF_SLOTS], xptWatchdog, reqSettingsTimer[NUMBER_OF_SLOTS];
+    GenericTimer axesUpdater;
     int xptConnectionAttempts=0;
-
-
-
-    [[noreturn]]void processQeue();
-    void increment(int inc);
-    void clear();
-    void setAxis(int x, int y);
+    //[[noreturn]]
+    void processQeue();
     int contr_err;
 
 };

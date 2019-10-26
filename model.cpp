@@ -12,16 +12,23 @@ Model::Model()
     y = 0;
     xptNumberOfInputs = 8;
     xptNumberOfOutputs = 8;
+    activeCameraSlot = 0;
 
     memset(cameras,0,sizeof(cameras));
-    //set all cameras to type 1 (CODGER)
+    /*set all cameras to type 1 (CODGER)*/
     for (int i=0; i<NUMBER_OF_SLOTS; i++) {
         setCamTypeWithDefValues(i,SONY_EVS_CODGER);
 
         setValue(i, ABS,V_HEADNR,i+1);   //set headNr.
-        //set all flags to flase
+        /*set all flags to flase*/
         for (int j=0;j<NUMBER_OF_FLAGS;j++) {
             cameras[i].flags[j] = false;
+        }
+
+        // clear axis input values
+        for (int j = 0; j < kAxisMax; j++) {
+            cameras[i].axes[j].absolute = AXIS_NO_VALUE_ABS;
+            cameras[i].axes[j].relative = AXIS_NO_VALUE_REL;
         }
     }
 /*
@@ -37,55 +44,47 @@ Model::Model()
 
 
     // emit updateView(); -> not possible yet, signals not routed at this point -> do in controller
+
+    /* default control/axis mapping */
+    controls[kAxisPan] = kControlJoystickX;
+    controls[kAxisTilt] = kControlJoystickY;
+    controls[kAxisZoom] = kControlJoystickZ;
+    controls[kAxisFocus] = kControlFocusWheel;
+    controls[kAxisTravelling] = kControlZoomRocker;
 }
 
-void Model::setData(int data){
-    count = data;
-    emit updateView();
-}
-
-int Model::getData(void){
-    return count;
-}
-
-void Model::setAxis(int x, int y){
-    this->x = x;
-    this->y = y;
-    emit updateView();
-}
-
-void Model::getAxis(int &x, int &y){
-    x = this->x;
-    y = this->y;
-}
-
+/*Add error to error list*/
 void Model::addError(std::string str){
     errorList.prepend(QString::fromStdString(str));
     emit updateView();
 }
 
+/*Clear error list*/
 void Model::clearErrors(){
     errorList.clear();
     emit updateView();
 }
 
+/*Set used presets in current slot*/
 void Model::setUsedPreset(int presetNr)
 {
     cameras[activeCameraSlot].usedPresets |= 1 << presetNr;
      //cameras[activeCameraSlot].usedPresets[presetNr]=1;
 }
 
-//overload, absolut value from savefile
+/*Overload function, with slot number*/
 void Model::setUsedPreset(int slotNr, int presetNr)
 {
     cameras[slotNr].usedPresets = presetNr;
 }
 
+/**/
 void Model::clearUsedPresets()
 {
     cameras[activeCameraSlot].usedPresets = 0;
 }
 
+/**/
 int Model::getUsedPreset()
 {
     return cameras[activeCameraSlot].usedPresets;
@@ -97,32 +96,34 @@ int Model::getUsedPreset(int slotNr)
     return cameras[slotNr].usedPresets;
 }
 
+/*Set currently active preset in current slot*/
 void Model::setActivePreset(int actPreset)
 {
     cameras[activeCameraSlot].activePreset=actPreset;
     emit updateView();
 }
 
-//overload
+/*Overload function with slot number*/
 void Model::setActivePreset(int slotNr, int actPreset)
 {
     cameras[slotNr].activePreset=actPreset;
     emit updateView();
 }
 
+/*Get active preset from current slot*/
 int Model::getActivePreset()
 {
     return cameras[activeCameraSlot].activePreset;
 }
 
-//overload
+/*Overload function, with slot number*/
 int Model::getActivePreset(int slotNr)
 {
     return cameras[slotNr].activePreset;
 }
 
 
-// returns headnumber
+/*Change active camera slot*/
 int Model::setActiveCameraSlot(int slotNr)
 {
     activeCameraSlot=slotNr;
@@ -138,19 +139,23 @@ int Model::setActiveCameraSlot(int slotNr)
     return cameras[activeCameraSlot].values[V_HEADNR][VAL];
 }
 
+/*Get active camera slot*/
 int Model::getActiveCameraSlot()
 {
     return activeCameraSlot;
 }
 
+/*Get error list*/
 QStringList* Model::getErrorList(){
     return &errorList;
 }
 
+/*Change camera type*/
 void Model::setCamTypeOnly(int slotNr, int type){
     cameras[slotNr].camType=type;
 }
 
+/*Change camera type and according min,max values*/
 void Model::setCamType(int slotNr, int type){
     if(cameras[slotNr].camType != type){
         cameras[slotNr].camType=type;
@@ -158,33 +163,43 @@ void Model::setCamType(int slotNr, int type){
     }
 }
 
-//all values
+/*Change camera type and load default values*/
 void Model::setCamTypeWithDefValues(int slotNr, int type)
 {
     int start = 0;       //with head no
     switch (type) {
     case 1:
+        /*CODGER*/
         for(int i= start;i<ROW_ENTRIES;i++){
             for(int j=0;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=c1Values[i][j];}
         }
         for(int k=1;k<COLUM_ENTRIES;k++){cameras[slotNr].values[0][k]=c1Values[0][k];}  //headNr without actual value
-        cameras[slotNr].textTable=&c1TextTable[0][0];
         break;
+        
     case 2:
+        /*MH322*/
         for(int i= start;i<ROW_ENTRIES;i++){
             for(int j=0;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=c2Values[i][j];}
         }
         for(int k=1;k<COLUM_ENTRIES;k++){cameras[slotNr].values[0][k]=c2Values[0][k];}  //headNr without actual value
-        cameras[slotNr].textTable=&c2TextTable[0][0];
         break;
+        
+    case 4:
+        for(int i= start;i<ROW_ENTRIES;i++){
+            for(int j=0;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=ursaValues[i][j];}
+        }
+        for(int k=1;k<COLUM_ENTRIES;k++){cameras[slotNr].values[0][k]=ursaValues[0][k];}  //headNr without actual value
+        break;
+
     case 5:
+        /*HPX600, URSA, HITACHI*/
         for(int i= start;i<ROW_ENTRIES;i++){
             for(int j=0;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=rValues[i][j];}
         }
         for(int k=1;k<COLUM_ENTRIES;k++){cameras[slotNr].values[0][k]=rValues[0][k];}  //headNr without actual value
-        cameras[slotNr].textTable=&rTextTable[0][0];
         break;
     case 6:
+        /*RAVEN*/
         for(int i= start;i<ROW_ENTRIES;i++){
             for(int j=0;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=rValues[i][j];}
         }
@@ -194,25 +209,25 @@ void Model::setCamTypeWithDefValues(int slotNr, int type)
         cameras[slotNr].values[V_ND_FILTER][2]=3;
         cameras[slotNr].values[V_ND_FILTER][3]=TEXT;
         cameras[slotNr].values[V_ND_FILTER][4]=4;
-        cameras[slotNr].textTable=&rTextTable[0][0];
         break;
     }
+    setTextTable(slotNr, type);
     cameras[slotNr].camType=type;
 }
 
-// only non requestable properties with actual value, borders from all
+/*Load default min,max values. Requestable properties will be requested from camera, nonrequestable set default values*/
 void Model::setCamTypeWithDefBorders(int slotNr, int type)
 {
-    int start = 1;       //without head no
+    int start = 1;       //no change on head number in slot (omit first entry)
     switch (type) {
     case 1:
-        //fill in default values (min, max etc..), but not actual value
+        /*Fill in default values (min, max etc..), but not actual value*/
         for(int i= start;i<ROW_ENTRIES;i++){
             for(int j=1;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=c1Values[i][j];}
         }
 
+        /*All nonrequestable values: write standard values and prevent out of bounds ??*/
         for (int i=start;i<ROW_ENTRIES;i++) {
-            //all nonrequestable values: write standard value
             if(cameras[slotNr].values[i][5] != REQUESTABLE){
                 if (cameras[slotNr].values[i][VAL] > cameras[slotNr].values[i][MAX] ) {
                     cameras[slotNr].values[i][VAL]=c1Values[i][MAX];
@@ -224,73 +239,94 @@ void Model::setCamTypeWithDefBorders(int slotNr, int type)
                 //cameras[slotNr].values[i][VAL]=c1Values[i][VAL];
             }
         }
-        cameras[slotNr].textTable=&c1TextTable[0][0];
         break;
     case 2:
+        /*Fill in default values (min, max etc..), but not actual value*/
         for(int i= start;i<ROW_ENTRIES;i++){
             for(int j=1;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=c2Values[i][j];}
         }
+        /*Load default values for nonrequestable values*/
         for (int i=start;i<ROW_ENTRIES;i++) {
-            //all nonrequestable values: write standard value
             if(cameras[slotNr].values[i][5] != REQUESTABLE){
                 cameras[slotNr].values[i][VAL]=c2Values[i][VAL];
             }
         }
-        cameras[slotNr].textTable=&c2TextTable[0][0];
         break;
-    case 5:
+
+    case 4:
         for(int i= start;i<ROW_ENTRIES;i++){
-            for(int j=1;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=rValues[i][j];}
+            for(int j=1;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=ursaValues[i][j];}
         }
         for (int i=start;i<ROW_ENTRIES;i++) {
             //all nonrequestable values: write standard value
             if(cameras[slotNr].values[i][5] != REQUESTABLE){
+                cameras[slotNr].values[i][VAL]=ursaValues[i][VAL];
+            }
+        }
+        break;
+
+    case 5:
+        /*Fill in default values (min, max etc..), but not actual value*/
+        for(int i= start;i<ROW_ENTRIES;i++){
+            for(int j=1;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=rValues[i][j];}
+        }
+        for (int i=start;i<ROW_ENTRIES;i++) {
+            /*Load default values for nonrequestable values*/
+            if(cameras[slotNr].values[i][5] != REQUESTABLE){
                 cameras[slotNr].values[i][VAL]=rValues[i][VAL];
             }
         }
-        cameras[slotNr].textTable=&rTextTable[0][0];
         break;
     case 6:
+        /*Fill in default values (min, max etc..), but not actual value*/
         for(int i= start;i<ROW_ENTRIES;i++){
             for(int j=1;j<COLUM_ENTRIES;j++){cameras[slotNr].values[i][j]=rValues[i][j];}
         }
+        /*Load default values for nonrequestable values*/
         for (int i=start;i<ROW_ENTRIES;i++) {
-            //all nonrequestable values: write standard value
             if(cameras[slotNr].values[i][5] != REQUESTABLE){
                 cameras[slotNr].values[i][VAL]=rValues[i][VAL];
             }
         }
+        /*Only RAVEN has ND Filters*/
         cameras[slotNr].values[V_ND_FILTER][1]=0;
         cameras[slotNr].values[V_ND_FILTER][2]=3;
         cameras[slotNr].values[V_ND_FILTER][3]=TEXT;
         cameras[slotNr].values[V_ND_FILTER][4]=4;
-        cameras[slotNr].textTable=&rTextTable[0][0];
         break;
     }
+    setTextTable(slotNr, type);
     cameras[slotNr].camType=type;
 }
 
 
-// for active camera
+/*Get camera type of current slot*/
 int Model::getCamtype()
 {
     return cameras[activeCameraSlot].camType;
 }
 
-// overload for specific camera
+/*Overload function with slot number*/
 int Model::getCamtype(int slotNr)
 {
     return cameras[slotNr].camType;
 }
 
+/*Setter in current slot*/
 void Model::setValue(int type, int property, int value)
 {
     switch (type) {
     case ABS:
+        /*Absolute change*/
         cameras[activeCameraSlot].values[property][VAL]=value;
         emit updateView();
         break;
+    case NORM:
+        /*Set normalized value*/
+        cameras[activeCameraSlot].values[property][VAL] = map(value, 0, 255, cameras[activeCameraSlot].values[property][MIN], cameras[activeCameraSlot].values[property][MAX]);
+        emit updateView();
     case INC:
+        /*Incremental change, prevent out of bound*/
         cameras[activeCameraSlot].values[property][VAL]+=value;
         qDebug("Slot: %d, Value: %d", activeCameraSlot, cameras[activeCameraSlot].values[property][VAL]);
         emit updateView();
@@ -308,11 +344,12 @@ void Model::setValue(int type, int property, int value)
     }
 }
 
-//overload with slotNr
+/*Overload with slot number*/
 void Model::setValue(int slotNr, int type, int property, int value)
 {
     switch (type) {
     case ABS:
+        /*Absolute change*/
         if (value > cameras[slotNr].values[property][MAX]) { //prevent buffer overflow, with garbage values
             cameras[slotNr].values[property][VAL] = cameras[slotNr].values[property][MAX];
         }
@@ -325,6 +362,7 @@ void Model::setValue(int slotNr, int type, int property, int value)
         emit updateView();
         break;
     case INC:
+        /*Incremental change, prevent out of bound*/
         cameras[slotNr].values[property][VAL]+=value;
         qDebug("Slot: %d, Value: %d", slotNr, cameras[slotNr].values[property][VAL]);
         emit updateView();
@@ -342,23 +380,34 @@ void Model::setValue(int slotNr, int type, int property, int value)
     }
 }
 
+/*Getter in current slot*/
 int Model::getValue(int type, int property)
 {
     switch (type) {
     case ABS:
+        /*Return absolute value*/
         return cameras[activeCameraSlot].values[property][VAL];
+    case NORM:
+        /*Return normalized value*/
+        return map(cameras[activeCameraSlot].values[property][VAL], cameras[activeCameraSlot].values[property][MIN], cameras[activeCameraSlot].values[property][MAX], 0, 255);
     case DISP:
+        /*Return value to show in GUI*/
         switch (cameras[activeCameraSlot].values[property][TYP]) {
         case NORMAL:
+            /*Absolute value*/
             return cameras[activeCameraSlot].values[property][VAL];
         case CENTER:
+            /*Value stored 0...255, displayed as -128...+128 (as example)*/
             return cameras[activeCameraSlot].values[property][VAL]-(cameras[activeCameraSlot].values[property][MAX] \
                                                                     -cameras[activeCameraSlot].values[property][MIN])/2;
         case NAN:
+            /*GUI does not need to display anything*/
             return -2048;
         case TEXT:
+            /*GUI should display text*/
             return -2049;
         case OFFSET:
+            /*Special case for spp, because position is stored 0...5*/
             return cameras[activeCameraSlot].values[property][VAL]+1;
         default:
             return -1;
@@ -368,7 +417,7 @@ int Model::getValue(int type, int property)
     }
 }
 
-//overload with slot nr
+/*Overload with slot number*/
 int Model::getValue(int slotNr, int type, int property)
 {
     switch (type) {
@@ -394,48 +443,67 @@ int Model::getValue(int slotNr, int type, int property)
     }
 }
 
+/*Text getter*/
 QString Model::getTextValue(int property)
 {
-    return *(cameras[activeCameraSlot].textTable+(cameras[activeCameraSlot].values[property][4]*15)+ \
-            (cameras[activeCameraSlot].values[property][0]-cameras[activeCameraSlot].values[property][1]));
+    QString ret = 0;
+    if (cameras[activeCameraSlot].textTable)
+        ret = cameras[activeCameraSlot].textTable[property * 256 + cameras[activeCameraSlot].values[property][0]-cameras[activeCameraSlot].values[property][1]];
+
+    return ret != 0 ? ret : "n/a";
 }
 
-
+/*Minimum getter*/
 int Model::getMin(int property)
 {
     return cameras[activeCameraSlot].values[property][MIN];
 }
 
+/*Maximum getter*/
 int Model::getMax(int property)
 {
     return cameras[activeCameraSlot].values[property][MAX];
 }
 
+int Model::getMin(int slotNr, int property)
+{
+    return cameras[slotNr].values[property][MIN];
+}
+
+int Model::getMax(int slotNr, int property)
+{
+    return cameras[slotNr].values[property][MAX];
+}
+
+/*Camera flag setter*/
 void Model::setCamFlag(int flag, bool value)
 {
    cameras[activeCameraSlot].flags[flag]=value;
 }
 
-//overload with slotNr
+/*Overload function with slot number*/
 void Model::setCamFlag(int slotNr, int flag, bool value)
 {
    cameras[slotNr].flags[flag]=value;
 }
 
+/*Camera flag getter*/
 bool Model::getCamFlag(int flag)
 {
     return cameras[activeCameraSlot].flags[flag];
 }
 
-//overload with slotNr
+/*Overload function with slot number*/
 bool Model::getCamFlag(int slotNr, int flag)
 {
     return cameras[slotNr].flags[flag];
 }
 
+/*Determine server connection status*/
 int Model::setWatchdogWaitingflag(bool waiting){
     if(waiting){
         if(watchdogWaitingForAnswerFlag){
+            /*Already waiting since last Watchdog ping sent*/
             if(serverConnected){
                 emit updateServerConnectionStatus(false);       //signal: connection lost
             }
@@ -443,11 +511,13 @@ int Model::setWatchdogWaitingflag(bool waiting){
             return -1;      // error, already waiting for answer -> connection lost
         }
         else{
+            /*Answer from last Watchdog ping was received, set flag to waiting*/
             watchdogWaitingForAnswerFlag = true;
             return 0;       // ok, set waiting
         }
     }
     else{
+        /*Server answer received, clear waiting flag*/
         watchdogWaitingForAnswerFlag = false;
         if(!serverConnected){
             emit updateServerConnectionStatus(true);        //signal: connected
@@ -457,22 +527,26 @@ int Model::setWatchdogWaitingflag(bool waiting){
     }
 }
 
+/*Determine camera connection status*/
 int Model::setCameraWaitingflag(int slotNr, bool waiting){
-    if(waiting){        // out ping sent -> decrement stack 1
-        if (cameraWaitingForAnswerStack[slotNr]<=0) {   // empty -> signal disconnect if connection status not already disconnected
+    if(waiting){
+        /*Watchdog ping sent, decrement stack*/
+        if (cameraWaitingForAnswerStack[slotNr]<=0) {
+            /*Stack empty, signal disconnect if connection status not already disconnected*/
             if(cameras[slotNr].flags[F_CONNECTED]){
                 if(slotNr == getActiveCameraSlot()){
-                    emit updateCameraConnectionStatus(false);        //signal: disconnected
+                    emit updateCameraConnectionStatus(false);
                 }
                 cameras[slotNr].flags[F_CONNECTED] = false;
-                //cameras[slotNr].flags[F_KNOWN] = false;
+                //cameras[slotNr].flags[F_CAMERA_KNOWN] = false;
             }
         }
         else {
             cameraWaitingForAnswerStack[slotNr]--;
         }
     }
-    else{   // Answer received -> fill stack, send signal if connection status was not already ok
+    else{
+        /*Answer received. Fill stack, send connected signal if connection status not already ok*/
         cameraWaitingForAnswerStack[slotNr] = 2;
         if(!cameras[slotNr].flags[F_CONNECTED]){
             if(slotNr == getActiveCameraSlot()){
@@ -486,36 +560,43 @@ int Model::setCameraWaitingflag(int slotNr, bool waiting){
     //qDebug("stack: %d",cameraWaitingForAnswerStack[slotNr]);
 }
 
+/**/
 int Model::getRotaryField()
 {
     return rotaryField;
 }
 
+/**/
 int Model::getRotaryDestination()
 {
     return rotaryDestination;
 }
 
+/**/
 void Model::setRotaryField(int field, int destination)
 {
     rotaryDestination=destination;
     rotaryField=field;
 }
 
+/*Get associated commandtype from property*/
 int Model::getTxCommand(int value)
 {
     return commandtype[value];
 }
 
+/*Get associated property from commandtype*/
 int Model::getValueFromBBMCommand(int bbm_command){
     for (int i=0;i<ROW_ENTRIES;i++) {
         if (bbm_command == commandtype[i]) {
             return i;
         }
     }
+    /*Not all properties have a command type*/
     return -1;
 }
 
+/**/
 void Model::setTextTable(int slotNr, int type){
     switch (type) {
     case 1:
@@ -530,15 +611,19 @@ void Model::setTextTable(int slotNr, int type){
     case 6:
         cameras[slotNr].textTable=&rTextTable[0][0];
         break;
+    default:
+        cameras[slotNr].textTable=0;
+        break;
     }
 }
 
+/*LED blinking for bounce function*/
 int Model::toggleBlink(){
     blinkToggle=!blinkToggle;
     return blinkToggle;
 }
 
-
+/**/
 void Model::setXptConnected(bool flag)
 {
   if(xptConnect != flag){
@@ -548,11 +633,13 @@ void Model::setXptConnected(bool flag)
 
 }
 
+/**/
 bool Model::getXptConnected()
 {
     return xptConnect;
 }
 
+/**/
 void Model::setXptSlotSource(int source)
 {
    cameras[xptSlot].xptSource+=source;
@@ -568,11 +655,14 @@ void Model::setXptSlotSource(int source)
 
 }
 
+/**/
 int Model::getXptSlotSource(int slotNr)
 {
-    return  cameras[slotNr].xptSource;
+
+    return  cameras[slotNr].xptSource < xptNumberOfInputs ? cameras[slotNr].xptSource : xptNumberOfInputs-1;
 }
 
+/**/
 void Model::setXptDestination(int destination)
 {
     xptDestination+=destination;
@@ -587,21 +677,30 @@ void Model::setXptDestination(int destination)
 
 }
 
-int Model::getXptDestination()
+void Model::setXptDestinationAbs(int destination)
 {
-    return xptDestination;
+    xptDestination = destination;
 }
 
+/**/
+int Model::getXptDestination()
+{
+    return xptDestination < xptNumberOfOutputs ? xptDestination : xptNumberOfOutputs-1;
+}
+
+/**/
 void Model::setXptSlot(int slot)
 {
     xptSlot=slot;
 }
 
+/**/
 int Model::getXptSlot()
 {
     return xptSlot;
 }
 
+/**/
 void Model::setXptIpField(int type,int field, int value)
 {
     switch (type) {
@@ -650,18 +749,20 @@ void Model::setXptIpField(int type,int field, int value)
 
 }
 
+/**/
 int Model::getXptIpField(int field)
 {
     return xptFields[field];
 }
 
-
+/**/
 char *Model::getXptIpAdress()
 {
     sprintf(xptIpAddress,"%d.%d.%d.%d",xptFields[0],xptFields[1],xptFields[2],xptFields[3]);
     return &xptIpAddress[0];
 }
 
+/**/
 void Model::setXptNumberOfInputs(int inputs)
 {
     if(inputs != xptNumberOfInputs){
@@ -669,11 +770,13 @@ void Model::setXptNumberOfInputs(int inputs)
     }
 }
 
+/**/
 int Model::getXptNumberOfInputs()
 {
     return xptNumberOfInputs;
 }
 
+/**/
 void Model::setXptNumberOfOutputs(int outputs)
 {
     if(outputs != xptNumberOfOutputs){
@@ -681,16 +784,19 @@ void Model::setXptNumberOfOutputs(int outputs)
     }
 }
 
+/**/
 int Model::getXptNumberOfOutputs()
 {
     return xptNumberOfOutputs;
 }
 
+/**/
 bool Model::getXptEnabled()
 {
     return xptEnabled;
 }
 
+/**/
 void Model::setXptEnabled(bool flag)
 {
     if(xptEnabled != flag){
@@ -698,6 +804,7 @@ void Model::setXptEnabled(bool flag)
     }
 }
 
+/**/
 void Model::setXptInputLables(QList<QString> inputLables)
 {
     if(!inputLables.empty()){
@@ -705,6 +812,7 @@ void Model::setXptInputLables(QList<QString> inputLables)
     }
 }
 
+/**/
 void Model::setXptOutputLables(QList<QString> outputLables)
 {
     if(!outputLables.empty()){
@@ -712,16 +820,19 @@ void Model::setXptOutputLables(QList<QString> outputLables)
     }
 }
 
+/**/
 QList<QString> Model::getXptInputLables()
 {
     return xptInputLabels;
 }
 
+/**/
 QList<QString> Model::getXptOutputLables()
 {
     return xptOutputLabels;
 }
 
+/**/
 void Model::setXptType(int type)
 {
     if (xptType != type) {
@@ -730,16 +841,19 @@ void Model::setXptType(int type)
 
 }
 
+/**/
 int Model::getXptType()
 {
     return xptType;
 }
 
+/**/
 bool Model::getFastIris()
 {
     return fastIris;
 }
 
+/**/
 void Model::setFastIris(bool flag)
 {
     if (fastIris != flag)
@@ -748,29 +862,35 @@ void Model::setFastIris(bool flag)
     }
 }
 
+/*Spp state setter*/
 void Model::setSppState(int slotNr, int state){
     sppState[slotNr] = state;
 }
 
+/*Spp state getter*/
 int Model::getSppState(int slotNr){
     return sppState[slotNr];
 
 }
 
+/*?? unused*/
 bool Model::getRequestSettingsFlag(){
     return requestSettingsFlag;
 }
 
+/*?? unused*/
 void Model::setRequestSettingsFlag(bool value){
     requestSettingsFlag = value;
 }
 
+/*?? unused*/
 void Model::setReqPendArr(int pos, bool value){
     if(pos< MAX_NUMBER_OF_CMDS){
         reqPendingArr[pos] = value;
     }
 }
 
+/*?? unused*/
 bool Model::getReqPendArr(int pos){
     if(pos >= MAX_NUMBER_OF_CMDS){
         return false;
@@ -780,14 +900,17 @@ bool Model::getReqPendArr(int pos){
     }
 }
 
+/*?? unused*/
 void Model::setCurrReqHeadNr(int headNr){
     currReqHeadNr = headNr;
 }
 
+/*?? unused*/
 int Model::getCurrReqHeadNr(){
     return currReqHeadNr;
 }
 
+/*Pushes requested property into remainingTelegrams. Used to check camera settings requests*/
 int Model::getRequestCommand(int slotNr, int property)
 {
     //cameras[slotNr].remainingTelegrams.clear();
@@ -801,7 +924,7 @@ int Model::getRequestCommand(int slotNr, int property)
     }
 }
 
-// clear entry if existing
+/*Remove entry from remainingTelegrams*/
 void Model::setRequestReceived(int slotNr, int property)
 {
     std::unique_lock<std::mutex> lock(cameras[slotNr].mtx);     //mutex
@@ -817,27 +940,85 @@ void Model::setRequestReceived(int slotNr, int property)
         }
     }
     else {
-        setCamFlag(slotNr,F_RECEIVED_ALL);
+        setCamFlag(slotNr,F_RECEIVED_ALL,true);
     }
 }
 
-
+/*Returns remaining telegrams from camera request*/
 std::vector<int> Model::getRemainingTelegrams()
 {
     std::unique_lock<std::mutex> lock(cameras[activeCameraSlot].mtx);       //mutex because of gui thread
     return cameras[activeCameraSlot].remainingTelegrams;
 }
 
+/*Overload function with slot number*/
 std::vector<int> Model::getRemainingTelegrams(int slotNr)
 {
     std::unique_lock<std::mutex> lock(cameras[slotNr].mtx);     // mutex
     return cameras[slotNr].remainingTelegrams;
 }
 
+/*Clears all remaining telegrams from camera request*/
 void Model::clearRemainingTelegrams(int slotNr)
 {
     std::unique_lock<std::mutex> lock(cameras[slotNr].mtx);     // mutex
     cameras[slotNr].remainingTelegrams.clear();
 }
 
+void Model::setControl(axis_t axis, control_t control)
+{
+    switch (axis) {
+    case kAxisPan:
+    case kAxisTilt:
+    case kAxisZoom:
+    case kAxisFocus:
+    case kAxisTravelling:
+        controls[axis] = control;
+        break;
+    }
+}
 
+control_t Model::getControl(axis_t axis)
+{
+    switch (axis) {
+    case kAxisPan:
+    case kAxisTilt:
+    case kAxisZoom:
+    case kAxisFocus:
+    case kAxisTravelling:
+        return controls[axis];
+    }
+
+    return kControlNone;
+}
+
+void Model::setAxis(axis_t axis, int16_t value, bool absolute) {
+    std::unique_lock<std::mutex> lock(cameras[activeCameraSlot].mtx);
+
+    if (absolute)
+        cameras[activeCameraSlot].axes[axis].absolute = value;
+    else
+        cameras[activeCameraSlot].axes[axis].relative = value;
+}
+
+bool Model::getAxisUpdates(int slotNr, int16_t (&axes)[kAxisMax], bool absolute) {
+    bool newValue = false;
+    std::unique_lock<std::mutex> lock(cameras[slotNr].mtx);
+
+    for (int axis = 0; axis < kAxisMax; axis++) {
+        if (absolute) {
+            axes[axis] = cameras[slotNr].axes[axis].absolute;
+            if (axes[axis] != AXIS_NO_VALUE_ABS) {
+                cameras[slotNr].axes[axis].absolute = AXIS_NO_VALUE_ABS;
+                newValue = true;
+            }
+        } else {
+            axes[axis] = cameras[slotNr].axes[axis].relative;
+            if (axes[axis] != AXIS_NO_VALUE_REL) {
+                cameras[slotNr].axes[axis].relative = AXIS_NO_VALUE_REL;
+                newValue = true;
+            }
+        }
+    }
+    return newValue;
+}

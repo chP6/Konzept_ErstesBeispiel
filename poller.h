@@ -1,13 +1,15 @@
 #ifndef POLLER_H
 #define POLLER_H
 
-#include "serverwatchdog.h"
+#include "watchdog.h"
 #include "bbmjoystick.h"
 #include "rotary.h"
 #include "tastenfeld.h"
-#include "ocp.h"
+#include "hotplug.h"
 #include <poll.h>
 #include <vector>
+#include <thread>
+#include <list>
 
 class Controller;
 
@@ -15,24 +17,20 @@ class Poller
 {
 public:
     Poller(Controller& controller);
+    ~Poller();
     void startListener();
-    BBMJoystick joystick;               //for init debug joystick
-private:
-    [[noreturn]]void listener();
-    struct pollfd poll_fd[21];
-    int poll_err;
-    int sense_val;
-    signed char rotary_val;
-    int xold,yold,zold;
-    Controller* controller;
-    ServerWatchdog srvWatchdog;
+    void listener();
+    std::thread t3;
+    void stopListener();
+    bool applicationRunning=false;
 
-    Rotary rotary1, rotary2;
-    Tastenfeld presetbus;
-    Tastenfeld camerabus;
-    ServerWatchdog xptWatchdog;
-    ServerWatchdog autoSaveWatchdog;
-    OCP ocp;
+private:
+    struct pollfd *poll_fd;        // eleganter: nach Instanzierung aller Input-Devices dynamisch Speicher mit malloc() allozieren
+    int poll_err;
+    Controller* controller;
+    std::list<class InputDevice*> m_devices;
+    std::list<class Watchdog*> m_timers;
+
 };
 
 #endif // POLLER_H

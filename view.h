@@ -27,12 +27,11 @@ public slots:
 
 private slots:
     void on_btHome_clicked();
-
     void on_btCamCtrl_clicked();
-
     void on_btXptControl_clicked();
-
     void on_btOthers_clicked();
+    void on_btControls_clicked();
+
 signals:
     void stackChanged();
 
@@ -45,6 +44,7 @@ private:
     Ui::View *ui;
     Controller* controller;
     Model* model;
+    static void signalHandler(int signum);
 };
 
 #endif // VIE_H
