@@ -34,7 +34,7 @@ int Hotplug::init(){
         m_programmSockaddr.sun_family = AF_UNIX;
         strcpy(m_programmSockaddr.sun_path,m_sockName);
         unlink(m_sockName);
-        int len = sizeof (m_programmSockaddr);
+        socklen_t len = sizeof (m_programmSockaddr);
         if (bind(m_fd, (struct sockaddr *) &m_programmSockaddr, len) < 0) {
             qDebug("failed bind socket %d: %s", m_fd, strerror(errno));
             return -1;
@@ -54,5 +54,7 @@ bool Hotplug::readEvent(){
     if(recvfrom(m_fd, buf, sizeof (buf)/sizeof (buf[0]), 0, (struct sockaddr *) &peer, &len) < 0){
         qDebug("failed read from socket %d: %s", m_fd, strerror(errno));
     }
-    return true;
+    qDebug("received Device: %s",buf);
+
+    return strcmp(m_sockName,&buf[0])==0 ? true : false;
 }

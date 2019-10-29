@@ -46,7 +46,7 @@ Poller::Poller(Controller& controller)
 #endif
     m_devices.push_back(new XYZJoystick("/dev/input/by-id/usb-CH_Products_APEM_HF_Joystick-event-joystick"));
     m_devices.push_back(new ZoomFocusJoystick("/dev/input/by-id/usb-Adafruit_LLC_Adafruit_ItsyBitsy_M4_HIDAC-event-if02"));
-    m_devices.push_back(new UsbOcp("/dev/ocp",ocpmap));
+    m_devices.push_back(new UsbOcp("/dev/input/by-id/usb-Mitsumi_Electric_Apple_Extended_USB_Keyboard-event-kbd",ocpmap));
 
     poll_fd = (struct pollfd* )malloc(sizeof (struct pollfd) * (m_devices.size()+m_timers.size()));
     int i = 0;

@@ -188,8 +188,10 @@ int UsbOcp::getEvent(std::vector<int> &data)
     if (eventReceived()) {
 
         if(m_hotplugService){
-            m_hotplugService->readEvent();
-            m_fd->fd = open(m_fileName, O_RDONLY);
+            if(m_hotplugService->readEvent()){
+                m_fd->fd = open(m_fileName, O_RDONLY);
+                delete m_hotplugService;
+            }
         }
 
         struct input_event event;

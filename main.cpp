@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 
     parser.process(a);
     QByteArray filter;
-    filter.append("*.debug=false\n");   //disable any debugging
+    //filter.append("*.debug=false\n");   //disable any debugging
 
     if (parser.isSet(logPreset)) {
         filter.append("preset.io=true\n"); //enable preset logging
