@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include "hotplug.h"
+#include <fcntl.h>
 
 class InputDevice {
 public:
@@ -21,7 +22,6 @@ public:
 
     virtual int getEvent(std::vector<int> &data) = 0;
 
-protected:
     const char* m_fileName;
     struct pollfd* m_fd;
 };
@@ -69,12 +69,9 @@ private:
 class UsbOcp : public InputDevice {
 public:
     UsbOcp(const char* fileName, const std::map<int, std::vector<int>> keymap);
-    ~UsbOcp() override;
-    int init(struct pollfd *fd) override;
     int getEvent(std::vector<int> &data) override;
 private:
     const std::map<int /* key */, std::vector<int>> m_keymap;
-    Hotplug *m_hotplugService = nullptr;
 };
 
 #endif

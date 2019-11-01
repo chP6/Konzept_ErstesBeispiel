@@ -19,7 +19,6 @@
 #include <csignal>
 #include <vector>
 #include "logging.h"
-#include <libudev.h>
 
 
 Poller::Poller(Controller& controller)
@@ -46,14 +45,20 @@ Poller::Poller(Controller& controller)
 #endif
     m_devices.push_back(new XYZJoystick("/dev/input/by-id/usb-CH_Products_APEM_HF_Joystick-event-joystick"));
     m_devices.push_back(new ZoomFocusJoystick("/dev/input/by-id/usb-Adafruit_LLC_Adafruit_ItsyBitsy_M4_HIDAC-event-if02"));
-    m_devices.push_back(new UsbOcp("/dev/input/by-id/usb-Mitsumi_Electric_Apple_Extended_USB_Keyboard-event-kbd",ocpmap));
+    m_hotplugdevices.push_back(new UsbOcp("/dev/input/by-id/usb-Mitsumi_Electric_Apple_Extended_USB_Keyboard-event-kbd",ocpmap));
 
-    poll_fd = (struct pollfd* )malloc(sizeof (struct pollfd) * (m_devices.size()+m_timers.size()));
+    m_hotplugobserver = new Hotplug(&m_hotplugdevices);
+
+    poll_fd = (struct pollfd* )malloc(sizeof (struct pollfd) * (m_devices.size()+m_timers.size()+m_hotplugdevices.size()+1));
     int i = 0;
     for (InputDevice* d : m_devices)
         d->init(&poll_fd[i++]);
     for (Watchdog* t : m_timers)
         t->init(&poll_fd[i++]);
+    for (InputDevice* t : m_hotplugdevices)
+        t->init(&poll_fd[i++]);
+    m_hotplugobserver->init(&poll_fd[i++]);
+
 
 }
 
@@ -62,6 +67,9 @@ Poller::~Poller() {
     m_devices.clear();
     for(Watchdog* t : m_timers) delete t;
     m_timers.clear();
+    for(InputDevice* h : m_hotplugdevices) delete h;
+    m_hotplugdevices.clear();
+    delete m_hotplugobserver;
     free(poll_fd);
 }
 
@@ -81,7 +89,7 @@ void Poller::listener(){
     while(applicationRunning){
 
         /*Blocks until event occurs. -1 = infinite timeout*/
-        if(poll(poll_fd, m_devices.size()+m_timers.size(), -1) < 0){    //poll. Blocks until event occurs -> SIZE setzen! -1 = infinite timeout
+        if(poll(poll_fd, m_devices.size()+m_timers.size()+m_hotplugdevices.size()+1, -1) < 0){    //poll. Blocks until event occurs -> SIZE setzen! -1 = infinite timeout
             poll_err = errno;
             controller->logSystemError(poll_err, "Could not read Poller pollstruct");
         }
@@ -99,6 +107,14 @@ void Poller::listener(){
             if (event != E_NULLEVENT)
                 controller->queueEvent(event, data);
         }
+        for (InputDevice* d : m_hotplugdevices) {
+            std::vector<int> data;
+            int event = d->getEvent(data);
+            if (event != E_NULLEVENT)
+                controller->queueEvent(event, data);
+        }
+
+        m_hotplugobserver->readEvent();
     }
 }
 
