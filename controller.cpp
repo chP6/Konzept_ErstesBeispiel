@@ -47,7 +47,7 @@ Controller::Controller(Model& model)
     }
 
     /*Initialize the six buttons for the presets*/
-    presetbus.setRow(UPPER_ROW);
+    presetbus.setRow(LOWER_ROW);
     contr_err=presetbus.initSpi();  //SPI for the leds
     if(contr_err<0){
         contr_err = errno;
@@ -55,7 +55,7 @@ Controller::Controller(Model& model)
     }
 
     /*Initialize the six buttons for the cameras*/
-    camerabus.setRow(LOWER_ROW);
+    camerabus.setRow(UPPER_ROW);
     camerabus.initSpi();    //SPI for the leds
     if(contr_err<0){
         contr_err = errno;
