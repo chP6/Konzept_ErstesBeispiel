@@ -1,47 +1,41 @@
 #ifndef VIE_H
 #define VIE_H
 
-#include <QWidget>
-#include <QMainWindow>
-#include "errorwindow.h"
+#include <QObject>
+#include "controller.h"
+#include "model.h"
+#include <csignal>
+#include "events.h"
+#include "config.h"
+#include "backend.h"
 
-namespace Ui {
-class View;
-}
 
-class View : public QMainWindow
+class View : public QObject
 {
     Q_OBJECT
 
 public slots:
     void on_modelUpdate();
-    void on_modelSetUp();
-    void on_sppUpdate(bool active);
-    void on_serverConnectionStatusChanged(bool connected);
-    void on_cameraConnectionStatusChanged(bool connected);
+    void on_serverConnectionStatusChanged();
     void on_xptConnectionStatusChanged(bool connected);
-    void on_xptEnableStatusChanged(bool connected);
-    void on_loadButtonCleared();
-    void on_newReceive(int property);
-    void on_newRequest();
-
-private slots:
-    void on_btHome_clicked();
-    void on_btCamCtrl_clicked();
-    void on_btXptControl_clicked();
-    void on_btOthers_clicked();
-    void on_btControls_clicked();
+    void on_modelUpdateProperty(properties_t property);
+    void on_modelUpdateFlag(flags_t flag);
+    void on_newError();
 
 signals:
     void stackChanged();
 
 public:
-    explicit View(QWidget *parent = nullptr);
+    View(Model& model, Controller& controller);
     ~View();
-    void setModelController(Model& model, Controller& controller);
+
+    Home homeBackend;
+    CameraView cameraBackend;
+    Others othersBackend;
+    XptControl xptBackend;
+    Controls controlsBackend;
 
 private:
-    Ui::View *ui;
     Controller* controller;
     Model* model;
     static void signalHandler(int signum);

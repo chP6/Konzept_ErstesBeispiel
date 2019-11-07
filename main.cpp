@@ -1,6 +1,9 @@
-#include <QApplication>
 #include "view.h"
 #include "model.h"
+#include <QGuiApplication>
+#include <QQmlApplicationEngine>
+#include <QQmlContext>
+#include <QQuickStyle>
 #include "controller.h"
 #include "udplistener.h"
 #include "poller.h"
@@ -14,24 +17,44 @@
 #include <csignal>
 #include <QThread>
 #include <QCursor>
+#include <QFileSystemWatcher>
 
-
-int main(int argc, char *argv[])
+/*Redirect certain Debug messages to a File such that it can be displayed on the error/info-screen*/
+void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
+    QByteArray localMsg = msg.toLocal8Bit();
+    switch (type) {
+    case QtDebugMsg:
+        fprintf(stderr, "%s: %s \n",context.category, localMsg.constData());
+        break;
+    case QtInfoMsg:{
+        if (strcmp(context.category,"user")==0) {
+            FILE * fp;
+            fp = fopen("/root/.config/"+QCoreApplication::organizationName().toLocal8Bit()+"/log.txt", "a" );
+            fprintf(fp, "Info: %s\n", localMsg.constData());
+            fclose(fp);
+        }
+        fprintf(stderr, "%s: %s \n",context.category, localMsg.constData());
+        break;}
+    case QtWarningMsg:
+        if (strcmp(context.category,"user")==0) {
+            FILE * fp;
+            fp = fopen("/root/.config/"+QCoreApplication::organizationName().toLocal8Bit()+"/log.txt", "a" );
+            fprintf(fp, "Error: %s\n", localMsg.constData());
+            fclose(fp);
+        }
+        fprintf(stderr, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
+        break;
+    case QtCriticalMsg:
+        fprintf(stderr, "Critical: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
+        break;
+    case QtFatalMsg:
+        fprintf(stderr, "Fatal: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
+        abort();
+    }
+}
 
-    QApplication a(argc, argv);
-    //a.quit();
-     pthread_t this_thread = pthread_self ();
-     struct sched_param params;
-     params.sched_priority = 75;
-     pthread_setschedparam (this_thread, SCHED_FIFO, &params);
-
-
-    QCoreApplication::setApplicationName("BBMNet RCP/OCP Dual Controller");
-    QCoreApplication::setApplicationVersion("5.1");
-
-    /*add a parser to grab commandline options for logging*/
-    QCommandLineParser parser;
+void parseComandlineOptions(QCommandLineParser &parser, QGuiApplication &app){
     parser.setApplicationDescription("Logging options");
     parser.addHelpOption();     //add -h --help option
     parser.addVersionOption();  //add -v --version option
@@ -63,87 +86,115 @@ int main(int argc, char *argv[])
     /*add -i --inquiry option to the parser to log inquiry traffic*/
     QCommandLineOption logInquiry(QStringList() << "i" << "inquiry", QCoreApplication::translate("main", "log inquiry traffic"));
         parser.addOption(logInquiry);
+    parser.process(app);
+        QByteArray filter;
+        //filter.append("*.debug=false\n");   //disable any debugging
+        filter.append("user=true\n");
+        if (parser.isSet(logPreset)) {
+            filter.append("preset.io=true\n"); //enable preset logging
+        }
+        if (parser.isSet(logXpt)) {
+            filter.append("xpt.io=true\n"); //enable xpt logging
+        }
+        if (parser.isSet(logLogic)) {
+            filter.append("logic.io=true\n"); //enable logic debugging
+        }
+        if (parser.isSet(logExtRCP)) {
+            filter.append("rxRcp.io=true\n"); //enable adjacent rcp/ocp logging
+        }
+        if (parser.isSet(logRx)) {
+            filter.append("rxHead.io=true\n"); //enable rx  logging
+        }
+        if (parser.isSet(logTx)) {
+            filter.append("txHead.io=true\n"); //enable tx logging
+        }
+        if (parser.isSet(logWatchdog)) {
+            filter.append("txWatchdog.io=true\n"); //enable tx Watchdocg logging
+            filter.append("rxWatchdog.io=true\n"); //enable rx Watchdocg logging
+        }
+        if (parser.isSet(logInquiry)) {
+            filter.append("request.io=true\n"); //enable inquirylogging
+        }
+        if (parser.isSet(logAll)) {
+            filter.clear(); //override all
+            filter.append("*.debug=false\n");   //disable any debugging
+            filter.append("preset.io=true\n");  //enable preset logging
+            filter.append("xpt.io=true\n");     //enable xpt logging
+            filter.append("logic.io=true\n");   //enable logic debugging
+            filter.append("rxRcp.io=true\n");   //enable adjacent rcp/ocp logging
+            filter.append("rxHead.io=true\n");  //enable rx logging
+            filter.append("txHead.io=true\n");  //enable tx logging
+            filter.append("txWatchdog.io=true\n"); //enable tx Watchdocg logging
+            filter.append("rxWatchdog.io=true\n"); //enable rx Watchdocg logging
+            filter.append("request.io=true\n"); //enable inquirylogging
+        }
+        /*add filter to logger*/
+        QLoggingCategory::setFilterRules(filter);
+}
 
-    parser.process(a);
-    QByteArray filter;
-    filter.append("*.debug=false\n");   //disable any debugging
+int main(int argc, char *argv[])
+{
 
-    if (parser.isSet(logPreset)) {
-        filter.append("preset.io=true\n"); //enable preset logging
-    }
-    if (parser.isSet(logXpt)) {
-        filter.append("xpt.io=true\n"); //enable xpt logging
-    }
-    if (parser.isSet(logLogic)) {
-        filter.append("logic.io=true\n"); //enable logic debugging
-    }
-    if (parser.isSet(logExtRCP)) {
-        filter.append("rxRcp.io=true\n"); //enable adjacent rcp/ocp logging
-    }
-    if (parser.isSet(logRx)) {
-        filter.append("rxHead.io=true\n"); //enable rx  logging
-    }
-    if (parser.isSet(logTx)) {
-        filter.append("txHead.io=true\n"); //enable tx logging
-    }
-    if (parser.isSet(logWatchdog)) {
-        filter.append("txWatchdog.io=true\n"); //enable tx Watchdocg logging
-        filter.append("rxWatchdog.io=true\n"); //enable rx Watchdocg logging
-    }
-    if (parser.isSet(logInquiry)) {
-        filter.append("request.io=true\n"); //enable inquirylogging
-    }
-    if (parser.isSet(logAll)) {
-        filter.clear(); //override all
-        filter.append("*.debug=false\n");   //disable any debugging
-        filter.append("preset.io=true\n");  //enable preset logging
-        filter.append("xpt.io=true\n");     //enable xpt logging
-        filter.append("logic.io=true\n");   //enable logic debugging
-        filter.append("rxRcp.io=true\n");   //enable adjacent rcp/ocp logging
-        filter.append("rxHead.io=true\n");  //enable rx logging
-        filter.append("txHead.io=true\n");  //enable tx logging
-        filter.append("txWatchdog.io=true\n"); //enable tx Watchdocg logging
-        filter.append("rxWatchdog.io=true\n"); //enable rx Watchdocg logging
-        filter.append("request.io=true\n"); //enable inquirylogging
-    }
-    /*add filter to logger*/
-    QLoggingCategory::setFilterRules(filter);
+    QCoreApplication::setOrganizationName("BBMProductions");
+    QCoreApplication::setApplicationName("BBMNetDualController");
+    QCoreApplication::setApplicationVersion("5.1");
 
-    View view;
+    static FILE * fp;
+    fp = fopen("/root/.config/"+QCoreApplication::organizationName().toLocal8Bit()+"/log.txt", "w" );
+    if(fp){
+        fclose(fp);
+    }
+    qInstallMessageHandler(myMessageOutput);
+    qRegisterMetaType<properties_t>("properties_t");
+    qRegisterMetaType<flags_t>("flags_t");
+    qRegisterMetaType<axis_t>("axis_t");
+    qRegisterMetaType<control_t>("control_t");
+
+    qputenv("QT_IM_MODULE", QByteArray("qtvirtualkeyboard"));
+
+    QGuiApplication app(argc, argv);
+    QQmlApplicationEngine engine;
+    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    QGuiApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
+
+    pthread_t this_thread = pthread_self ();
+    struct sched_param params;
+    params.sched_priority = 75;
+    pthread_setschedparam (this_thread, SCHED_FIFO, &params);
+
+    /*add a parser to grab commandline options for logging*/
+    QCommandLineParser parser;
+    parseComandlineOptions(parser, app);
+    QFileSystemWatcher errorHanlder; //signal on new error
+    errorHanlder.addPath("/root/.config/"+QCoreApplication::organizationName().toLocal8Bit()+"/log.txt");
+
     Model model;
-    Q_INIT_RESOURCE(styles);
-    QFile File(":/stylesheet.qss");
-    File.open(QFile::ReadOnly);
-    QString StyleSheet = QLatin1String(File.readAll());
-
-    view.setStyleSheet(StyleSheet);
-    QObject::connect(&model, &Model::updateView,            // model signal mit view slot verbinden
-                     &view, &View::on_modelUpdate);
-    QObject::connect(&model, &Model::setUpView,            // model signal mit view slot verbinden
-                     &view, &View::on_modelSetUp);
-    QObject::connect(&model, &Model::updateServerConnectionStatus,
-                     &view, &View::on_serverConnectionStatusChanged);
-    QObject::connect(&model, &Model::updateCameraConnectionStatus,
-                     &view, &View::on_cameraConnectionStatusChanged);
-    QObject::connect(&model, &Model::updateXptConnectionStatus,
-                     &view, &View::on_xptConnectionStatusChanged);
-    QObject::connect(&model, &Model::updateXptEnableStatus,
-                     &view, &View::on_xptEnableStatusChanged);
-    QObject::connect(&model, &Model::newSignalReceived,
-                     &view, &View::on_newReceive);
-    QObject::connect(&model, &Model::receiveAllNew,
-                     &view, &View::on_newRequest);
-
     Controller controller(model);
+    View view(model,controller);
 
-    QObject::connect(&controller, &Controller::clearLoadButon,
-                     &view, &View::on_loadButtonCleared);
+    qmlRegisterType<CameraView>("io.qt.examples.backend", 1, 0, "CameraBackend");
+    qmlRegisterType<Home>("io.qt.examples.backend", 1, 0, "HomeBackend");
+    qmlRegisterType<XptControl>("io.qt.examples.backend", 1, 0, "XptBackend");
+    qmlRegisterType<Others>("io.qt.examples.backend", 1, 0, "OthersBackend");
+    qmlRegisterType<Controls>("io.qt.examples.backend", 1, 0, "ControlsBackend");
+    qmlRegisterUncreatableMetaObject(Config::staticMetaObject,"com.bbm.config",1, 0,"Config","Error: only enums");
 
-    QObject::connect(&a, &QApplication::aboutToQuit,
-                     &controller, &Controller::onAppQuit);
+    engine.rootContext()->setContextProperty("cameraBackend",&view.cameraBackend);
+    engine.rootContext()->setContextProperty("homeBackend",&view.homeBackend);
+    engine.rootContext()->setContextProperty("xptBackend",&view.xptBackend);
+    engine.rootContext()->setContextProperty("othersBackend",&view.othersBackend);
+    engine.rootContext()->setContextProperty("controlsBackend",&view.controlsBackend);
+    QQuickStyle::setStyle("Material");
+    const QUrl url(QStringLiteral("qrc:/main.qml"));
+    engine.load(url);
 
-    view.setModelController(model, controller);
-    view.show();
+    //view.setStyleSheet(StyleSheet);
+    QObject::connect(&model, &Model::updateView,&view, &View::on_modelUpdate);
+    QObject::connect(&model, &Model::updateViewProperty,&view, &View::on_modelUpdateProperty);
+    QObject::connect(&model, &Model::updateViewFlag,&view, &View::on_modelUpdateFlag);
+    QObject::connect(&model, &Model::updateServerConnectionStatus,&view, &View::on_serverConnectionStatusChanged);
+    QObject::connect(&model, &Model::updateXptConnectionStatus,&view, &View::on_xptConnectionStatusChanged);
+    QObject::connect(&errorHanlder, &QFileSystemWatcher::fileChanged,&view, &View::on_newError);
 
     Poller poller(controller);
     controller.setPoller(poller);
@@ -151,15 +202,14 @@ int main(int argc, char *argv[])
     controller.startQueueProcessThread();
     poller.startListener();
     udpListener.startListener();
-    QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
 
-    a.exec();
+    app.exec();
     poller.stopListener();
     if(poller.t3.joinable()){ poller.t3.join();}
     controller.stopQueueProcessThread();
     if(controller.t1.joinable()){controller.t1.join();}
     udpListener.stopListener();
     //if(udpListener.t2.joinable()){udpListener.t2.join();}
-    printf("bye bye \n");
+    qCDebug(logicIo,"bye bye \n");
     exit(0);
 }

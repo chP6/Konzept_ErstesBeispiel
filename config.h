@@ -1,11 +1,15 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+
+#include <QObject>
+
 #include "events.h"
 #include <vector>
 #include <map>
 #include <utility>
 #include <linux/input.h>
+
 
 /*colors*/
 #define PRESET_COLOR 0x555555
@@ -64,68 +68,69 @@
 #define TYP 3
 
 /*properties*/
-#define V_HEADNR              0
-#define V_IRIS                1
-#define V_PED                 2
-#define V_FOCUS               3
-#define V_W_RED               4
-#define V_W_BLUE              5
-#define V_B_RED               6
-#define V_B_BLUE              7
-#define V_GAIN                8
-#define V_GAMMA               9
-#define V_GAMMA_TAB           10
-#define V_DETAIL              11
-#define V_COLOR               12
-#define V_COL_TEMP            13
-#define V_KNEE                14
-#define V_KNEE_POINT          15
-#define V_ND_FILTER           16
-#define V_SHUTTER             17
-#define V_PT_SPEED            18
-#define V_TRANS_SPEED         19
-#define V_RAMP                20
-#define V_SPP1                21
-#define V_SPP2                22
-#define V_SPP_WAIT_TIME       23
-#define V_BOUNCE_ZOOM_SPEED   24
-#define V_HEAD_POWER          25
-#define V_MIRROR              26
+//#define HeadNr              0
+//#define Iris                1
+//#define Ped                 2
+//#define Focus               3
+//#define WhiteRed               4
+//#define WhiteBlue              5
+//#define BlackRed               6
+//#define BlackBlue              7
+//#define Gain                8
+//#define Gamma               9
+//#define GammaTable           10
+//#define Detail              11
+//#define Color               12
+//#define ColorTemp            13
+//#define Knee                14
+//#define KneePoint          15
+//#define NdFilter           16
+//#define Shutter             17
+//#define PtSpeed            18
+//#define TransSpeed         19
+//#define Ramp                20
+//#define Spp1                21
+//#define Spp2                22
+//#define SppwWaitTime       23
+//#define BounceZoomSpeed   24
+//#define HeadPower          25
+//#define Mirror              26
 
 
 #define ROW_ENTRIES           27
 #define COLUM_ENTRIES         6
-#define NORMAL                0
-#define CENTER                1
-#define TEXT                  2
-#define NAN                   3
-#define OFFSET                4
+//#define Normal                0
+//#define CenterVal                1
+//#define Text                  2
+//#define Nan                   3
+//#define Offset                4
 #define REQUESTABLE           1
 #define ARRIVED               1
 
 #define NUMBER_OF_FLAGS       15
+
 /*flags*/
-#define F_PRST_IN_STORE       0
-#define F_BOUNCING            1
-#define F_SPP_ON              2
-#define F_FASTTRANS           3
-#define F_BOUNCE_ENABLE       4
-#define F_CAMERA_KNOWN        5
-#define F_CONNECTED           6
-#define F_PRESET_MOVE         7
-#define F_RECEIVED_ALL        8
-#define F_BOUNCE_ABORTED      9
-#define F_PAN_INVERT          10
-#define F_TILT_INVERT         11
-#define F_ZOOM_INVERT         12
-#define F_FOCUS_INVERT        13
-#define F_TRAVELLING_INVERT   14
+//#define StoringPreset       0
+//#define Bouncing            1
+//#define SppEnabled              2
+//#define FastTransEnabled           3
+//#define BounceEnabled       4
+//#define CameraFamiliar        5
+//#define CameraConnected           6
+//#define PresetMoving         7
+//#define ReceivedAll        8
+//#define BounceAborted      9
+//#define PanInverted          10
+//#define TiltInverted         11
+//#define ZoomInverted         12
+//#define FocusInverted        13
+//#define TravellingInverted   14
 
 /*set,get types*/
-#define ABS                 1
-#define INC                 2
-#define DISP                3
-#define NORM                4
+//#define Absolute                 1
+//#define Incremental                 2
+//#define Display                3
+//#define Normalized                4
 
 
 #define INTERNAL            0
@@ -149,42 +154,147 @@
 #define S_SPP_WAIT1           3
 #define S_SPP_WAIT2           4
 
-typedef enum {
-    kAxisPan,
-    kAxisTilt,
-    kAxisZoom,
-    kAxisFocus,
-    kAxisTravelling,
-    kAxisMax
-} axis_t;
+namespace Config
+{
+    Q_NAMESPACE
 
-typedef enum {
-    kControlNone,
-    kControlJoystickX,
-    kControlJoystickY,
-    kControlJoystickZ,
-    kControlZoomRocker,
-    kControlFocusWheel
-} control_t;
+    typedef enum Property {
+        None = -1,
+        HeadNr,
+        Iris,
+        Ped,
+        Focus,
+        WhiteRed,
+        WhiteBlue,
+        BlackRed,
+        BlackBlue,
+        Gain,
+        Gamma,
+        GammaTable,
+        Detail,
+        Color,
+        ColorTemp,
+        Knee,
+        KneePoint,
+        NdFilter,
+        Shutter,
+        PtSpeed,
+        TransSpeed,
+        Ramp,
+        Spp1,
+        Spp2,
+        SppwWaitTime,
+        BounceZoomSpeed,
+        HeadPower,
+        Mirror
+    } properties_t;
+    Q_ENUM_NS(Property)
 
-static const char* axisStr(axis_t a) {
-    return a == kAxisPan ? "Pan" :
-            a == kAxisTilt ? "Tilt" :
-            a == kAxisZoom ? "Zoom" :
-            a == kAxisFocus ? "Focus" :
-            a == kAxisTravelling ? "Travelling" :
-                "unknown";
+
+    typedef enum {
+        Normal,
+        CenterVal,
+        Nan,
+        Text,
+        Offset,
+        NotReady
+    } display_t;
+
+    typedef enum XptTypes {
+        Blackmagic,
+        Ross
+    } xptTypes_t;
+        Q_ENUM_NS(XptTypes)
+
+    typedef enum {
+        Absolute,
+        Incremental,
+        Display,
+        Normalized
+    } value_t;
+
+    typedef enum Flag {
+        StoringPreset,
+        Bouncing,
+        SppEnabled,
+        FastTransEnabled,
+        BounceEnabled,
+        CameraFamiliar,
+        CameraConnected,
+        PresetMoving,
+        ReceivedAll,
+        BounceAborted,
+        PanInverted,
+        TiltInverted,
+        ZoomInverted,
+        FocusInverted,
+        TravellingInverted
+    } flags_t;
+        Q_ENUM_NS(Flag)
+
+    enum Dial{
+        Min,
+        Max,
+        Value,
+        TextList,
+        State
+    };
+    Q_ENUM_NS(Dial)
+
+    static const char* dialStateStr(display_t a) {
+        return a == Normal ? "" :
+                a == CenterVal ? "center" :
+                a == Nan ? "notAvailable" :
+                a == Text ? "text" :
+                a == Offset ? "" :
+                a == NotReady ? "notReady" :
+                    "";
+    }
+    static const char* xptStr(xptTypes_t a) {
+        return a == Blackmagic ? "BlackMagic" :
+                a == Ross ? "Ross" :
+                    "unknown";
+    }
+    typedef enum Axis {
+        KAxisPan,
+        KAxisTilt,
+        KAxisZoom,
+        KAxisFocus,
+        KAxisTravelling,
+        KAxisMax
+    } axis_t;
+    Q_ENUM_NS(Axis)
+
+    typedef enum Control {
+        KControlNone,
+        KControlJoystickX,
+        KControlJoystickY,
+        KControlJoystickZ,
+        KControlZoomRocker,
+        KControlFocusWheel
+    } control_t;
+    Q_ENUM_NS(Control)
+
+    static const char* axisStr(axis_t a) {
+        return a == KAxisPan ? "Pan" :
+                a == KAxisTilt ? "Tilt" :
+                a == KAxisZoom ? "Zoom" :
+                a == KAxisFocus ? "Focus" :
+                a == KAxisTravelling ? "Travelling" :
+                    "unknown";
+    }
+
+    static const char* controlStr(control_t c) {
+        return c == KControlNone ? "none" :
+                c == KControlJoystickX ? "Joystick Left/Right" :
+                c == KControlJoystickY ? "Joystick Up/Down" :
+                c == KControlJoystickZ ? "Joystick Rotation" :
+                c == KControlZoomRocker ? "Zoom Rocker" :
+                c == KControlFocusWheel ? "Focus Wheel" :
+                    "unknown";
+    }
 }
 
-static const char* controlStr(control_t c) {
-    return c == kControlNone ? "none" :
-            c == kControlJoystickX ? "Joystick Left/Right" :
-            c == kControlJoystickY ? "Joystick Up/Down" :
-            c == kControlJoystickZ ? "Joystick Rotation" :
-            c == kControlZoomRocker ? "Zoom Rocker" :
-            c == kControlFocusWheel ? "Focus Wheel" :
-                "unknown";
-}
 
 const std::map<int, std::pair<int, std::vector<int>>>  keyboardmap =
 {                                           /* key      event             data */
@@ -203,22 +313,23 @@ const std::map<int, std::pair<int, std::vector<int>>>  keyboardmap =
 const std::map<int, std::vector<int>> ocpmap =
 {
                                         /* key      value   data */
-                                       { KEY_A,  { V_IRIS,    1 }},
-                                       { KEY_B,  { V_IRIS,   -1 }},
-                                       { KEY_C,  { V_PED,     1 }},
-                                       { KEY_D,  { V_PED,    -1 }},
-                                       { KEY_E,  { V_B_RED,   1 }},
-                                       { KEY_F,  { V_B_RED,  -1 }},
-                                       { KEY_G,  { V_B_BLUE,  1 }},
-                                       { KEY_H,  { V_B_BLUE, -1 }},
-                                       { KEY_I,  { V_W_RED,   1 }},
-                                       { KEY_J,  { V_W_RED,  -1 }},
-                                       { KEY_K,  { V_W_BLUE,  1 }},
-                                       { KEY_L,  { V_W_BLUE, -1 }},
-                                       { KEY_M,  { V_GAIN,    1 }},
-                                       { KEY_N,  { V_GAIN,   -1 }},
-                                       { KEY_O,  { V_SHUTTER, 1 }},
-                                       { KEY_P,  { V_SHUTTER,-1 }},};
+                                       { KEY_A,  { Config::Iris,    1 }},
+                                       { KEY_B,  { Config::Iris,   -1 }},
+                                       { KEY_C,  { Config::Ped,     1 }},
+                                       { KEY_D,  { Config::Ped,    -1 }},
+                                       { KEY_E,  { Config::BlackRed,   1 }},
+                                       { KEY_F,  { Config::BlackRed,  -1 }},
+                                       { KEY_G,  { Config::BlackBlue,  1 }},
+                                       { KEY_H,  { Config::BlackBlue, -1 }},
+                                       { KEY_I,  { Config::WhiteRed,   1 }},
+                                       { KEY_J,  { Config::WhiteRed,  -1 }},
+                                       { KEY_K,  { Config::WhiteBlue,  1 }},
+                                       { KEY_L,  { Config::WhiteBlue, -1 }},
+                                       { KEY_M,  { Config::Gain,    1 }},
+                                       { KEY_N,  { Config::Gain,   -1 }},
+                                       { KEY_O,  { Config::Shutter, 1 }},
+                                       { KEY_P,  { Config::Shutter,-1 }},};
+
 
 #define AXES_UPDATE_INTERVAL_MS 20 /* update axis values every 20ms (50Hz) */
 

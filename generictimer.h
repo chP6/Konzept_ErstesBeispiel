@@ -4,6 +4,9 @@
 #include <poll.h>
 #include <thread>
 #include <sys/timerfd.h>
+#include <QDebug>
+#include "logging.h"
+#include <csignal>
 
 class Controller;        //forward declaration
 

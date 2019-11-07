@@ -4,6 +4,10 @@
 #include <vector>
 #include <mutex>
 #include <condition_variable>
+#include "config.h"
+#include "events.h"
+#include "QDebug"
+#include <sys/time.h>
 
 struct event_s{
   int evt;

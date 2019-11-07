@@ -1,15 +1,23 @@
 #ifndef MODEL_H
 #define MODEL_H
 
-#include <QWidget>
+//#include <QWidget>
 #include <QStringList>
 #include "config.h"
 #include "bbmcommandtypes.h"
 #include <stdio.h>
 #include <QVector>
 #include <mutex>
+#include <QDebug>
+#include "logging.h"
+//#include "view.h"
+#include "bbmcommandtypes.h"
+#include <QString>
+#include <stdio.h>
+
 //#include "view.h" //nix gut, circular dependency -> forward declaration.
 //class View;         //Make sure each header can be included on its own.
+using namespace Config;
 
 struct camera_s{
   int camType;
@@ -19,14 +27,14 @@ struct camera_s{
   int values [ROW_ENTRIES][COLUM_ENTRIES];
   QString *textTable;
   int xptSource;
-  std::vector<int> remainingTelegrams;
+  std::vector<properties_t> remainingTelegrams;
   std::mutex mtx;
 
   /* control inputs */
   struct axes_t {
       int16_t relative;
       int16_t absolute;
-  } axes[kAxisMax];
+  } axes[KAxisMax];
 };
 
 
@@ -35,20 +43,19 @@ class Model : public QObject
 {
     Q_OBJECT        //qmake vor erstem kompilieren laufen lassen!
 
+
 signals:
     void updateView();
-    void setUpView();
-    void updateServerConnectionStatus(bool connected);
+    void updateViewProperty(properties_t property);
+    void updateViewFlag(flags_t flag);
+    void updateServerConnectionStatus();
     void updateCameraConnectionStatus(bool connected);
     void updateXptConnectionStatus(bool connected);
     void updateXptEnableStatus(bool connected);
     void newSignalReceived(int property);
-    void receiveAllNew();
 
 public:
     Model();
-    void addError(std::string str);
-    void clearErrors();
     void setUsedPreset(int presetNr);
     void setUsedPreset(int slotNr, int presetNr);
     void clearUsedPresets();
@@ -67,55 +74,51 @@ public:
     void setCamTypeWithDefBorders(int slotNr, int type);
     int getCamtype();
     int getCamtype(int slotNr);
-    void setValue(int type, int property, int value);
-    void setValue(int slotNr, int type, int property, int value);
-    int getValue(int type, int property);
-    int getValue(int slotNr, int type, int property);
-    QString getTextValue(int property);
-    int getMin(int property);
-    int getMin(int slotNr, int property);
-    int getMax(int property);
-    int getMax(int slotNr, int property);
-    void setCamFlag(int flag, bool value);
-    void setCamFlag(int slotNr, int flag, bool value);
-    bool getCamFlag(int flag);
-    bool getCamFlag(int slotNr, int flag);
+    void setValue(value_t type, properties_t property, int value);
+    void setValue(int slotNr, value_t type, properties_t property, int value);
+    int getValue(value_t type, properties_t property);
+    int getValue(int slotNr, value_t type, properties_t property);
+    QString getTextValue(properties_t property);
+    QStringList getTextList(properties_t property);
+    QString getDialState(properties_t property);
+    int getMin(properties_t property);
+    int getMin(int slotNr, properties_t property);
+    int getMax(properties_t property);
+    int getMax(int slotNr, properties_t property);
+    void setCamFlag(flags_t flag, bool value);
+    void setCamFlag(int slotNr, flags_t flag, bool value);
+    bool getCamFlag(flags_t flag);
+    bool getCamFlag(int slotNr, flags_t flag);
     int setWatchdogWaitingflag(bool waiting);
     int setCameraWaitingflag(int slotNr, bool waiting);
-    int getRotaryField();
-    void setRotaryField(int field, int destination);
-    int getRotaryDestination();
-    int getTxCommand(int value);
-    int getValueFromBBMCommand(int bbm_command);
+    bool getServerStatus();
+    properties_t getRotaryField();
+    void setRotaryField(properties_t field);
+    int getTxCommand(properties_t value);
+    properties_t getValueFromBBMCommand(int bbm_command);
     void setTextTable(int slotNr, int type);
     int toggleBlink();
     void setSppState(int slotNr, int state);
     int getSppState(int slotNr);
-    bool getRequestSettingsFlag();
-    void setRequestSettingsFlag(bool value);
-    void setReqPendArr(int pos, bool value);
-    bool getReqPendArr(int pos);
-    void setCurrReqHeadNr(int headNr);
-    int getCurrReqHeadNr();
-    int getRequestCommand(int slotNr, int property);
-    void setRequestReceived(int slotNr, int property);
-    std::vector<int> getRemainingTelegrams();
-    std::vector<int> getRemainingTelegrams(int slotNr);
+    int getRequestCommand(int slotNr, properties_t property);
+    void setRequestReceived(int slotNr, properties_t property);
+    std::vector<properties_t> getRemainingTelegrams();
+    std::vector<properties_t> getRemainingTelegrams(int slotNr);
     void clearRemainingTelegrams(int slotNr);
 
     /* XPT handling */
     void setXptConnected(bool flag);
     bool getXptConnected();
     void setXptSlotSource(int source);
+    void setXptSlotSource(int slot, int source);
     int getXptSlotSource(int slotNr);
     void setXptDestination(int destination);
     void setXptDestinationAbs(int destination);
     int getXptDestination();
     void setXptSlot(int slot);
     int getXptSlot();
-    void setXptIpField(int type,int field,int value);
-    int getXptIpField(int field);
-    char* getXptIpAdress();
+    QString getXptIpAdress();
+    void setXptIpAdress(QString ipAdress);
     void setXptNumberOfInputs(int inputs);
     int getXptNumberOfInputs();
     void setXptNumberOfOutputs(int outputs);
@@ -126,6 +129,10 @@ public:
     void setXptOutputLables(QList<QString> outputLables);
     QList<QString> getXptInputLables();
     QList<QString> getXptOutputLables();
+    QList<int> getInputs();
+    QList<int> getOutputs();
+    void setInputs(QList<int> inputs);
+    void getInputs(QList<int> outputs);
     void setXptType(int type);
     int getXptType();
     bool getFastIris();
@@ -135,14 +142,14 @@ public:
     control_t getControl(axis_t axis);
 
     void setAxis(axis_t axis, int16_t value, bool absolute);
-    bool getAxisUpdates(int slotNr, int16_t (&axes)[kAxisMax], bool absolute);
+    bool getAxisUpdates(int slotNr, int16_t (&axes)[KAxisMax], bool absolute);
+    unsigned int color = 0x550050;
 
 private:
     QStringList errorList;
     int answerStack;
     int count;
-    int rotaryField;
-    int rotaryDestination;
+    properties_t rotaryField;
     int x = 5000;
     int y = 5000;
     bool watchdogWaitingForAnswerFlag = false;
@@ -152,9 +159,6 @@ private:
     struct camera_s cameras[NUMBER_OF_SLOTS];
     int activeCameraSlot;     // 0-5
     bool blinkToggle = false;
-    bool requestSettingsFlag = false;
-    bool reqPendingArr[MAX_NUMBER_OF_CMDS];
-    int currReqHeadNr;
 
     /* used for normalizing, source: arduino.cc */
     long map(long x, long in_min, long in_max, long out_min, long out_max) {
@@ -162,19 +166,21 @@ private:
     }
 
     /* control/axis mapping */
-    control_t controls[kAxisMax];
+    control_t controls[KAxisMax];
 
     /*XPT handling */
     bool xptConnect=false;
     bool xptEnabled=false;
     int xptDestination=0;
     int xptSlot;
-    int xptNumberOfInputs;
-    int xptNumberOfOutputs;
-    char xptIpAddress[20];
+    int xptNumberOfInputs=8;
+    int xptNumberOfOutputs=8;
+    QString xptIpAddress = "192.168.103.14";
     int xptFields[4];
     QList<QString> xptInputLabels;
     QList<QString> xptOutputLabels;
+    QList<int> inputs;
+    QList<int> outputs;
     int xptType;
     bool fastIris=false;
 
@@ -182,127 +188,127 @@ private:
     // camera type 2 init values
     //todo: not all entries have 5 values!
     int c2Values[ROW_ENTRIES][COLUM_ENTRIES]=
-                      {{1,1,49,NORMAL},     //headnr init_value, min_value, max_value
-                       {0x05,0x05,0x15,TEXT,0,REQUESTABLE}, //Iris
-                       {64,0,128,CENTER,0,REQUESTABLE},  //Pedestal
-                       {0,0,8000,NORMAL,0,REQUESTABLE},  //Focus
-                       {127,0,255,CENTER,0,REQUESTABLE}, //w_Red
-                       {127,0,255,CENTER,0,REQUESTABLE}, //w_Blue
-                       {100,0,200,CENTER,0,REQUESTABLE}, //b_Red
-                       {100,0,200,CENTER,0,REQUESTABLE}, //b_Blue
-                       {1,1,13,TEXT,0,REQUESTABLE},    //Gain
-                       {255,1,512,CENTER,0,REQUESTABLE},   //Gamma
-                       {0,0,2,TEXT,1,REQUESTABLE},      //Gamma-Table
-                       {128,1,254,CENTER,0,REQUESTABLE},  //Detail
-                       {127,1,255,CENTER,0,REQUESTABLE},  //Color
-                       {0,0,5,TEXT,2,REQUESTABLE},      //Color Temp
-                       {-1,-1,-1,NAN},    //Knee
-                       {-1,-1,-1,NAN},    //Knee Point
-                       {0,0,3,TEXT,3,REQUESTABLE},       //ND Filter
-                       {18,18,32,TEXT,4,REQUESTABLE},    //Shutter
-                       {5,1,10,NORMAL},      //PT Speed
-                       {1,1,10,NORMAL},      //Trans Speed
-                       {1,1,10,NORMAL},      //Ramp
-                       {0,0,5,OFFSET},       //SPP1
-                       {1,0,5,OFFSET},       //SPP2
-                       {0,0,30,NORMAL},      //SPP Wait Time
-                       {2,0,7,NORMAL},    //Bounce Zoom Speed
-                       {0,0,2,TEXT,5},       //Head Power
-                       {0,0,3,TEXT,6}              //Mirror
+                      {{1,1,49,Normal},     //headnr init_value, min_value, max_value
+                       {0x05,0x05,0x15,Text,0,REQUESTABLE}, //Iris
+                       {64,0,128,CenterVal,0,REQUESTABLE},  //Pedestal
+                       {0,0,8000,Normal,0,REQUESTABLE},  //Focus
+                       {127,0,255,CenterVal,0,REQUESTABLE}, //w_Red
+                       {127,0,255,CenterVal,0,REQUESTABLE}, //w_Blue
+                       {100,0,200,CenterVal,0,REQUESTABLE}, //b_Red
+                       {100,0,200,CenterVal,0,REQUESTABLE}, //b_Blue
+                       {1,1,13,Text,0,REQUESTABLE},    //Gain
+                       {255,1,512,CenterVal,0,REQUESTABLE},   //Gamma
+                       {0,0,2,Text,1,REQUESTABLE},      //Gamma-Table
+                       {128,1,254,CenterVal,0,REQUESTABLE},  //Detail
+                       {127,1,255,CenterVal,0,REQUESTABLE},  //Color
+                       {0,0,5,Text,2,REQUESTABLE},      //Color Temp
+                       {-1,-1,-1,Nan},    //Knee
+                       {-1,-1,-1,Nan},    //Knee Point
+                       {0,0,3,Text,3,REQUESTABLE},       //ND Filter
+                       {18,18,32,Text,4,REQUESTABLE},    //Shutter
+                       {5,1,10,Normal},      //PT Speed
+                       {1,1,10,Normal},      //Trans Speed
+                       {1,1,10,Normal},      //Ramp
+                       {0,0,5,Offset},       //SPP1
+                       {1,0,5,Offset},       //SPP2
+                       {0,0,30,Normal},      //SPP Wait Time
+                       {2,0,7,Normal},    //Bounce Zoom Speed
+                       {0,0,2,Text,5},       //Head Power
+                       {0,0,3,Text,6}              //Mirror
                       };
 
     // camera type 1 init values
     int c1Values[ROW_ENTRIES][COLUM_ENTRIES]=
-                      {{1,1,49,NORMAL,0,0},     //headnr init_value, min_value, max_value
-                       {0x05,0x05,0x11,TEXT,0,REQUESTABLE}, //Iris
-                       {64,0,128,CENTER,0,REQUESTABLE},  //Pedestal
-                       {0,0,8000,NORMAL,0,REQUESTABLE},  //Focus
-                       {127,0,255,CENTER,0,REQUESTABLE}, //w_Red
-                       {127,0,255,CENTER,0,REQUESTABLE}, //w_Blue
-                       {100,0,200,CENTER,0,REQUESTABLE}, //b_Red
-                       {100,0,200,CENTER,0,REQUESTABLE}, //b_Blue
-                       {1,1,15,TEXT,0,REQUESTABLE},    //Gain
-                       {-1,-1,-1,NAN},   //Gamma
-                       {0,0,1,TEXT,1,REQUESTABLE},      //Gamma-Table
-                       {128,0,254,CENTER,0,REQUESTABLE},  //Detail
-                       {4,0,14,TEXT,0,REQUESTABLE},  //Color
-                       {0,0,5,TEXT,2,REQUESTABLE},      //Color Temp
-                       {-1,-1,-1,NAN},    //Knee
-                       {-1,-1,-1,NAN},    //Knee Point
-                       {-1,-1,-1,NAN},       //ND Filter
-                       {6,6,20,TEXT,3,REQUESTABLE},    //Shutter
-                       {1,1,10,NORMAL},      //PT Speed
-                       {1,1,10,NORMAL},      //Trans Speed
-                       {1,1,10,NORMAL},      //Ramp
-                       {0,0,5,OFFSET},       //SPP1
-                       {1,0,5,OFFSET},       //SPP2
-                       {0,0,30,NORMAL},      //SPP Wait Time
-                       {2,0,7,NORMAL},    //Bounce Zoom Speed
-                       {0,0,2,TEXT,4},        //Head Power
-                       {0,0,3,TEXT,5}              //Mirror
+                      {{1,1,49,Normal,0,0},     //headnr init_value, min_value, max_value
+                       {0x05,0x05,0x11,Text,0,REQUESTABLE}, //Iris
+                       {64,0,128,CenterVal,0,REQUESTABLE},  //Pedestal
+                       {0,0,8000,Normal,0,REQUESTABLE},  //Focus
+                       {127,0,255,CenterVal,0,REQUESTABLE}, //w_Red
+                       {127,0,255,CenterVal,0,REQUESTABLE}, //w_Blue
+                       {100,0,200,CenterVal,0,REQUESTABLE}, //b_Red
+                       {100,0,200,CenterVal,0,REQUESTABLE}, //b_Blue
+                       {1,1,15,Text,0,REQUESTABLE},    //Gain
+                       {-1,-1,-1,Nan},   //Gamma
+                       {0,0,1,Text,1,REQUESTABLE},      //Gamma-Table
+                       {128,0,254,CenterVal,0,REQUESTABLE},  //Detail
+                       {4,0,14,Text,0,REQUESTABLE},  //Color
+                       {0,0,5,Text,2,REQUESTABLE},      //Color Temp
+                       {-1,-1,-1,Nan},    //Knee
+                       {-1,-1,-1,Nan},    //Knee Point
+                       {-1,-1,-1,Nan},       //ND Filter
+                       {6,6,20,Text,3,REQUESTABLE},    //Shutter
+                       {1,1,10,Normal},      //PT Speed
+                       {1,1,10,Normal},      //Trans Speed
+                       {1,1,10,Normal},      //Ramp
+                       {0,0,5,Offset},       //SPP1
+                       {1,0,5,Offset},       //SPP2
+                       {0,0,30,Normal},      //SPP Wait Time
+                       {2,0,7,Normal},    //Bounce Zoom Speed
+                       {0,0,2,Text,4},        //Head Power
+                       {0,0,3,Text,5}              //Mirror
                       };
 
     // camera type 3&4 init values
     int rValues[ROW_ENTRIES][COLUM_ENTRIES]=
-                      {{1,1,49,NORMAL,0,0},     //headnr init_value, min_value, max_value
-                       {2000,0,4000,NORMAL,0,0}, //Iris
-                       {127,0,255,CENTER,0,0},  //Pedestal
-                       {1000,1000,3250,NORMAL,0,REQUESTABLE},  //Focus
-                       {127,0,255,CENTER,0,REQUESTABLE}, //w_Red
-                       {127,0,255,CENTER,0,REQUESTABLE}, //w_Blue
-                       {127,0,255,CENTER,0,REQUESTABLE}, //b_Red
-                       {127,0,255,CENTER,0,REQUESTABLE}, //b_Blue
-                       {0,0,9,TEXT,0,REQUESTABLE},    //Gain
-                       {127,0,255,CENTER,0,REQUESTABLE},   //Gamma
-                       {0,0,2,TEXT,1,REQUESTABLE},      //Gamma-Table
-                       {127,0,255,CENTER,0,REQUESTABLE},  //Detail
-                       {64,0,127,CENTER,0,REQUESTABLE},  //Color
-                       {0,0,4,TEXT,2,REQUESTABLE},    //Color Temp
-                       {0,0,2,TEXT,3,REQUESTABLE},    //Knee
-                       {127,0,254,CENTER,0,REQUESTABLE},    //Knee Point
-                       {-1,-1,-1,NAN},       //ND Filter
-                       {0,0,6,TEXT,5,REQUESTABLE},    //Shutter
-                       {5,1,10,NORMAL},      //PT Speed
-                       {1,1,10,NORMAL},      //Trans Speed
-                       {1,1,10,NORMAL},      //Ramp
-                       {0,0,5,OFFSET},       //SPP1
-                       {1,0,5,OFFSET},       //SPP2
-                       {0,0,30,NORMAL},      //SPP Wait Time
-                       {12,1,127,NORMAL},    //Bounce Zoom Speed
-                       {0,0,2,TEXT,6},        //Head Power
-                       {0,0,3,TEXT,7}               //Mirror
+                      {{1,1,49,Normal,0,0},     //headnr init_value, min_value, max_value
+                       {2000,0,4000,Normal,0,0}, //Iris
+                       {127,0,255,CenterVal,0,0},  //Pedestal
+                       {1000,1000,3250,Normal,0,REQUESTABLE},  //Focus
+                       {127,0,255,CenterVal,0,REQUESTABLE}, //w_Red
+                       {127,0,255,CenterVal,0,REQUESTABLE}, //w_Blue
+                       {127,0,255,CenterVal,0,REQUESTABLE}, //b_Red
+                       {127,0,255,CenterVal,0,REQUESTABLE}, //b_Blue
+                       {0,0,9,Text,0,REQUESTABLE},    //Gain
+                       {127,0,255,CenterVal,0,REQUESTABLE},   //Gamma
+                       {0,0,2,Text,1,REQUESTABLE},      //Gamma-Table
+                       {127,0,255,CenterVal,0,REQUESTABLE},  //Detail
+                       {64,0,127,CenterVal,0,REQUESTABLE},  //Color
+                       {0,0,4,Text,2,REQUESTABLE},    //Color Temp
+                       {0,0,2,Text,3,REQUESTABLE},    //Knee
+                       {127,0,254,CenterVal,0,REQUESTABLE},    //Knee Point
+                       {-1,-1,-1,Nan},       //ND Filter
+                       {0,0,6,Text,5,REQUESTABLE},    //Shutter
+                       {5,1,10,Normal},      //PT Speed
+                       {1,1,10,Normal},      //Trans Speed
+                       {1,1,10,Normal},      //Ramp
+                       {0,0,5,Offset},       //SPP1
+                       {1,0,5,Offset},       //SPP2
+                       {0,0,30,Normal},      //SPP Wait Time
+                       {12,1,127,Normal},    //Bounce Zoom Speed
+                       {0,0,2,Text,6},        //Head Power
+                       {0,0,3,Text,7}               //Mirror
                       };
 
     // camera type 3&4 init values
     /*Problem with color temperature*/
     int ursaValues[ROW_ENTRIES][COLUM_ENTRIES]=
-                      {{1,1,49,NORMAL,0,0},     //headnr init_value, min_value, max_value
-                       {2000,0,4095,NORMAL,0,0}, //Iris
-                       {127,0,400,CENTER,0,0},  //Pedestal
-                       {-1,-1,-1,NAN},  //Focus
-                       {400,1,800,CENTER,0,REQUESTABLE}, //w_Red
-                       {400,1,800,CENTER,0,REQUESTABLE}, //w_Blue
-                       {100,0,200,CENTER,0,REQUESTABLE}, //b_Red
-                       {100,0,200,CENTER,0,REQUESTABLE}, //b_Blue
-                       {1,1,4,NORMAL,0,REQUESTABLE},    //Gain
-                       {0,0,2,NORMAL,0,REQUESTABLE},   //Gamma
-                       {-1,-1,-1,NAN},      //Gamma-Table
-                       {0,0,3,NORMAL,0,REQUESTABLE},  //Detail
-                       {100,0,200,CENTER,0,REQUESTABLE},  //Color
-                       {0,0,0,NORMAL,0,REQUESTABLE},    //Color Temp
-                       {-1,-1,-1,NAN},    //Knee
-                       {-1,-1,-1,NAN},    //Knee Point
-                       {-1,-1,-1,NAN},       //ND Filter
-                       {100,1,200,NORMAL,0,REQUESTABLE},    //Shutter
-                       {5,1,10,NORMAL},      //PT Speed
-                       {1,1,10,NORMAL},      //Trans Speed
-                       {1,1,10,NORMAL},      //Ramp
-                       {0,0,5,OFFSET},       //SPP1
-                       {1,0,5,OFFSET},       //SPP2
-                       {0,0,30,NORMAL},      //SPP Wait Time
-                       {12,1,127,NORMAL},    //Bounce Zoom Speed
-                       {0,0,2,TEXT,6},        //Head Power
-                       {0,0,3,TEXT,7}               //Mirror
+                      {{1,1,49,Normal,0,0},     //headnr init_value, min_value, max_value
+                       {2000,0,4095,Normal,0,0}, //Iris
+                       {127,0,400,CenterVal,0,0},  //Pedestal
+                       {-1,-1,-1,Nan},  //Focus
+                       {400,1,800,CenterVal,0,REQUESTABLE}, //w_Red
+                       {400,1,800,CenterVal,0,REQUESTABLE}, //w_Blue
+                       {100,0,200,CenterVal,0,REQUESTABLE}, //b_Red
+                       {100,0,200,CenterVal,0,REQUESTABLE}, //b_Blue
+                       {1,1,4,Normal,0,REQUESTABLE},    //Gain
+                       {0,0,2,Normal,0,REQUESTABLE},   //Gamma
+                       {-1,-1,-1,Nan},      //Gamma-Table
+                       {0,0,3,Normal,0,REQUESTABLE},  //Detail
+                       {100,0,200,CenterVal,0,REQUESTABLE},  //Color
+                       {0,0,0,Normal,0,REQUESTABLE},    //Color Temp
+                       {-1,-1,-1,Nan},    //Knee
+                       {-1,-1,-1,Nan},    //Knee Point
+                       {-1,-1,-1,Nan},       //ND Filter
+                       {100,1,200,Normal,0,REQUESTABLE},    //Shutter
+                       {5,1,10,Normal},      //PT Speed
+                       {1,1,10,Normal},      //Trans Speed
+                       {1,1,10,Normal},      //Ramp
+                       {0,0,5,Offset},       //SPP1
+                       {1,0,5,Offset},       //SPP2
+                       {0,0,30,Normal},      //SPP Wait Time
+                       {12,1,127,Normal},    //Bounce Zoom Speed
+                       {0,0,2,Text,6},        //Head Power
+                       {0,0,3,Text,7}               //Mirror
                       };
     int commandtype[ROW_ENTRIES]{-1,IRIS_OPEN,MASTER_PED_UP,FOCUS_SET_ABSOLUTE,
     RED_GAIN_ADJ_UP,BLUE_GAIN_ADJ_UP,RED_PED_UP,BLUE_PED_UP,CAMERA_GAIN_UP,GAMMA,

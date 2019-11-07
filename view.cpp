@@ -1,146 +1,87 @@
 #include "view.h"
-#include "ui_view.h"
-#include "controller.h"
-#include "model.h"
-#include "QString"
-#include "events.h"
-#include "config.h"
-#include <csignal>
 
-View::View(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::View)
+View::View(Model& model, Controller& controller)
+    : homeBackend(&model, &controller),cameraBackend(&model, &controller),
+      othersBackend(&model, &controller), xptBackend(&model, &controller), controlsBackend(&model, &controller)
 {
-    ui->setupUi(this);
-    std::signal(SIGINT,View::signalHandler);
-}
-
-View::~View()
-{
-    delete ui;
-}
-
-void View::setModelController(Model& model, Controller& controller){
-    /*give the view and the sub views the model and the controller such that they can interact*/
     this->controller = &controller;
     this->model = &model;
-
-    ui->home->setModelController(this->model, this->controller);
-    ui->cameraView->setModelController(this->model, this->controller);
-    ui->others->setModelController(this->model, this->controller);
-    ui->xptControl->setModelController(this->model,this->controller);
-    ui->controls->setModelController(this->model, this->controller);
 }
 
-void View::signalHandler(int signum)
-{
-    printf("Why do you kill me %d \n",signum);
-    QApplication::quit();
-}
-
-
+View::~View(){}
 
 void View::on_modelUpdate()
 {
-    /*QtSlot: update all views  - connected to Model: updateView()*/
-    ui->home->updateUi();
-    ui->cameraView->updateUi();
-    ui->others->updateUi();
-    ui->xptControl->updateUi();
-    ui->controls->updateUi();
+    cameraBackend.update();
+    homeBackend.update();
+    xptBackend.update();
+    othersBackend.update();
+    controlsBackend.update();
 }
 
-void View::on_modelSetUp()
+void View::on_serverConnectionStatusChanged()
 {
-    /*QtSlot: set up camera view -> see setUpUi  - connected to Model: setUpView()*/
-    ui->cameraView->setUpUi();
-}
-
-void View::on_sppUpdate(bool active)
-{
-    /*QtSlot: start or stop at spp - connected to Model: ?*/
-    ui->home->sppUpdate(active);
-}
-
-
-void View::on_serverConnectionStatusChanged(bool connected)
-{
-    /*QtSlot: server connected indicator  - connected to Model: updateServerConnectionStatus()*/
-    ui->home->serverConnectionChanged(connected);
-}
-
-void View::on_cameraConnectionStatusChanged(bool connected)
-{
-    /*QtSlot: camera connected indicator  - connected to Model: updateCameraConnectionStatus()*/
-    ui->home->cameraConnectionChanged(connected);
+    homeBackend.serverConnectedChanged();
 }
 
 
 void View::on_xptConnectionStatusChanged(bool connected)
 {
-
-    /*QtSlot: xpt connected indicator  - connected to Model: updateXptConnectionStatus()*/
-    ui->xptControl->xptStatusChanged(connected);
+    xptBackend.connectedChanged(connected);
 }
 
-void View::on_xptEnableStatusChanged(bool connected)
+void View::on_modelUpdateProperty(properties_t property)
 {
-    /*QtSlot: to release connect button if connection fails  - connected to Model: updateXptEnableStatus()*/
-    ui->xptControl->xptEnableChanged(connected);
+    switch (property) {
+    case Ped: cameraBackend.blackLevelChanged(); break;
+    case Iris: cameraBackend.irisChanged();break;
+    case GammaTable: cameraBackend.gammaTableChanged();break;
+    case Gamma: cameraBackend.gammaChanged();break;
+    case KneePoint: cameraBackend.kneePointChanged();break;
+    case Color: cameraBackend.saturationChanged();break;
+    case ColorTemp: cameraBackend.colorTemperatureChanged();break;
+    case Gain: cameraBackend.gainChanged();break;
+    case Detail: cameraBackend.detailChanged();break;
+    case Shutter: cameraBackend.shutterChanged();break;
+    case NdFilter: cameraBackend.ndFilterChanged();break;
+    case WhiteRed: cameraBackend.redWhiteChanged();break;
+    case WhiteBlue: cameraBackend.blueWhiteChanged();break;
+    case BlackRed: cameraBackend.redBlackChanged();break;
+    case BlackBlue: cameraBackend.blueBlackChanged();break;
+    case PtSpeed: homeBackend.ptSpeedChanged();break;
+    case BounceZoomSpeed: homeBackend.zoomSpeedChanged();break;
+    case TransSpeed: homeBackend.transitionSpeedChanged();break;
+    case Ramp: homeBackend.rampChanged();break;
+    case Spp1: homeBackend.spp1Changed();break;
+    case Spp2: homeBackend.spp2Changed();break;
+    case SppwWaitTime: homeBackend.sppWaitTimeChanged();break;
+    case HeadNr: homeBackend.headNrChanged();break;
+    case Mirror: othersBackend.mirrorChanged();break;
+    case HeadPower: othersBackend.headPowerChanged();break;
+    default: break;
+    }
+
 }
 
-
-void View::on_loadButtonCleared()
+void View::on_modelUpdateFlag(flags_t flag)
 {
-    /*?*/
-    ui->others->clearLoadButton();
-
+    switch (flag) {
+    case SppEnabled: homeBackend.sppStartChanged();break;
+    case BounceEnabled: homeBackend.bounceChanged(); break;
+    case PresetMoving: homeBackend.presetMovingChanged();break;
+    case FastTransEnabled: homeBackend.fpmChanged(); break;
+    case CameraConnected: homeBackend.cameraConnectedChanged();break;
+    case PanInverted: controlsBackend.invertPanChanged();  break;
+    case TiltInverted: controlsBackend.invertTiltChanged();break;
+    case ZoomInverted: controlsBackend.invertZoomChanged(); break;
+    case FocusInverted: controlsBackend.invertFocusChanged(); break;
+    case TravellingInverted: controlsBackend.invertTravellingChanged(); break;
+    default: break;
+    }
 }
 
-void View::on_newReceive(int property)
+void View::on_newError()
 {
-    /*QtSlot: to indicate a new received value from camera - connected to Model: newSignalReceived()*/
-    ui->cameraView->signalRequest(property);
+    othersBackend.errorChanged();
 }
 
-void View::on_newRequest()
-{
-  /*QtSlot: to indicate everything will be requested again - connected to Model: receiveAllNew()*/
- ui->cameraView->newRequest();
-}
-
-
-
-
-void View::on_btHome_clicked()
-{
-    ui->stackedWidget->setCurrentIndex(0);  //change window to home
-    ui->home->stackChanged();               //push last pressed button on this page again
-}
-
-void View::on_btCamCtrl_clicked()
-{
-    ui->stackedWidget->setCurrentIndex(1);  //change window to camera control
-    ui->cameraView->stackChanged();         //push last pressed button on this page again
-
-}
-
-void View::on_btXptControl_clicked()
-{
-    ui->stackedWidget->setCurrentIndex(2);  //change window to xpt control
-    ui->xptControl->stackChanged();        //push last pressed button on this page again
-
-}
-
-void View::on_btOthers_clicked()
-{
-    ui->stackedWidget->setCurrentIndex(3);  //change window to others
-    ui->others->stackChanged();             //push last pressed button on this page again
-
-}
-
-void View::on_btControls_clicked()
-{
-    ui->stackedWidget->setCurrentIndex(4);
-    ui->controls->stackChanged();
-}

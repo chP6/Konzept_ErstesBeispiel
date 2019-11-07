@@ -2,14 +2,28 @@
 #define POLLER_H
 
 #include "watchdog.h"
-#include "bbmjoystick.h"
-#include "rotary.h"
 #include "tastenfeld.h"
 #include "hotplug.h"
 #include <poll.h>
 #include <vector>
 #include <thread>
 #include <list>
+#include <unistd.h>
+#include <thread>
+#include "events.h"
+#include <error.h>
+#include "eventqueue.h"
+#include "tastenfeld.h"
+#include "config.h"
+#include "input.h"
+#include <QDebug>
+#include <QTimer>
+#include <time.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <csignal>
+#include "logging.h"
 
 class Controller;
 
@@ -29,7 +43,9 @@ private:
     int poll_err;
     Controller* controller;
     std::list<class InputDevice*> m_devices;
+    std::list<class InputDevice*> m_hotplugdevices;
     std::list<class Watchdog*> m_timers;
+    Hotplug *m_hotplugobserver;
 
 };
 

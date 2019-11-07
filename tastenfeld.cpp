@@ -1,26 +1,6 @@
 #include "tastenfeld.h"
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <string.h>
-#include <linux/spi/spidev.h>
-#include <sys/types.h>
-#include <sys/ioctl.h>
-#include "config.h"
-#include "tastenfeld.h"
 
-
-
-
-Tastenfeld::Tastenfeld()
-{
-}
-
-
-
+Tastenfeld::Tastenfeld(){}
 Tastenfeld::~Tastenfeld()
 {
 
@@ -70,7 +50,7 @@ int Tastenfeld::initSpi(){
 void Tastenfeld::mapTx(unsigned int blue, unsigned int red, unsigned int green, int button)
 {
     /*invert direction*/
-    button=7-button;
+    button=5-button;
     /*The PWM Chip requires 12Bit per color per button, means 36 bit per button*/
     /*The buttons are mapped as follows*/
 
@@ -78,7 +58,7 @@ void Tastenfeld::mapTx(unsigned int blue, unsigned int red, unsigned int green, 
     *         | bb | br | rr | gg | g  | b  | bb | rr | rg | gg | ...
       Tx byte | 0  | 1  | 2  | 4  |     5   |  6 |  7 |  8 |  9 | ...*/
 
-    std::swap(red, green);
+    //std::swap(red, green);
     /*An odd button number needs to be treated differently than an even button number*/
     static char button_map[]= {0,4,9,13,18,22,27,31};
     //static char button_map[]= {0,4,9,15,20,25,30};

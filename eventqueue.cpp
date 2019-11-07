@@ -1,8 +1,5 @@
 #include "eventqueue.h"
-#include "config.h"
-#include "events.h"
-#include "QDebug"
-#include <sys/time.h>
+
 
 bool EventQueue::isEmpty(){
     return queue.empty();

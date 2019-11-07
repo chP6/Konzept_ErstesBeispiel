@@ -1,8 +1,5 @@
 #include "generictimer.h"
 #include "controller.h"
-#include <QDebug>
-#include "logging.h"
-#include <csignal>
 
 /*Timer which can queue an event after expired interval*/
 GenericTimer::GenericTimer()
@@ -29,21 +26,11 @@ int GenericTimer::init(int command, Controller& controller){
 
     timer_err = timerfd_settime(timer_fd, 0, &timeout, nullptr);
     if (timer_err<0){
-        timer_err = errno;
-        controller.logSystemError(timer_err, "Could not create GenericTimer");
+        qDebug("Could not create GenericTimer: %s",strerror(errno));
     }
 
     poll_fd[0].fd = timer_fd;
     poll_fd[0].events = POLLIN;
-
-    /*Start thread. Only do once*/
-//    if(!init_done){
-//        init_done=true;
-//        active = true;
-//        std::thread t1(&GenericTimer::listen, this);                  //1.Arg: function type that will be called, 2.Arg: pointer to object (this)
-//        t1.detach();
-//        qDebug("Timer Thread created");
-//    }
     return 0;
 }
 
@@ -63,8 +50,7 @@ int GenericTimer::init(int command, int command_data, Controller& controller){
 
     timer_err = timerfd_settime(timer_fd, 0, &timeout, nullptr);
     if (timer_err<0){
-        timer_err = errno;
-        controller.logSystemError(timer_err, "Could not set GenericTimer");
+        qDebug("Could not set GenericTimer: %s",strerror(errno));
     }
 
     poll_fd[0].fd = timer_fd;
@@ -92,8 +78,7 @@ void GenericTimer::start(){
 
     timer_err = timerfd_settime(timer_fd, 0, &timeout, nullptr);
     if (timer_err<0){
-        timer_err = errno;
-        controller->logSystemError(timer_err, "Could not set GenericTimer");
+        qDebug("Could not start GenericTimer: %s",strerror(errno));
     }
 
         t1 = std::thread(&GenericTimer::listen, this);                  //1.Arg: function type that will be called, 2.Arg: pointer to object (this)
@@ -118,8 +103,7 @@ if(init_done){
 
     timer_err = timerfd_settime(timer_fd, 0, &timeout, nullptr);
     if (timer_err<0){
-        timer_err = errno;
-        controller->logSystemError(timer_err, "Could not set GenericTimer");
+        qDebug("Could not set GenericTimer: %s",strerror(errno));
     }
 
 }
@@ -140,16 +124,14 @@ void GenericTimer::listen(){
         timer_err = poll(poll_fd,1,-1);
 
         if(timer_err<0){
-            timer_err = errno;
-            controller->logSystemError(timer_err, "Could not read Generic Timer Pollstruct");
+            qDebug("Could not read Generic Timer Pollstruct: %s",strerror(errno));
         }
 
         if(poll_fd[0].revents & POLLIN) {
             timer_err = read(timer_fd, &timersElapsed, 8);  //readout timer
 
             if(timer_err<0){
-                timer_err = errno;
-                controller->logSystemError(timer_err, "Could not read Generic Timer");
+                qDebug("Could not read Generic Timer: %s",strerror(errno));
             }
             if(command_data < 0){
                 controller->queueEvent(command);

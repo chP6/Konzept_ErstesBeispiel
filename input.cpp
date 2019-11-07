@@ -1,14 +1,4 @@
 #include "input.h"
-#include "events.h"
-#include "config.h"
-
-#include <unistd.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <poll.h>
-#include <linux/input.h>
-
-#include <QDebug>
 
 InputDevice::InputDevice(const char* fileName)
     : m_fileName(fileName), m_fd(0) {}
@@ -21,6 +11,9 @@ InputDevice::~InputDevice() {
 int InputDevice::init(struct pollfd *fd) {
     if (fd) {
         m_fd = fd;
+        if(m_fd->fd > 0){
+          close(m_fd->fd);
+        }
         m_fd->fd = open(m_fileName, O_RDONLY);
         if (m_fd->fd < 0) {
             qDebug("failed to open %s: %s", m_fileName, strerror(errno));
@@ -50,6 +43,7 @@ bool InputDevice::readEvent(struct input_event &event) {
     }
     return false;
 }
+
 
 /* ------------------------------------------------------------------------- */
 
@@ -100,10 +94,10 @@ int XYZJoystick::getEvent(std::vector<int> &data) {
         if (readEvent(event)) {
             if (event.type == EV_ABS) {
                 switch (event.code) {
-                case ABS_X: data.push_back(kControlJoystickX); break;
-                case ABS_Y: data.push_back(kControlJoystickY); break;
-                case ABS_Z: data.push_back(kControlJoystickZ); break;
-                default:    data.push_back(kControlNone);      break;
+                case ABS_X: data.push_back(KControlJoystickX); break;
+                case ABS_Y: data.push_back(KControlJoystickY); break;
+                case ABS_Z: data.push_back(KControlJoystickZ); break;
+                default:    data.push_back(KControlNone);      break;
                 }
                 data.push_back((event.value - 2047) * 16); // -32'767..32'767
                 return E_CONTROL_INPUT;
@@ -127,11 +121,11 @@ int ZoomFocusJoystick::getEvent(std::vector<int> &data) {
         if (readEvent(event)) {
             if (event.type == EV_ABS) {
                 if (event.code == ABS_Y) {
-                    data.push_back(kControlZoomRocker);
+                    data.push_back(KControlZoomRocker);
                     data.push_back(event.value);
                     return E_CONTROL_INPUT;
                 } else if (event.code == ABS_X) {
-                    data.push_back(kControlFocusWheel);
+                    data.push_back(KControlFocusWheel);
                     data.push_back(event.value);
                     return E_CONTROL_INPUT;
                 }
@@ -147,51 +141,12 @@ int ZoomFocusJoystick::getEvent(std::vector<int> &data) {
 
 
 UsbOcp::UsbOcp(const char *fileName, const std::map<int, std::vector<int> >  keymap)
-    : InputDevice(fileName), m_keymap(keymap) {}
-
-UsbOcp::~UsbOcp()
-{
-    if (m_fd)
-        close(m_fd->fd);
-    if(m_hotplugService)
-        delete m_hotplugService;
-}
-
-int UsbOcp::init(pollfd *fd)
-{
-    if (fd) {
-        m_fd = fd;
-        m_fd->fd = open(m_fileName, O_RDONLY);
-        m_fd->events = POLLIN | POLLPRI;
-        if (m_fd->fd < 0) {
-            qDebug("failed to open %s: %s", m_fileName, strerror(errno));
-            m_hotplugService = new Hotplug(m_fileName);
-            int hot_fd = m_hotplugService->init();
-            if(hot_fd < 0){
-                return  -1;
-            }
-            m_fd->fd = hot_fd;
-            return 0;
-        }
-        if (ioctl(m_fd->fd, EVIOCGRAB, 1)) {
-            qDebug("failed to grab %s: %s", m_fileName, strerror(errno));
-            close(m_fd->fd);
-            return -1;
-        }
-
-    }
-    return 0;
-}
+    : InputDevice(fileName), m_keymap(keymap) { name = "USB Operational Control Panel";}
 
 int UsbOcp::getEvent(std::vector<int> &data)
 {
+
     if (eventReceived()) {
-
-        if(m_hotplugService){
-            m_hotplugService->readEvent();
-            m_fd->fd = open(m_fileName, O_RDONLY);
-        }
-
         struct input_event event;
         if (readEvent(event)) {
             if (event.type == EV_KEY && event.value == 1 &&
@@ -200,7 +155,7 @@ int UsbOcp::getEvent(std::vector<int> &data)
                     return E_USB_OCP_CHANGE;
             }
         }
-    }
+      }
     return E_NULLEVENT;
 }
 

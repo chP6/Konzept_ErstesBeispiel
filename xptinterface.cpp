@@ -1,18 +1,8 @@
 #include "xptinterface.h"
-#include <sys/socket.h>
-#include <QDebug>
-#include "logging.h"
 
-xptinterface::xptinterface()
-{
+xptinterface::xptinterface(){}
 
-}
-
-xptinterface::~xptinterface()
-{
-
-}
-
+xptinterface::~xptinterface(){}
 
 int xptinterface::disconnect()
 {
@@ -44,6 +34,7 @@ int xptinterface::getNumberOfOutputs()
     return numberOfOutputs;
 }
 
+
 int xptinterface::changeIP(char *ipAdress)
 {
     connect_err = inet_aton(ipAdress, &xpt_adress.sin_addr);
@@ -72,7 +63,7 @@ RossInterface::RossInterface()
 
 }
 
-int RossInterface::init(char *ipAdress)
+int RossInterface::init(QString ipAdress)
 {
     xpt_adress.sin_port = htons(7788);
     inputs = 24;
@@ -95,7 +86,9 @@ int RossInterface::init(char *ipAdress)
           outputLabels.append(QStringLiteral("Aux %1").arg(i+1));
        }
     xpt_adress.sin_family = AF_INET;
-    inet_aton(ipAdress, &xpt_adress.sin_addr);
+    QByteArray ba = ipAdress.toLocal8Bit();
+    char *ipAdress_c = ba.data();
+    inet_aton(ipAdress_c, &xpt_adress.sin_addr);
     bzero(&(xpt_adress.sin_zero), 8);
 
     return 0;
@@ -139,6 +132,7 @@ int RossInterface::sendChange(int source, int destination)
           int macro = source- inputs*bank;
           sprintf(txBuffer,"CC %d:%d\n",bank, macro);
       }
+
     //if(connect_err < 0){
       //  return -1;
         //    }
@@ -202,12 +196,12 @@ xptinterface::SrvAnswer RossInterface::receive()
          qCDebug(xptIo)<< "Received message from Ross device | Message:" << input;
          QList<QByteArray> message = appendInput(input);    //put input in a message separated by line feed
 
-         if(!message.empty()){
+        // if(!message.empty()){
              xptinterface::SrvAnswer result = processMessages(message); //do something according to message
              qCDebug(xptIo)<< "Ross message processed";
              return result;
-         }
-         return xptinterface::Error;
+         //}
+        // return xptinterface::Error;
 }
 
 
@@ -218,7 +212,7 @@ BmdInterface::BmdInterface()
 
 }
 
-int BmdInterface::init(char *ipAdress)
+int BmdInterface::init(QString ipAdress)
 {
     xpt_adress.sin_port = htons(9990);
     numberOfInputs = 40;
@@ -227,7 +221,9 @@ int BmdInterface::init(char *ipAdress)
     outputLabels.clear();
 
     xpt_adress.sin_family = AF_INET;
-    inet_aton(ipAdress, &xpt_adress.sin_addr);
+    QByteArray ba = ipAdress.toLocal8Bit();
+    char *ipAdress_c = ba.data();
+    inet_aton(ipAdress_c, &xpt_adress.sin_addr);
     bzero(&(xpt_adress.sin_zero), 8);
 
     return 0;
