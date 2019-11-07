@@ -1,18 +1,8 @@
 #include "xptinterface.h"
-#include <sys/socket.h>
-#include <QDebug>
-#include "logging.h"
 
-xptinterface::xptinterface()
-{
+xptinterface::xptinterface(){}
 
-}
-
-xptinterface::~xptinterface()
-{
-
-}
-
+xptinterface::~xptinterface(){}
 
 int xptinterface::disconnect()
 {

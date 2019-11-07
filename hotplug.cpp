@@ -1,17 +1,8 @@
 #include "hotplug.h"
-#include <unistd.h>
-#include <sys/socket.h>
-#include <string.h>
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <linux/input.h>
-#include "input.h"
 
 Hotplug::Hotplug(std::list<class InputDevice*> *hotplugDevices)
 {
-    m_sockName = "/tmp/test.socket";
+    m_sockName = "/tmp/hotplug";
     m_hotplugdevices = hotplugDevices;
 }
 
@@ -64,7 +55,7 @@ void Hotplug::readEvent(){
     for (InputDevice* d : *m_hotplugdevices){
         if(strcmp(d->m_fileName,&buf[0])==0){
             d->init(d->m_fd);
-            qDebug("received Device: %s",buf);
+            qInfo(user,"new Device: %s",d->name);
         }
     }
 }

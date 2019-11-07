@@ -10,6 +10,13 @@
 #include <stdlib.h>
 #include "hotplug.h"
 #include "config.h"
+#include "events.h"
+#include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <poll.h>
+#include <linux/input.h>
+#include <QDebug>
 
 using namespace Config;
 
@@ -22,9 +29,8 @@ public:
     virtual int init(struct pollfd *fd);
     bool eventReceived();
     bool readEvent(struct input_event &event);
-
     virtual int getEvent(std::vector<int> &data) = 0;
-
+    const char* name = "";
     const char* m_fileName;
     struct pollfd* m_fd;
 };

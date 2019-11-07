@@ -1,13 +1,6 @@
 #include "telegrambuilder.h"
-#include "bbmcommandtypes.h"
-#include "config.h"
 
-Telegrambuilder::Telegrambuilder()
-{
-
-}
-
-
+Telegrambuilder::Telegrambuilder(){}
 /*Encodes BBMNet telegrams*/
 // Byte 6...9 Data -> [5...8]
 void Telegrambuilder::encode(bool request, int bbm_dev_no, int bbm_command, std::vector<int> data, uint8_t* telegram){

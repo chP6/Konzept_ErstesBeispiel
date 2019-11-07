@@ -33,7 +33,6 @@ import com.bbm.config 1.0
         to: backend[Config.Max]
         value: backend[Config.Value]
         property var textList: backend[Config.TextList]
-
         property int centerValue: backend[Config.Value]-(backend[Config.Max]-backend[Config.Min])/2
 
 
@@ -73,6 +72,11 @@ import com.bbm.config 1.0
                 name: "notReady"
                 PropertyChanges {target: bgItem; color: Material.accent}
                 PropertyChanges {target: handleItem; color: Qt.tint(Material.accent, "#10FFFFFA")}
+                PropertyChanges {target: area; to: center ? (backend[Config.Max] -backend[Config.Min])/2 : backend[Config.Max]}
+                PropertyChanges {target: area; from: center ? -(backend[Config.Max] -backend[Config.Min])/2 : backend[Config.Min] }
+                PropertyChanges {target: area; value: center ? centerValue : backend[Config.Value]}
+                //PropertyChanges {target: area; textValue: textValue ? textList[dial2.value.toFixed(0)-dial2.from] : Number(dial2.value).toFixed(0)}
+
             },
             State {
                 name: "text"
@@ -96,8 +100,6 @@ import com.bbm.config 1.0
             enabled: false
             snapMode: Dial.SnapAlways
             stepSize: 1
-
-
             onMoved: center ? cameraBackend.setValue(field,value+to) : cameraBackend.setValue(field,value)
             //onValueChanged: console.log(width, parent.width)
 

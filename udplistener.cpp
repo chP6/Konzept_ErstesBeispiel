@@ -1,10 +1,4 @@
 #include "udplistener.h"
-#include "controller.h"
-#include "events.h"
-#include "config.h"
-#include <thread>
-#include <QDebug>
-#include <csignal>
 
 UdpListener::UdpListener(Controller& controller)
 {
@@ -13,8 +7,7 @@ UdpListener::UdpListener(Controller& controller)
 
     rx_err = rxSocket.init(8000);
     if(rx_err < 0){
-        rx_err = errno;
-        controller.logSystemError(rx_err, "Could not initialize Udp Listener");
+        qWarning(user,"Could not initialize Udp Listener : %s",strerror(errno));
     }
 }
 
@@ -42,7 +35,7 @@ void UdpListener::listener(){
         rx_err = rxSocket.receive(buffer);
         if(rx_err < 0){
             rx_err = errno;
-            controller->logSystemError(rx_err, "Could not receive udp traffic");
+            qWarning(user,"Could not receive udp traffic : %s",strerror(errno));
         }
         std::string addr;
         rxSocket.getSenderAddr(addr);

@@ -1,21 +1,6 @@
 #include "controller.h"
 #include "model.h"
 #include "poller.h"
-#include <unistd.h>
-#include <thread>
-#include "events.h"
-#include <errno.h>
-#include "config.h"
-#include <QDebug>
-#include <QSettings>
-#include "logging.h"
-#include <QTime>
-
-#include <chrono>
-#include <ctime>
-#include <sys/time.h>
-#include <algorithm>
-
 
 /*Signal from xptSocktet 'inputLabelsChanged' to controller 'onXptLabelChanged'*/
 void Controller::onXptLableChanged()
@@ -42,24 +27,21 @@ Controller::Controller(Model& model)
     /*UDP Socket initialize port 9000*/
     contr_err = txSocket.init(9000);
     if(contr_err<0){
-        contr_err = errno;
-        logSystemError(contr_err, "Could not initialize udp-interface");
+        qWarning(user,"Could not initialize udp-interface : %s",strerror(errno));
     }
 
     /*Initialize the six buttons for the presets*/
     presetbus.setRow(LOWER_ROW);
     contr_err=presetbus.initSpi();  //SPI for the leds
     if(contr_err<0){
-        contr_err = errno;
-        logSystemError(contr_err, "Could not open SPI-BUS 1");
+        qWarning(user,"Could not init LED-Bus: %s",strerror(errno) );
     }
 
     /*Initialize the six buttons for the cameras*/
     camerabus.setRow(UPPER_ROW);
     camerabus.initSpi();    //SPI for the leds
     if(contr_err<0){
-        contr_err = errno;
-        logSystemError(contr_err, "Could not open SPI-BUS 2");
+        qWarning(user,"Could not init LED-Bus: %s",strerror(errno) );
     }
 
     /*Set the Leds after initialization*/
@@ -106,18 +88,7 @@ void Controller::setPoller(Poller &poller){
     this->poller = &poller;
 }
 
-/*Error information*/
-void Controller::logSystemError(int err_no, std::string msg){
-    model->addError("(S) " + msg + " ERRNO: " + strerror(err_no));        //msg + string aus errno nummer
-}
-/*Log information*/
-void Controller::logError(std::string msg){
-    model->addError(msg);
-}
-/*Clear the errors*/
-void Controller::clearErrors(){
-    model->clearErrors();
-}
+
 /*prepare a savefile with all necessary userdata from the model*/
 void Controller::settingsWrite(QSettings &savefile){
     savefile.clear();
@@ -131,10 +102,6 @@ void Controller::settingsWrite(QSettings &savefile){
     /*xpt Settings*/
     savefile.beginGroup("xpt");
     savefile.setValue("xptType",model->getXptType());
-    savefile.setValue("xptIpField1",model->getXptIpField(0));
-    savefile.setValue("xptIpField2",model->getXptIpField(1));
-    savefile.setValue("xptIpField3",model->getXptIpField(2));
-    savefile.setValue("xptIpField4",model->getXptIpField(3));
     savefile.setValue("xptNumberOfInputs",model->getXptNumberOfInputs());
     savefile.setValue("xptNumberOfOutputs",model->getXptNumberOfOutputs());
     savefile.setValue("xptDestination",model->getXptDestination());
@@ -172,10 +139,6 @@ void Controller::settingsLoad(QSettings &savefile, bool send){
     /*write according to group*/
     savefile.beginGroup("xpt");
         model->setXptType(savefile.value("xptType").toInt());
-        model->setXptIpField(Absolute,0,savefile.value("xptIpField1").toInt());
-        model->setXptIpField(Absolute,1,savefile.value("xptIpField2").toInt());
-        model->setXptIpField(Absolute,2,savefile.value("xptIpField3").toInt());
-        model->setXptIpField(Absolute,3,savefile.value("xptIpField4").toInt());
         model->setXptNumberOfInputs(savefile.value("xptNumberOfInputs").toInt());
         model->setXptNumberOfOutputs(savefile.value("xptNumberOfOutputs").toInt());
         model->setXptIpAdress(savefile.value("xptIpAdress").toString());
@@ -280,7 +243,6 @@ void Controller::requestCameraSettings(int slot){
     int headNr = model->getValue(slot,Absolute,HeadNr);
     int command;
     model->clearRemainingTelegrams(slot);
-    if(slot == model->getActiveCameraSlot()){model->receiveAllNew();}   //Make all GUI labels yellow
     for (int i=0;i<ROW_ENTRIES;i++) {
         command = model->getRequestCommand(slot,properties_t(i));     //check if requestable & push, else -1
         if(command>0){
@@ -295,7 +257,6 @@ void Controller::requestCameraSettings(int slot){
     qCDebug(requestIo)<<"Request timer started| SlotNr:"<< slot;
 }
 
-
 /*model alignement, if other cameraslots have the same headnumber as the current slot*/
 void Controller::alignSlots(properties_t property){
     for (int i=0;i<NUMBER_OF_SLOTS;i++) {
@@ -306,7 +267,6 @@ void Controller::alignSlots(properties_t property){
         }
     }
 }
-
 
 /*overload functions for the queue*/
 void Controller::queueEvent(int evt){
@@ -370,40 +330,28 @@ void Controller::stopQueueProcessThread()
 /*processes the events in the eventQueue*/
 void Controller::processQeue(){
     event_s loadedEvent;
-
     int from, type, command, data, headNr, sppPreset=0, time, slotNr;
 
-    //struct timeval  tv1, tv2;
-    model->setUpView();
 
     while(applicationRunning){
         eventQueue.pullEvent(loadedEvent);      //blocks if queue is empty
 //        gettimeofday(&tv1, NULL);
 
         switch (loadedEvent.evt) {
-        case E_CLEAR:
-            /*debugging no function*/
-            logError("Counter cleared!");
-            break;
         case E_INCREASE:
             /*Signal from the Rotary Encoder for the touch and turn*/
             properties_t field;
-            int destination;
             field=model->getRotaryField();              //get the field that was pressed by the user on the touch
-            destination=model->getRotaryDestination();  //get the destination for the value, SEND: can be sent right away, INTERNAL: nothing to send something else
 
             /*Cam Type 6 has a huge range of iris steps (0 - 4000), This requires a lot of turns with the rotary.
             Therefore there is a fast iris function*/
-            if (destination==SEND) {
                 if(model->getFastIris() && model->getCamtype()==6 && model->getRotaryField() == Iris){
                     model->setValue(Incremental,field,loadedEvent.data[0]<<5);
                 }
                 else{
                     model->setValue(Incremental,field,loadedEvent.data[0]);     //Last Element
                 }
-
                 alignSlots(field);
-
                 /*send, if associated commandtype exists*/
                 if(model->getTxCommand(field) > 0){  //there could be values without commandtypes
                     if (model->getRotaryField() == Iris)
@@ -418,42 +366,12 @@ void Controller::processQeue(){
                     qDebug("KNOWN Flag cleared!");
                     model->clearRemainingTelegrams(model->getActiveCameraSlot());
                     reqSettingsTimer[model->getActiveCameraSlot()].stop();
-                    model->setUpView();
+                    for (int i=0;i<ROW_ENTRIES;i++) {
+                        command = model->getRequestCommand(model->getActiveCameraSlot(),properties_t(i)); //fill remaining telegrams for dial state
+                    }
                     model->updateView();
                 }
-           }
-           else{
-                /*nothing to send xpt settings */
-                switch (field) {
-                case I_XPT_SOURCE:
-                         model->setXptSlotSource(loadedEvent.data[0]);
-                    break;
-                case I_XPT_DESTINATION:
-                    model->setXptDestination(loadedEvent.data[0]);
-                    break;
-                case I_XPT_IP_FIELD_1:
-                    model->setXptIpField(Incremental,0,loadedEvent.data[0]);
 
-                    break;
-                case I_XPT_IP_FIELD_2:
-                    model->setXptIpField(Incremental,1,loadedEvent.data[0]);
-
-                    break;
-                case I_XPT_IP_FIELD_3:
-                    model->setXptIpField(Incremental,2,loadedEvent.data[0]);
-
-                    break;
-                case I_XPT_IP_FIELD_4:
-                    model->setXptIpField(Incremental,3,loadedEvent.data[0]);
-
-                    break;
-                default:
-                    break;
-
-                }
-
-
-            }
             qCDebug(logicIo)<<"Touch and Turn| delta:"<< loadedEvent.data[0] << ", field:" << field;
             break;
         case E_SET_TILT:
@@ -532,11 +450,7 @@ void Controller::processQeue(){
             txSocket.send(model->getValue(Absolute,HeadNr), SET_FOCUS_PUSH);
             qCDebug(logicIo)<< "Autofocus pressed |";
             break;
-//        case E_AUTOFOCUS_ANSWER:
-//            /*Answer from the camera after autofocus to get the new value into the model*/
-//            model->setValue(ABS,V_FOCUS,loadedEvent.data[0]);
-//            qCDebug(rxHeadIo) << "Focus value received | value:" << loadedEvent.data[0];
-//            break;
+
         case E_TX_SERV_WATCHDOG:
             /*Watchdog to the server, periodically every second*/
             txSocket.send(SERVER, WATCHDOG);
@@ -545,23 +459,14 @@ void Controller::processQeue(){
             for (int i=0;i<NUMBER_OF_SLOTS;i++) {
                 model->setCameraWaitingflag(i,true);    //set all cameraWaitingFlags
             }
-            qCDebug(txWatchdogIo) << "Watchdog sent to Server | Time:"<< QTime::currentTime().toString();;
+            qCDebug(txWatchdogIo) << "Watchdog sent to Server | Time:"<< QTime::currentTime().toString();
             break;
         case E_RX_SERV_WATCHDOG:
             /*Watchdog answer from server*/
             model->setWatchdogWaitingflag(false);   //clear flag all good
-            qCDebug(rxWatchdogIo) << "Watchdog received from Server | Time:"<< QTime::currentTime().toString();;
+            qCDebug(rxWatchdogIo) << "Watchdog received from Server | Time:"<< QTime::currentTime().toString();
             break;
-        case E_REQ_TEST:
-            /*debug*/
-            txSocket.request(1, FOCUS_SET_ABSOLUTE);
-            logError("Sending Request!");
-            break;
-        case E_STORE_PRESET_DEBUG:
-            /*debug*/
-            txSocket.send(1, STORE_PRESET, loadedEvent.data[0]);
-            logError("Store Preset!");
-            break;
+
         case E_GOTO_PRESET:
             /*Move camera to preset position*/
             txSocket.send(model->getValue(Absolute,HeadNr), GOTO_PRESET, loadedEvent.data[0]+1,model->getValue(Absolute,TransSpeed));
@@ -711,7 +616,6 @@ void Controller::processQeue(){
             camerabus.setLed(model->color,loadedEvent.data[0]);
             model->setActiveCameraSlot(loadedEvent.data[0]);
             /*Update the view*/
-            model->setUpView();
             model->updateView();
 
             /*Update the presetbus leds*/
@@ -735,7 +639,7 @@ void Controller::processQeue(){
                 qCDebug(xptIo)<<"Send routing change | Source:" << source << ", Destination:" << destination;
                 if (contr_err < 0) {
                     contr_err = errno;
-                    logSystemError(contr_err, "Could not send to Xpt");
+                    qWarning(user,"Could not send Data to Xpt: %s",strerror(errno) );
                     model->setXptConnected(false);
                 }
             }
@@ -758,7 +662,6 @@ void Controller::processQeue(){
                     requestCameraSettings(i);
 
                     model->setCamFlag(i,CameraFamiliar,true);
-                    model->setUpView();     //grays out ui buttons for not supported camera settings, set yellow for requests
                     model->updateView();
                     qCDebug(logicIo) << "New camera registered | " << "HeadNr:" << from << "Cam Type:" << type ;
                 }
@@ -807,7 +710,9 @@ void Controller::processQeue(){
                         } else {
                             model->setValue(i, Absolute, model->getValueFromBBMCommand(command), data);
                         }
-                       model->setRequestReceived(i,model->getValueFromBBMCommand(command));
+                      if(model->getCamFlag(i,ReceivedAll)){
+                        model->setRequestReceived(i,model->getValueFromBBMCommand(command));
+                      }
 //                       if(!model->getCamFlag(i,F_RECEIVED_ALL)){
 //                         checkSettingsRequest(i);
 //                       }
@@ -816,6 +721,7 @@ void Controller::processQeue(){
                     qCDebug(rxHeadIo) << "Answer from Camera | HeadNr:" << from << "Command:" << command << "Data:" << data;
                 }
             }
+
             break;
         case E_RX_ADJ_RCP_CMD:
             /*Update model with values sent by an adjacent RCP in the net*/
@@ -868,6 +774,8 @@ void Controller::processQeue(){
             break;
         case E_CLEAR_LIMIT:
             /*clear limits from user input on touch*/
+            model->setRequestReceived(model->getActiveCameraSlot(),Shutter);
+            model->setRequestReceived(model->getActiveCameraSlot(),Detail);
             txSocket.send(model->getValue(Absolute,HeadNr),TILT_CLEAR_LIMIT);
             break;
         case E_BOUNCE_BLINK:
@@ -898,16 +806,13 @@ void Controller::processQeue(){
                 contr_err = xptSocket->init(model->getXptIpAdress());
                     if(contr_err<0){
                         contr_err = errno;
-                        logSystemError(contr_err, "Could not initialize xpt-interface");
-                        qCWarning(xptIo)<< "Could not initialize Xpt Socket| Xpt Type:" << model->getXptType() << ", Xpt adress:" << model->getXptIpAdress();
+                        qWarning(user)<< "Could not initialize Xpt Socket| Xpt Type:" << model->getXptType() << ", Xpt adress:" << model->getXptIpAdress();
                     }
                 qCDebug(xptIo)<< "Xpt Socket initialized | Xpt Type:" << model->getXptType() << ", Xpt adress:" << model->getXptIpAdress();
 
                 contr_err = xptSocket->connectToXpt(); //try to connect
                     if(contr_err < 0){
-                        contr_err = errno;
-                        logSystemError(contr_err, "Could not connect to Xpt");
-                        qCWarning(xptIo)<< "Could not connect to Xpt Socket| Xpt Type:" << model->getXptType() << ", Xpt adress:" << model->getXptIpAdress();
+                        qCWarning(user)<< "Could not connect to Xpt, IP-Adress:" << model->getXptIpAdress()<<":"<<strerror(errno);
                         model->updateXptEnableStatus(false); //initial connection failed
                         model->setXptConnected(false);
                 }else {
@@ -922,8 +827,7 @@ void Controller::processQeue(){
             contr_err = xptSocket->disconnect();
             if(contr_err < 0){
                 contr_err = errno;
-                qCWarning(xptIo)<< "Could not disconnect from Xpt Socket| Xpt Type:" << model->getXptType() << ", Xpt adress:" << model->getXptIpAdress();
-                logSystemError(contr_err, "Could not disconnect xpt");
+                qWarning(user)<< "Could not disconnect from Xpt Socket| Xpt Type:" << model->getXptType() << ", Xpt adress:" << model->getXptIpAdress();
             }
                 model->setXptConnected(false);
                 qCDebug(xptIo)<< "Disconnected from Xpt | Xpt Type:" << model->getXptType() << ", Xpt adress:" << model->getXptIpAdress();
@@ -956,8 +860,6 @@ void Controller::processQeue(){
                         delete xptSocket;
                         break;
                     }
-                     //model->setXptConnected(false);
-                   qDebug()<<"no ACK received";
 
                 }
                 /*Xpt router answered*/
@@ -1095,6 +997,7 @@ void Controller::processQeue(){
         case E_REQUEST_SETTINGS:
             /*Request all camera settings from user input on touch*/
             requestCameraSettings(model->getActiveCameraSlot());
+            model->updateView();
             break;
         case E_REQ_SETTINGS_TIMER:
             /*Timer to request remaining Telegrams*/
@@ -1267,9 +1170,5 @@ void Controller::processQeue(){
         default:
             break;
         }
-//        gettimeofday(&tv2, NULL);
-//        qDebug("Work: %f seconds",
-//             (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
-//             (double) (tv2.tv_sec - tv1.tv_sec));
     }
 }

@@ -2,24 +2,6 @@
 
 #include "poller.h"
 #include "controller.h"
-#include <unistd.h>
-#include <thread>
-#include "events.h"
-#include <error.h>
-#include "eventqueue.h"
-#include "tastenfeld.h"
-#include "config.h"
-#include "input.h"
-#include <QDebug>
-#include <QTimer>
-#include <time.h>
-#include <signal.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <csignal>
-#include <vector>
-#include "logging.h"
-
 
 Poller::Poller(Controller& controller)
 {
@@ -45,7 +27,7 @@ Poller::Poller(Controller& controller)
 #endif
     m_devices.push_back(new XYZJoystick("/dev/input/by-id/usb-CH_Products_APEM_HF_Joystick-event-joystick"));
     m_devices.push_back(new ZoomFocusJoystick("/dev/input/by-id/usb-Adafruit_LLC_Adafruit_ItsyBitsy_M4_HIDAC-event-if02"));
-    m_hotplugdevices.push_back(new UsbOcp("/dev/input/by-id/usb-Mitsumi_Electric_Apple_Extended_USB_Keyboard-event-kbd",ocpmap));
+    m_hotplugdevices.push_back(new UsbOcp("/dev/input/by-id/usb-Mitsumi_Electric_Apple_Extended_USB_Keyboard-event-if01",ocpmap));
 
     m_hotplugobserver = new Hotplug(&m_hotplugdevices);
 
@@ -90,8 +72,7 @@ void Poller::listener(){
 
         /*Blocks until event occurs. -1 = infinite timeout*/
         if(poll(poll_fd, m_devices.size()+m_timers.size()+m_hotplugdevices.size()+1, -1) < 0){    //poll. Blocks until event occurs -> SIZE setzen! -1 = infinite timeout
-            poll_err = errno;
-            controller->logSystemError(poll_err, "Could not read Poller pollstruct");
+           qDebug("failed to poll %s", strerror(errno));
         }
 
         for (Watchdog* t : m_timers){
@@ -107,9 +88,9 @@ void Poller::listener(){
             if (event != E_NULLEVENT)
                 controller->queueEvent(event, data);
         }
-        for (InputDevice* d : m_hotplugdevices) {
+        for (InputDevice* h : m_hotplugdevices) {
             std::vector<int> data;
-            int event = d->getEvent(data);
+            int event = h->getEvent(data);
             if (event != E_NULLEVENT)
                 controller->queueEvent(event, data);
         }

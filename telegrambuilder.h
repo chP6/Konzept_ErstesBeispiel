@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 #include <vector>
+#include "bbmcommandtypes.h"
+#include "config.h"
 
 struct answer_s{
   int type;

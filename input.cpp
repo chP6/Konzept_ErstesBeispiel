@@ -1,12 +1,4 @@
 #include "input.h"
-#include "events.h"
-#include <unistd.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <poll.h>
-#include <linux/input.h>
-
-#include <QDebug>
 
 InputDevice::InputDevice(const char* fileName)
     : m_fileName(fileName), m_fd(0) {}
@@ -19,6 +11,9 @@ InputDevice::~InputDevice() {
 int InputDevice::init(struct pollfd *fd) {
     if (fd) {
         m_fd = fd;
+        if(m_fd->fd > 0){
+          close(m_fd->fd);
+        }
         m_fd->fd = open(m_fileName, O_RDONLY);
         if (m_fd->fd < 0) {
             qDebug("failed to open %s: %s", m_fileName, strerror(errno));
@@ -48,6 +43,7 @@ bool InputDevice::readEvent(struct input_event &event) {
     }
     return false;
 }
+
 
 /* ------------------------------------------------------------------------- */
 
@@ -145,7 +141,7 @@ int ZoomFocusJoystick::getEvent(std::vector<int> &data) {
 
 
 UsbOcp::UsbOcp(const char *fileName, const std::map<int, std::vector<int> >  keymap)
-    : InputDevice(fileName), m_keymap(keymap) {}
+    : InputDevice(fileName), m_keymap(keymap) { name = "USB Operational Control Panel";}
 
 int UsbOcp::getEvent(std::vector<int> &data)
 {

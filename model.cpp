@@ -1,9 +1,4 @@
 #include "model.h"
-#include "view.h"
-#include "config.h"
-#include "bbmcommandtypes.h"
-#include <QString>
-#include <stdio.h>
 
 Model::Model()
 {
@@ -53,17 +48,6 @@ Model::Model()
     controls[KAxisTravelling] = KControlZoomRocker;
 }
 
-/*Add error to error list*/
-void Model::addError(std::string str){
-    errorList.prepend(QString::fromStdString(str));
-    emit updateView();
-}
-
-/*Clear error list*/
-void Model::clearErrors(){
-    errorList.clear();
-    emit updateView();
-}
 
 /*Set used presets in current slot*/
 void Model::setUsedPreset(int presetNr)
@@ -472,8 +456,9 @@ QString Model::getDialState(properties_t property)
     std::vector<properties_t>::iterator it;
     if(!cameras[activeCameraSlot].remainingTelegrams.empty()){
        it = std::find(cameras[activeCameraSlot].remainingTelegrams.begin(), cameras[activeCameraSlot].remainingTelegrams.end(), property);
+       return it != cameras[activeCameraSlot].remainingTelegrams.end() ?  dialStateStr(NotReady) :  dialStateStr(status);
     }
-    return it != cameras[activeCameraSlot].remainingTelegrams.end() ?  dialStateStr(NotReady) :  dialStateStr(status);
+    return dialStateStr(status);
 
 }
 
@@ -599,15 +584,8 @@ properties_t Model::getRotaryField()
 }
 
 /**/
-int Model::getRotaryDestination()
+void Model::setRotaryField(properties_t field)
 {
-    return rotaryDestination;
-}
-
-/**/
-void Model::setRotaryField(properties_t field, int destination)
-{
-    rotaryDestination=destination;
     rotaryField=field;
 }
 
@@ -736,62 +714,6 @@ int Model::getXptSlot()
 {
     return xptSlot;
 }
-
-/**/
-void Model::setXptIpField(int type,int field, int value)
-{
-    switch (type) {
-    case Incremental:
-        xptFields[field]+=value;
-
-
-        if(xptFields[3] < 2){
-            xptFields[3] = 2;
-
-        }
-        if(xptFields[field] > 254){
-            xptFields[field] = 254;
-
-        }
-        if(xptFields[field] < 0){
-            xptFields[field] = 0;
-
-        }
-        emit updateView();
-    break;
-
-    case Absolute:
-        xptFields[field]=value;
-
-
-        if(xptFields[3] < 2){
-            xptFields[3] = 2;
-
-        }
-        if(xptFields[field] > 254){
-            xptFields[field] = 254;
-
-        }
-        if(xptFields[field] < 0){
-            xptFields[field] = 0;
-
-        }
-        emit updateView();
-    break;
-    default:
-        break;
-
-    }
-
-
-}
-
-/**/
-int Model::getXptIpField(int field)
-{
-    return xptFields[field];
-}
-
 void Model::setXptIpAdress(QString ipAdress)
 {
     xptIpAddress = ipAdress;
@@ -936,42 +858,6 @@ int Model::getSppState(int slotNr){
 
 }
 
-/*?? unused*/
-bool Model::getRequestSettingsFlag(){
-    return requestSettingsFlag;
-}
-
-/*?? unused*/
-void Model::setRequestSettingsFlag(bool value){
-    requestSettingsFlag = value;
-}
-
-/*?? unused*/
-void Model::setReqPendArr(int pos, bool value){
-    if(pos< MAX_NUMBER_OF_CMDS){
-        reqPendingArr[pos] = value;
-    }
-}
-
-/*?? unused*/
-bool Model::getReqPendArr(int pos){
-    if(pos >= MAX_NUMBER_OF_CMDS){
-        return false;
-    }
-    else{
-        return reqPendingArr[pos];
-    }
-}
-
-/*?? unused*/
-void Model::setCurrReqHeadNr(int headNr){
-    currReqHeadNr = headNr;
-}
-
-/*?? unused*/
-int Model::getCurrReqHeadNr(){
-    return currReqHeadNr;
-}
 
 /*Pushes requested property into remainingTelegrams. Used to check camera settings requests*/
 int Model::getRequestCommand(int slotNr, properties_t property)
@@ -996,8 +882,6 @@ void Model::setRequestReceived(int slotNr, properties_t property)
         if(iterator != cameras[slotNr].remainingTelegrams.end()){
             cameras[slotNr].remainingTelegrams.erase(iterator);
             if(activeCameraSlot == slotNr){
-                emit newSignalReceived(property);
-                emit setUpView();
                 emit updateViewProperty(property);
             }
         }

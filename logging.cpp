@@ -8,6 +8,7 @@ Q_LOGGING_CATEGORY(rxHeadIo, "rxHead.io")
 Q_LOGGING_CATEGORY(txHeadIo, "txHead.io")
 Q_LOGGING_CATEGORY(xptIo, "xpt.io")
 Q_LOGGING_CATEGORY(requestIo, "request.io")
+Q_LOGGING_CATEGORY(user, "user")
 
 logging::logging()
 {

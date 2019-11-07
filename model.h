@@ -10,7 +10,10 @@
 #include <mutex>
 #include <QDebug>
 #include "logging.h"
-
+//#include "view.h"
+#include "bbmcommandtypes.h"
+#include <QString>
+#include <stdio.h>
 
 //#include "view.h" //nix gut, circular dependency -> forward declaration.
 //class View;         //Make sure each header can be included on its own.
@@ -45,18 +48,14 @@ signals:
     void updateView();
     void updateViewProperty(properties_t property);
     void updateViewFlag(flags_t flag);
-    void setUpView();
     void updateServerConnectionStatus();
     void updateCameraConnectionStatus(bool connected);
     void updateXptConnectionStatus(bool connected);
     void updateXptEnableStatus(bool connected);
     void newSignalReceived(int property);
-    void receiveAllNew();
 
 public:
     Model();
-    void addError(std::string str);
-    void clearErrors();
     void setUsedPreset(int presetNr);
     void setUsedPreset(int slotNr, int presetNr);
     void clearUsedPresets();
@@ -94,20 +93,13 @@ public:
     int setCameraWaitingflag(int slotNr, bool waiting);
     bool getServerStatus();
     properties_t getRotaryField();
-    void setRotaryField(properties_t field, int destination);
-    int getRotaryDestination();
+    void setRotaryField(properties_t field);
     int getTxCommand(properties_t value);
     properties_t getValueFromBBMCommand(int bbm_command);
     void setTextTable(int slotNr, int type);
     int toggleBlink();
     void setSppState(int slotNr, int state);
     int getSppState(int slotNr);
-    bool getRequestSettingsFlag();
-    void setRequestSettingsFlag(bool value);
-    void setReqPendArr(int pos, bool value);
-    bool getReqPendArr(int pos);
-    void setCurrReqHeadNr(int headNr);
-    int getCurrReqHeadNr();
     int getRequestCommand(int slotNr, properties_t property);
     void setRequestReceived(int slotNr, properties_t property);
     std::vector<properties_t> getRemainingTelegrams();
@@ -125,8 +117,6 @@ public:
     int getXptDestination();
     void setXptSlot(int slot);
     int getXptSlot();
-    void setXptIpField(int type,int field,int value);
-    int getXptIpField(int field);
     QString getXptIpAdress();
     void setXptIpAdress(QString ipAdress);
     void setXptNumberOfInputs(int inputs);
@@ -160,7 +150,6 @@ private:
     int answerStack;
     int count;
     properties_t rotaryField;
-    int rotaryDestination;
     int x = 5000;
     int y = 5000;
     bool watchdogWaitingForAnswerFlag = false;
@@ -170,11 +159,6 @@ private:
     struct camera_s cameras[NUMBER_OF_SLOTS];
     int activeCameraSlot;     // 0-5
     bool blinkToggle = false;
-    bool requestSettingsFlag = false;
-    bool reqPendingArr[MAX_NUMBER_OF_CMDS];
-    int currReqHeadNr;
-
-
 
     /* used for normalizing, source: arduino.cc */
     long map(long x, long in_min, long in_max, long out_min, long out_max) {

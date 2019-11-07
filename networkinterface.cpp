@@ -1,7 +1,4 @@
 #include "networkinterface.h"
-#include "config.h"
-#include <QDebug>
-#include "logging.h"
 
 Networkinterface::Networkinterface(){
 }

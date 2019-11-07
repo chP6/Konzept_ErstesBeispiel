@@ -5,7 +5,11 @@
 #include "eventqueue.h"
 #include "telegrambuilder.h"
 #include <thread>
-
+#include "controller.h"
+#include "events.h"
+#include "config.h"
+#include <QDebug>
+#include <csignal>
 class Controller;
 
 class UdpListener

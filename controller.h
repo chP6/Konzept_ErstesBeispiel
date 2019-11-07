@@ -8,8 +8,19 @@
 #include "xptinterface.h"
 #include "config.h"
 #include <QSettings>
-
-
+#include <unistd.h>
+#include <thread>
+#include "events.h"
+#include <errno.h>
+#include "config.h"
+#include <QDebug>
+#include <QSettings>
+#include "logging.h"
+#include <QTime>
+#include <chrono>
+#include <ctime>
+#include <sys/time.h>
+#include <algorithm>
 
 //#define SAVEFILE_PATH   "/mnt/userdata/autosave/savefile"
 //#define AUTOSAVE_PATH   "/mnt/userdata/autosave/autosave"
@@ -24,15 +35,15 @@ class Controller : public QObject
     Q_OBJECT        //qmake vor erstem kompilieren laufen lassen!
 
 signals:
-    void clearLoadButon();
+     void clearLoadButon();
 public slots:
     void onXptLableChanged();
     void onAppQuit();
 public:
     bool applicationRunning=false;
     std::thread t1;
-    Controller(Model& model);
-    void setModel(Model& model);
+    Controller(class Model& model);
+    void setModel(class Model& model);
     void setPoller(Poller& poller);
     void startQueueProcessThread();
     void stopQueueProcessThread();

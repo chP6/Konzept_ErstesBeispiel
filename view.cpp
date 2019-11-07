@@ -1,102 +1,33 @@
 #include "view.h"
 
-
-
 View::View(Model& model, Controller& controller)
     : homeBackend(&model, &controller),cameraBackend(&model, &controller),
       othersBackend(&model, &controller), xptBackend(&model, &controller), controlsBackend(&model, &controller)
 {
     this->controller = &controller;
     this->model = &model;
-    std::signal(SIGINT,View::signalHandler);
 }
 
-View::~View()
-{
-    //delete ui;
-}
-
-
-
-void View::signalHandler(int signum)
-{
-    printf("Why do you kill me %d \n",signum);
-    //QApplication::quit();
-}
-
-
+View::~View(){}
 
 void View::on_modelUpdate()
 {
-    /*QtSlot: update all views  - connected to Model: updateView()*/
-//    ui->home->updateUi();
-//    ui->cameraView->updateUi();
-//    ui->others->updateUi();
-//    ui->xptControl->updateUi();
-//    ui->controls->updateUi();
-    cameraBackend.updateAll();
-    homeBackend.updateAll();
-    xptBackend.updateAll();
-    othersBackend.updateAll();
-    controlsBackend.updateAll();
+    cameraBackend.update();
+    homeBackend.update();
+    xptBackend.update();
+    othersBackend.update();
+    controlsBackend.update();
 }
-
-void View::on_modelSetUp()
-{
-    /*QtSlot: set up camera view -> see setUpUi  - connected to Model: setUpView()*/
-//    ui->cameraView->setUpUi();
-}
-
-void View::on_sppUpdate(bool active)
-{
-    /*QtSlot: start or stop at spp - connected to Model: ?*/
-    //ui->home->sppUpdate(active);
-}
-
 
 void View::on_serverConnectionStatusChanged()
 {
     homeBackend.serverConnectedChanged();
 }
 
-void View::on_cameraConnectionStatusChanged(bool connected)
-{
-    /*QtSlot: camera connected indicator  - connected to Model: updateCameraConnectionStatus()*/
-    //ui->home->cameraConnectionChanged(connected);
-}
-
 
 void View::on_xptConnectionStatusChanged(bool connected)
 {
     xptBackend.connectedChanged(connected);
-    /*QtSlot: xpt connected indicator  - connected to Model: updateXptConnectionStatus()*/
-    //ui->xptControl->xptStatusChanged(connected);
-}
-
-void View::on_xptEnableStatusChanged(bool connected)
-{
-    /*QtSlot: to release connect button if connection fails  - connected to Model: updateXptEnableStatus()*/
-    //ui->xptControl->xptEnableChanged(connected);
-}
-
-
-void View::on_loadButtonCleared()
-{
-    /*?*/
-    //ui->others->clearLoadButton();
-
-}
-
-void View::on_newReceive(int property)
-{
-    /*QtSlot: to indicate a new received value from camera - connected to Model: newSignalReceived()*/
-    //ui->cameraView->signalRequest(property);
-}
-
-void View::on_newRequest()
-{
-  /*QtSlot: to indicate everything will be requested again - connected to Model: receiveAllNew()*/
-    //ui->cameraView->newRequest();
 }
 
 void View::on_modelUpdateProperty(properties_t property)
@@ -149,38 +80,8 @@ void View::on_modelUpdateFlag(flags_t flag)
     }
 }
 
-
-
-
-void View::on_btHome_clicked()
+void View::on_newError()
 {
-/*    ui->stackedWidget->setCurrentIndex(0);  //change window to home
-    ui->home->stackChanged();     */          //push last pressed button on this page again
+    othersBackend.errorChanged();
 }
 
-void View::on_btCamCtrl_clicked()
-{
-  /*  ui->stackedWidget->setCurrentIndex(1);  //change window to camera control
-    ui->cameraView->stackChanged(); */        //push last pressed button on this page again
-
-}
-
-void View::on_btXptControl_clicked()
-{
- /*   ui->stackedWidget->setCurrentIndex(2);  //change window to xpt control
-    ui->xptControl->stackChanged();  */      //push last pressed button on this page again
-
-}
-
-void View::on_btOthers_clicked()
-{
-  /*  ui->stackedWidget->setCurrentIndex(3);  //change window to others
-    ui->others->stackChanged(); */            //push last pressed button on this page again
-
-}
-
-void View::on_btControls_clicked()
-{
-//    ui->stackedWidget->setCurrentIndex(4);
-//    ui->controls->stackChanged();
-}

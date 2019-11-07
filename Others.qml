@@ -5,6 +5,7 @@ import QtQuick.Controls.Material 2.2
 import io.qt.examples.backend 1.0
 import Qt.labs.settings 1.0
 import com.bbm.config 1.0
+import QtQuick.Dialogs 1.2
 
 Page {
     width: 800
@@ -57,7 +58,7 @@ Page {
         Button{
             id:btSetUpperLimit
             text: "Set Upper Limit"
-            onClicked: othersBackend.setUpperLimit()
+            onClicked: Qt.quit()//othersBackend.setUpperLimit()
         }
 
         Button{
@@ -135,23 +136,39 @@ Page {
             }
 
         }
+        function openFile(fileUrl) {
+            var request = new XMLHttpRequest();
+            request.open("GET", fileUrl, false);
+            request.send(null);
+            return request.responseText;
+        }
 
-        Popup{
+        Popup {
             id: errorWindow
-            width: page.width
-            height: page.height
-
-            Button{
-                id: btClose
-                anchors.right: parent.right
-                anchors.rightMargin: 25
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: 25
-                text: "Close"
-                onClicked: errorWindow.close()
+            width: parent.width
+            height: parent.height
+        ScrollView{
+            anchors.fill: parent
+            TextArea{
+                text: othersBackend.errors
             }
 
+         }
+        Button{
+            id: btClose
+            anchors.right: parent.right
+            anchors.rightMargin: 25
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: 25
+            text: "Close"
+            onClicked: errorWindow.close()
         }
+        }
+
+
+
+
+
 
         Column{
             id: col3

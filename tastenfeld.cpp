@@ -1,26 +1,6 @@
 #include "tastenfeld.h"
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <string.h>
-#include <linux/spi/spidev.h>
-#include <sys/types.h>
-#include <sys/ioctl.h>
-#include "config.h"
-#include "tastenfeld.h"
 
-
-
-
-Tastenfeld::Tastenfeld()
-{
-}
-
-
-
+Tastenfeld::Tastenfeld(){}
 Tastenfeld::~Tastenfeld()
 {
 

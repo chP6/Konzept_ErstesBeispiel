@@ -11,6 +11,9 @@
 #include "bbmcommandtypes.h"
 #include "telegrambuilder.h"
 #include <fcntl.h>
+#include "config.h"
+#include <QDebug>
+#include "logging.h"
 
 #define SERVER_IP 	"192.168.0.10"	//Server IP-Address
 #define PORT        8000   			//The port on which to send data

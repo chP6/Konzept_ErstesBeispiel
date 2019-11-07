@@ -7,6 +7,16 @@
 #include <QtDebug>
 #include <poll.h>
 #include <input.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <string.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <linux/input.h>
+#include "input.h"
+#include "logging.h"
 
 #define OCP_DEV_PATH        "/dev/ocp"
 
