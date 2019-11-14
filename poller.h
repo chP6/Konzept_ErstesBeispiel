@@ -43,7 +43,6 @@ private:
     int poll_err;
     Controller* controller;
     std::list<class InputDevice*> m_devices;
-    std::list<class InputDevice*> m_hotplugdevices;
     std::list<class Watchdog*> m_timers;
     Hotplug *m_hotplugobserver;
 

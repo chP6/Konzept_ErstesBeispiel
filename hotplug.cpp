@@ -38,7 +38,7 @@ int Hotplug::init(struct pollfd *fd){
 }
 
 bool Hotplug::eventReceived() {
-    return m_fd ? (m_fd->revents & POLLIN) || (m_fd->revents & POLLPRI) : false;
+    return m_fd ? (m_fd->revents & POLLIN) : false;
 }
 
 /*Read data on socket*/
@@ -52,10 +52,22 @@ void Hotplug::readEvent(){
     if(recvfrom(m_fd->fd, buf, sizeof (buf)/sizeof (buf[0]), 0, (struct sockaddr *) &peer, &len) < 0){
         qDebug("failed read from socket %d: %s", m_fd->fd, strerror(errno));
     }
+    QString response = buf;
+    QStringList col = response.split(":");
+    QString device = col[1];
+    QString action = col[0];
+
     for (InputDevice* d : *m_hotplugdevices){
-        if(strcmp(d->m_fileName,&buf[0])==0){
-            d->init(d->m_fd);
-            qInfo(user,"new Device: %s",d->name);
+        if(strcmp(d->m_fileName,device.toLocal8Bit())==0){
+            if(action.contains("add")){
+                d->init(d->m_fd);
+                qInfo(user,"connected Device: %s",d->name);
+            }
+            if(action.contains("rm")){
+                d->m_fd->fd = -1;
+                qInfo(user,"disconnected Device: %s",d->name);
+            }
+
         }
     }
 }

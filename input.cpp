@@ -11,9 +11,6 @@ InputDevice::~InputDevice() {
 int InputDevice::init(struct pollfd *fd) {
     if (fd) {
         m_fd = fd;
-        if(m_fd->fd > 0){
-          close(m_fd->fd);
-        }
         m_fd->fd = open(m_fileName, O_RDONLY);
         if (m_fd->fd < 0) {
             qDebug("failed to open %s: %s", m_fileName, strerror(errno));
@@ -30,7 +27,9 @@ int InputDevice::init(struct pollfd *fd) {
 }
 
 bool InputDevice::eventReceived() {
+
     return m_fd ? (m_fd->revents & POLLIN) || (m_fd->revents & POLLPRI) : false;
+
 }
 
 bool InputDevice::readEvent(struct input_event &event) {
