@@ -143,7 +143,8 @@ dtoverlay=2x6matrix
 # Versuch einer Hotplug implementation
 Neue udev Rule die alle neuen inputdevices meldet.
 ```
-ACTION=="add",SUBSYSTEM=="input",RUN=="/opt/ocp_add %E{DEVLINKS}"
+ACTION=="add",SUBSYSTEM=="input",RUN=="/opt/ocp_add 'add'  %E{DEVLINKS}"
+ACTION=="remove", SUBSYSTEM=="input",RUN=="/opt/ocp_add 'rm'  %E{DEVLINKS}"
 ```
 Das Programm "ocp_add" schreibt nun die von udev übergebenen Symlinks auf einen unix domain socket.
 Im Controllerprogramm werden diese informationen verarbeitet
@@ -153,11 +154,11 @@ Im Controllerprogramm werden diese informationen verarbeitet
 int main(int argc, char *argv[])
 {
     char name[] = "dummy";
-    char *socketName=NULL;
-    socketName = &name[0];
+    char *deviceName=NULL;
+    deviceName = &name[0];
 
-    if(argc > 1){
-         socketName = argv[1];
+    if(argc > 2){
+         deviceName = argv[2];
     }
 
     int client_socket = socket(AF_UNIX, SOCK_DGRAM, 0);
@@ -171,7 +172,8 @@ int main(int argc, char *argv[])
     strcpy(remote.sun_path,"/tmp/hotplug");
     char buf[256];
     memset(buf,0,sizeof (buf)/sizeof (buf[0]));
-    sprintf(buf,"%s", socketName);
+
+    sprintf(buf,"%s:%s", argv[1],deviceName);
     if (sendto(client_socket, buf, strlen(buf), 0, (struct sockaddr *) &remote, sizeof (struct sockaddr_un) ) < 0) {
         printf("SENDTO ERROR %s : %s\n",remote.sun_path, strerror(errno));
     }
