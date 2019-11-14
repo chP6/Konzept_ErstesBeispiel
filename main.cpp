@@ -19,6 +19,7 @@
 #include <QCursor>
 #include <QFileSystemWatcher>
 
+
 /*Redirect certain Debug messages to a File such that it can be displayed on the error/info-screen*/
 void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
@@ -30,7 +31,7 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
     case QtInfoMsg:{
         if (strcmp(context.category,"user")==0) {
             FILE * fp;
-            fp = fopen("/root/.config/"+QCoreApplication::organizationName().toLocal8Bit()+"/log.txt", "a" );
+            fp = fopen("/tmp/"+QCoreApplication::organizationName().toLocal8Bit()+"/log.txt", "a" );
             fprintf(fp, "Info: %s\n", localMsg.constData());
             fclose(fp);
         }
@@ -39,7 +40,7 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
     case QtWarningMsg:
         if (strcmp(context.category,"user")==0) {
             FILE * fp;
-            fp = fopen("/root/.config/"+QCoreApplication::organizationName().toLocal8Bit()+"/log.txt", "a" );
+            fp = fopen("/tmp/"+QCoreApplication::organizationName().toLocal8Bit()+"/log.txt", "a" );
             fprintf(fp, "Error: %s\n", localMsg.constData());
             fclose(fp);
         }
@@ -88,7 +89,7 @@ void parseComandlineOptions(QCommandLineParser &parser, QGuiApplication &app){
         parser.addOption(logInquiry);
     parser.process(app);
         QByteArray filter;
-        //filter.append("*.debug=false\n");   //disable any debugging
+        filter.append("*.debug=false\n");   //disable any debugging
         filter.append("user=true\n");
         if (parser.isSet(logPreset)) {
             filter.append("preset.io=true\n"); //enable preset logging
@@ -98,6 +99,7 @@ void parseComandlineOptions(QCommandLineParser &parser, QGuiApplication &app){
         }
         if (parser.isSet(logLogic)) {
             filter.append("logic.io=true\n"); //enable logic debugging
+            filter.append("default=true\n");
         }
         if (parser.isSet(logExtRCP)) {
             filter.append("rxRcp.io=true\n"); //enable adjacent rcp/ocp logging
@@ -127,6 +129,7 @@ void parseComandlineOptions(QCommandLineParser &parser, QGuiApplication &app){
             filter.append("txWatchdog.io=true\n"); //enable tx Watchdocg logging
             filter.append("rxWatchdog.io=true\n"); //enable rx Watchdocg logging
             filter.append("request.io=true\n"); //enable inquirylogging
+            filter.append("default=true\n");
         }
         /*add filter to logger*/
         QLoggingCategory::setFilterRules(filter);
@@ -134,13 +137,13 @@ void parseComandlineOptions(QCommandLineParser &parser, QGuiApplication &app){
 
 int main(int argc, char *argv[])
 {
-
     QCoreApplication::setOrganizationName("BBMProductions");
     QCoreApplication::setApplicationName("BBMNetDualController");
     QCoreApplication::setApplicationVersion("5.1");
 
     static FILE * fp;
-    fp = fopen("/root/.config/"+QCoreApplication::organizationName().toLocal8Bit()+"/log.txt", "w" );
+    mkdir("/tmp/"+QCoreApplication::organizationName().toLocal8Bit(),ACCESSPERMS);
+    fp = fopen("/tmp/"+QCoreApplication::organizationName().toLocal8Bit()+"/log.txt", "w" );
     if(fp){
         fclose(fp);
     }
@@ -156,6 +159,7 @@ int main(int argc, char *argv[])
     QQmlApplicationEngine engine;
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QGuiApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
+    app.setQuitOnLastWindowClosed(false);
 
     pthread_t this_thread = pthread_self ();
     struct sched_param params;
@@ -166,7 +170,8 @@ int main(int argc, char *argv[])
     QCommandLineParser parser;
     parseComandlineOptions(parser, app);
     QFileSystemWatcher errorHanlder; //signal on new error
-    errorHanlder.addPath("/root/.config/"+QCoreApplication::organizationName().toLocal8Bit()+"/log.txt");
+    if(errorHanlder.addPath("/tmp/"+QCoreApplication::organizationName().toLocal8Bit()+"/log.txt"))
+        qDebug()<<"listening to"<<errorHanlder.files();
 
     Model model;
     Controller controller(model);
@@ -195,6 +200,8 @@ int main(int argc, char *argv[])
     QObject::connect(&model, &Model::updateServerConnectionStatus,&view, &View::on_serverConnectionStatusChanged);
     QObject::connect(&model, &Model::updateXptConnectionStatus,&view, &View::on_xptConnectionStatusChanged);
     QObject::connect(&errorHanlder, &QFileSystemWatcher::fileChanged,&view, &View::on_newError);
+    QObject::connect(&engine, &QQmlApplicationEngine::quit,&app,&QGuiApplication::quit);
+
 
     Poller poller(controller);
     controller.setPoller(poller);
@@ -203,13 +210,12 @@ int main(int argc, char *argv[])
     poller.startListener();
     udpListener.startListener();
 
-    app.exec();
+    int ret = app.exec();
     poller.stopListener();
     if(poller.t3.joinable()){ poller.t3.join();}
     controller.stopQueueProcessThread();
     if(controller.t1.joinable()){controller.t1.join();}
     udpListener.stopListener();
-    //if(udpListener.t2.joinable()){udpListener.t2.join();}
     qCDebug(logicIo,"bye bye \n");
-    exit(0);
+    return ret;
 }
