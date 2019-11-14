@@ -140,5 +140,160 @@ dtoverlay=gpio-key,gpio=24,keycode=28,label="rotary-knob"
 dtoverlay=rotary-encoder,pin_a=23,pin_b=22,relative_axis=1,label="rotary"
 dtoverlay=2x6matrix
 ```
+# Versuch einer Hotplug implementation
+Neue udev Rule die alle neuen inputdevices meldet.
+```
+ACTION=="add",SUBSYSTEM=="input",RUN=="/opt/ocp_add %E{DEVLINKS}"
+```
+Das Programm "ocp_add" schreibt nun die von udev übergebenen Symlinks auf einen unix domain socket.
+Im Controllerprogramm werden diese informationen verarbeitet
 
+## ocp_add
+```
+int main(int argc, char *argv[])
+{
+    char name[] = "dummy";
+    char *socketName=NULL;
+    socketName = &name[0];
+
+    if(argc > 1){
+         socketName = argv[1];
+    }
+
+    int client_socket = socket(AF_UNIX, SOCK_DGRAM, 0);
+        if (client_socket < 0) {
+            printf("SOCKET ERROR = %s\n", strerror(errno));
+            exit(1);
+        }
+    struct sockaddr_un remote;
+    memset(&remote, 0, sizeof(struct sockaddr_un));
+    remote.sun_family = AF_UNIX;
+    strcpy(remote.sun_path,"/tmp/hotplug");
+    char buf[256];
+    memset(buf,0,sizeof (buf)/sizeof (buf[0]));
+    sprintf(buf,"%s", socketName);
+    if (sendto(client_socket, buf, strlen(buf), 0, (struct sockaddr *) &remote, sizeof (struct sockaddr_un) ) < 0) {
+        printf("SENDTO ERROR %s : %s\n",remote.sun_path, strerror(errno));
+    }
+    close(client_socket);
+    return  1;
+}
+
+```
+
+# gpio Keyboard legacy
+Da bei dem alten Keyboard alle gpios direkt verdrahtet sind gibt es ein zusätzliches overlay:
+```
+/dts-v1/;
+    /plugin/;
+    / {
+       compatible = "brcm,bcm2835", "brcm,bcm2708", "brcm,bcm2709";
+       
+       fragment@0 {
+          target-path = "/";
+          __overlay__ {
+             keypad: led-buttons-extra {
+                compatible = "gpio-keys";
+                #address-cells = <1>;
+                #size-cells = <0>;
+                no-autorepeat;
+                button@27 {
+                   label = "Button 1 LR";
+                   linux,code = <2>; //KEY_1
+                   gpios = <&gpio 27 1>;
+                };
+                button@22 {
+                   label = "Button 2 LR";
+                   linux,code = <3>; //KEY_2
+                   gpios = <&gpio 22 1>;
+                };
+                button@5 {
+                   label = "Button 3 LR";
+                   linux,code = <4>; //KEY_3
+                   gpios = <&gpio 5 1>;
+                };
+                button@6 {
+                   label = "Button 4 LR";
+                   linux,code = <5>; //KEY_4
+                   gpios = <&gpio 6 1>;
+                };
+                button@13 {
+                   label = "Button 5 LR";
+                   linux,code = <6>; //KEY_5
+                   gpios = <&gpio 13 1>;
+                };
+                button@19 {
+                   label = "Button 6 LR";
+                   linux,code = <7>; //KEY_6
+                   gpios = <&gpio 19 1>;
+                };
+                button@26 {
+                   label = "Button 1 UR";
+                   linux,code = <59>; //KEY_F1
+                   gpios = <&gpio 26 1>;
+                };
+                button@18 {
+                   label = "Button 2 UR";
+                   linux,code = <60>; //KEY_F2
+                   gpios = <&gpio 18 1>;
+                };
+                button@23 {
+                   label = "Button 3 UR";
+                   linux,code = <61>; //KEY_F3
+                   gpios = <&gpio 23 1>;
+                };
+                button@24 {
+                   label = "Button 4 UR";
+                   linux,code = <62>; //KEY_F4
+                   gpios = <&gpio 24 1>;
+                };
+                button@25 {
+                   label = "Button 5 UR";
+                   linux,code = <63>; //KEY_F5
+                   gpios = <&gpio 25 1>;
+                };
+                button@12 {
+                   label = "Button 6 UR";
+                   linux,code = <64>; //KEY_F6
+                   gpios = <&gpio 12 1>;
+                };
+             };
+          };
+       };
+    };
+```
+# I2C Rotary Encoder
+Der alte Rotary-Encoder hat eine Senseleitung, diese wird mittels overlay auch als Inputdevice eingelesen.
+```
+/dts-v1/;
+    /plugin/;
+    / {
+       compatible = "brcm,bcm2835", "brcm,bcm2708", "brcm,bcm2709";
+       
+       fragment@0 {
+          target-path = "/";
+          __overlay__ {
+             keypad: rotary-sense {
+                compatible = "gpio-keys";
+                #address-cells = <1>;
+                #size-cells = <0>;
+                                no-autorepeat;
+                
+                button@4 {
+                   label = "Rotary-Sense-1";
+                   linux,code = <67>;
+                   interrupts-extended = <&gpio 4 2>;
+                };
+                button@17 {
+                   label = "Rotary-Sense-2";
+                   linux,code = <68>;
+                   interrupts-extended = <&gpio 17 2>;
+                };
+
+             };
+          };
+       };
+    };
+
+```
 
