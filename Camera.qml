@@ -56,9 +56,8 @@ Page{
 
    Rectangle{
        id: hline1
-       anchors.bottom: row1.top
-       anchors.left: row1.left
-       anchors.horizontalCenter: sep1.horizontalCenter
+       x: row1.x
+       y: row1.y
        height: 1
        width: bBlue.width + bRed.width
        color: Material.foreground
@@ -101,9 +100,8 @@ Page{
 
    Rectangle{
        id: hline2
-       anchors.bottom: row2.top
-       anchors.left: row2.left
-       anchors.horizontalCenter: sep2.horizontalCenter
+       x: row2.x
+       y: row2.y
        height: 1
        width: wBlue.width + wRed.width
        color: Material.foreground

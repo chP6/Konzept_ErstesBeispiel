@@ -143,7 +143,7 @@ QString Others::errors(){
     static FILE * fp;
     char *line = nullptr;
     size_t len = 0;
-    fp = fopen(".config/"+QCoreApplication::organizationName().toLocal8Bit()+"/log.txt", "r" );
+    fp = fopen("/tmp/"+QCoreApplication::organizationName().toLocal8Bit()+"/log.txt", "r" );
     if(fp){
     while ( getline(&line, &len, fp) != -1) {
         errors.insert(0,line);

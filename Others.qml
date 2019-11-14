@@ -12,6 +12,7 @@ Page {
     height: 400
     title: "Others"
     id: page
+    Component.onCompleted:othersBackend.setColor(Material.color(page.accent))
 
     Settings{
         id: settings
@@ -58,7 +59,7 @@ Page {
         Button{
             id:btSetUpperLimit
             text: "Set Upper Limit"
-            onClicked: Qt.quit()//othersBackend.setUpperLimit()
+            onClicked: othersBackend.setUpperLimit()
         }
 
         Button{
@@ -125,6 +126,7 @@ Page {
                 id: btErrorWindow
                 text: "Error Window"
                 onClicked: errorWindow.open()
+                onPressAndHold: exit.visible = true
             }
 
             CustomDial{
@@ -219,6 +221,18 @@ Page {
                 onCheckedChanged: checked ?  theme = Material.Dark : theme = Material.Light
             }
 
+
     }
+        DelayButton{
+            id:exit
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            anchors.rightMargin: 45
+            anchors.bottomMargin: 25
+            width: combobox.width
+            text: "Exit"
+            onActivated: Qt.quit()
+            visible: false
+        }
 
 }

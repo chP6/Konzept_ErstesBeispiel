@@ -2,6 +2,7 @@
 #include "model.h"
 #include "poller.h"
 
+
 /*Signal from xptSocktet 'inputLabelsChanged' to controller 'onXptLabelChanged'*/
 void Controller::onXptLableChanged()
 {
@@ -14,10 +15,6 @@ void Controller::onXptLableChanged()
     model->updateView();
 }
 
-void Controller::onAppQuit()
-{
-    qCDebug(logicIo)<<"This is the end";
-}
 
 Controller::Controller(Model& model)
 {
@@ -75,6 +72,11 @@ Controller::Controller(Model& model)
     /*push the first event in the queue*/
     queueEvent(E_SETUP_HEAD);
 
+
+}
+
+Controller::~Controller()
+{
 
 }
 
@@ -322,16 +324,15 @@ void Controller::stopQueueProcessThread()
     }
     xptWatchdog.stop();
     blinkTimer.stop();
+    axesUpdater.stop();
     applicationRunning = false;
     eventQueue.qeueEvent(E_CLEAR); //fire event to stop thread
 }
-
 
 /*processes the events in the eventQueue*/
 void Controller::processQeue(){
     event_s loadedEvent;
     int from, type, command, data, headNr, sppPreset=0, time, slotNr;
-
 
     while(applicationRunning){
         eventQueue.pullEvent(loadedEvent);      //blocks if queue is empty
@@ -450,7 +451,8 @@ void Controller::processQeue(){
             txSocket.send(model->getValue(Absolute,HeadNr), SET_FOCUS_PUSH);
             qCDebug(logicIo)<< "Autofocus pressed |";
             break;
-
+        case E_CLEAR:
+            break;
         case E_TX_SERV_WATCHDOG:
             /*Watchdog to the server, periodically every second*/
             txSocket.send(SERVER, WATCHDOG);

@@ -21,6 +21,9 @@
 #include <ctime>
 #include <sys/time.h>
 #include <algorithm>
+#include <sys/syscall.h>
+#include <QCoreApplication>
+
 
 //#define SAVEFILE_PATH   "/mnt/userdata/autosave/savefile"
 //#define AUTOSAVE_PATH   "/mnt/userdata/autosave/autosave"
@@ -36,13 +39,14 @@ class Controller : public QObject
 
 signals:
      void clearLoadButon();
+     void quit();
 public slots:
     void onXptLableChanged();
-    void onAppQuit();
 public:
     bool applicationRunning=false;
     std::thread t1;
     Controller(class Model& model);
+    ~Controller();
     void setModel(class Model& model);
     void setPoller(Poller& poller);
     void startQueueProcessThread();

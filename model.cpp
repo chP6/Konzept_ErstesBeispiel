@@ -13,6 +13,7 @@ Model::Model()
     /*set all cameras to type 1 (CODGER)*/
     for (int i=0; i<NUMBER_OF_SLOTS; i++) {
         setCamTypeWithDefValues(i,SONY_EVS_CODGER);
+        setXptSlotSource(i);
 
         setValue(i, Absolute,HeadNr,i+1);   //set headNr.
         /*set all flags to flase*/

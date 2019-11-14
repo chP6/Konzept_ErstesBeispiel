@@ -15,7 +15,7 @@ UdpListener::UdpListener(Controller& controller)
 void UdpListener::startListener(){
     applicationRunning = true;
     t2 = std::thread(&UdpListener::listener, this);                  //1.Arg: function type that will be called, 2.Arg: pointer to object (this)
-    //t1.detach();
+    t2.detach();
 }
 
 void UdpListener::stopListener()

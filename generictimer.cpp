@@ -90,7 +90,6 @@ void GenericTimer::start(){
 void GenericTimer::stop(){
 if(init_done){
     active = false;
-
     if (t1.joinable()) {
         t1.join();
     qCDebug(logicIo)<<"Timer Thread Joined";
